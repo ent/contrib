@@ -1691,7 +1691,7 @@ func TestNestedConnection(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFpzwAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2696,6 +2696,56 @@ func TestOrderByEdgeCount(t *testing.T) {
 		for i, r := range root {
 			require.Equal(t, rsp.Todos.Edges[len(rsp.Todos.Edges)-i-1].Node.ID, strconv.Itoa(r.ID))
 		}
+	})
+
+	t.Run("MultiOrderWithPagination", func(t *testing.T) {
+		var (
+			// language=GraphQL
+			query = `query CategoryByTodosCount($first: Int, $after: Cursor) {
+				categories(
+					first: $first,
+   					after: $after
+					orderBy: [{field: TODOS_COUNT, direction: DESC}],
+				) {
+					edges {
+						cursor
+						node {
+							id
+							text
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Categories struct {
+					Edges []struct {
+						Cursor string
+						Node   struct {
+							ID   string
+							Text string
+						}
+					}
+				}
+			}
+		)
+		gqlc.MustPost(
+			query,
+			&rsp,
+			client.Var("first", 2),
+			client.Var("after", nil),
+		)
+		require.Len(t, rsp.Categories.Edges, 2)
+
+		// Do another query to get the next node after the first in our original query.
+		expectedNode := rsp.Categories.Edges[1].Node
+		gqlc.MustPost(
+			query,
+			&rsp,
+			client.Var("first", 1),
+			client.Var("after", rsp.Categories.Edges[0].Cursor),
+		)
+		require.Len(t, rsp.Categories.Edges, 1)
+		require.Equal(t, expectedNode.ID, rsp.Categories.Edges[0].Node.ID)
 	})
 
 	t.Run("NestedEdgeCountOrdering", func(t *testing.T) {
