@@ -17,7 +17,6 @@ package schemast
 import (
 	"fmt"
 	"go/ast"
-
 	"golang.org/x/tools/go/packages"
 )
 
@@ -75,6 +74,30 @@ func (c *Context) lookupMethod(typeName string, methodName string) (*ast.FuncDec
 				}
 				if id, ok := fd.Recv.List[0].Type.(*ast.Ident); ok && id.Name == typeName {
 					found = fd
+					return false
+				}
+			}
+			return true
+		})
+		if found != nil {
+			return found, true
+		}
+	}
+	return nil, false
+}
+
+// lookupBaseStruct will search the schemast.Context for the AST representing the struct declaration of the requested
+// typeName.
+func (c *Context) lookupBaseStruct(typeName string) (*ast.StructType, bool) {
+	var found *ast.StructType
+	for _, file := range c.syntax() {
+		ast.Inspect(file, func(node ast.Node) bool {
+			if typeSpec, ok := node.(*ast.TypeSpec); ok {
+				if typeSpec.Name.Name != typeName {
+					return true
+				}
+				if structType, ok := typeSpec.Type.(*ast.StructType); ok {
+					found = structType
 					return false
 				}
 			}
