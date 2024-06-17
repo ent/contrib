@@ -30,6 +30,7 @@ import (
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
+	"{{ $.Config.Package }}/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/contrib/entgql"

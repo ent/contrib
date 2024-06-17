@@ -11,6 +11,7 @@
 
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "mutation_create_input" "mutation_update_input") }}
 import (
+    "entgo.io/contrib/entgql"
     {{- range $n := $gqlNodes }}
         {{- template "import/types" $n }}
         "{{ $.Config.Package }}/{{ $n.Package }}"
