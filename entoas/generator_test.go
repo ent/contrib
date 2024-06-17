@@ -141,37 +141,6 @@ func TestOgenSchema_Example(t *testing.T) {
 			require.Equal(t, ex, ac)
 		})
 	}
-
-	//  require.Equal(t, expected interface{}, actual interface{}, msgAndArgs ...interface{})
-	// for d, ex := range map[*entfield.Descriptor]*ogen.Schema{
-	// } {
-	// 	t.Run(d.Name, func(t *testing.T) {
-	// 		f, err := load.NewField(d)
-	// 		require.NoError(t, err)
-	// 		ens := make([]gen.Enum, len(f.Enums))
-	// 		for i, e := range f.Enums {
-	// 			ens[i] = gen.Enum{Name: e.N, Value: e.V}
-	// 		}
-	// 		gf := &gen.Field{
-	// 			Name:        f.Name,
-	// 			Type:        f.Info,
-	// 			Annotations: f.Annotations,
-	// 			Enums:       ens,
-	// 		}
-	// 		ac, err := OgenSchema(gf)
-	// 		if ex == nil {
-	// 			require.Error(t, err)
-	// 			require.EqualError(t, err, fmt.Sprintf(
-	// 				"no OAS-type exists for type %q of field %s",
-	// 				gf.Type.String(),
-	// 				gf.StructField(),
-	// 			))
-	// 		} else {
-	// 			require.NoError(t, err)
-	// 			require.Equal(t, ex, ac)
-	// 		}
-	// 	})
-	// }
 }
 
 func TestOperation_Title(t *testing.T) {
