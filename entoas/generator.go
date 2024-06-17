@@ -534,26 +534,48 @@ var (
 	max16  int64 = math.MaxInt16
 	maxu16 int64 = math.MaxUint16
 	maxu32 int64 = math.MaxUint32
-	types        = map[string]*ogen.Schema{
-		"bool":      ogen.Bool(),
-		"time.Time": ogen.DateTime(),
-		"string":    ogen.String(),
-		"[]byte":    ogen.Bytes(),
-		"uuid.UUID": ogen.UUID(),
-		"int":       ogen.Int(),
-		"int8":      ogen.Int32().SetMinimum(&min8).SetMaximum(&max8),
-		"int16":     ogen.Int32().SetMinimum(&min16).SetMaximum(&max16),
-		"int32":     ogen.Int32(),
-		"uint":      ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		"uint8":     ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu8),
-		"uint16":    ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu16),
-		"uint32":    ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		"int64":     ogen.Int64(),
-		"uint64":    ogen.Int64().SetMinimum(&zero),
-		"float32":   ogen.Float(),
-		"float64":   ogen.Double(),
-	}
 )
+
+func types(t string) *ogen.Schema {
+	switch t {
+	case "bool":
+		return ogen.Bool()
+	case "time.Time":
+		return ogen.DateTime()
+	case "string":
+		return ogen.String()
+	case "[]byte":
+		return ogen.Bytes()
+	case "uuid.UUID":
+		return ogen.UUID()
+	case "int":
+		return ogen.Int()
+	case "int8":
+		return ogen.Int32().SetMinimum(&min8).SetMaximum(&max8)
+	case "int16":
+		return ogen.Int32().SetMinimum(&min16).SetMaximum(&max16)
+	case "int32":
+		return ogen.Int32()
+	case "uint":
+		return ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32)
+	case "uint8":
+		return ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu8)
+	case "uint16":
+		return ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu16)
+	case "uint32":
+		return ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32)
+	case "int64":
+		return ogen.Int64()
+	case "uint64":
+		return ogen.Int64().SetMinimum(&zero)
+	case "float32":
+		return ogen.Float()
+	case "float64":
+		return ogen.Double()
+	default:
+		return nil
+	}
+}
 
 // OgenSchema returns the ogen.Schema to use for the given gen.Field.
 func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
@@ -565,6 +587,7 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if ant.Schema != nil {
 		return ant.Schema, nil
 	}
+
 	// Enum values need special case.
 	if f.IsEnum() {
 		var d json.RawMessage
@@ -586,12 +609,13 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	s := f.Type.String()
 	// Handle slice types.
 	if strings.HasPrefix(s, "[]") {
-		if t, ok := types[s[2:]]; ok {
+		t := types(s[2:])
+		if t != nil {
 			return t.AsArray(), nil
 		}
 	}
-	t, ok := types[s]
-	if !ok {
+	t := types(s)
+	if t == nil {
 		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
 	}
 	return t, nil
