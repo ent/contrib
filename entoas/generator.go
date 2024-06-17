@@ -611,6 +611,11 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if strings.HasPrefix(s, "[]") {
 		t := types(s[2:])
 		if t != nil {
+			jv, err := json.Marshal(ant.Example)
+			if err != nil {
+				return nil, fmt.Errorf("cannot marshal example annotation for field %s", f.Name)
+			}
+			t.Example = jv
 			return t.AsArray(), nil
 		}
 	}
@@ -618,6 +623,15 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 	if t == nil {
 		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
 	}
+
+	if ant.Example != nil {
+		jv, err := json.Marshal(ant.Example)
+		if err != nil {
+			return nil, fmt.Errorf("cannot marshal example annotation for field %s", f.Name)
+		}
+		t.Example = jv
+	}
+
 	return t, nil
 }
 
