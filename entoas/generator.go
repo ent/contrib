@@ -588,8 +588,11 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 		return ant.Schema, nil
 	}
 
-	// Enum values need special case.
-	if f.IsEnum() {
+	var schema *ogen.Schema
+	s := f.Type.String()
+
+	switch {
+	case f.IsEnum(): // Enum values need special case.
 		var d json.RawMessage
 		if f.Default {
 			d, err = json.Marshal(f.DefaultValue().(string))
@@ -604,23 +607,21 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 				return nil, err
 			}
 		}
-		return ogen.String().AsEnum(d, vs...), nil
-	}
-	s := f.Type.String()
-	// Handle slice types.
-	if strings.HasPrefix(s, "[]") {
+		schema = ogen.String().AsEnum(d, vs...)
+
+	case strings.HasPrefix(s, "[]"): // Handle slice types.
 		t := types(s[2:])
 		if t != nil {
-			jv, err := json.Marshal(ant.Example)
-			if err != nil {
-				return nil, fmt.Errorf("cannot marshal example annotation for field %s", f.Name)
-			}
-			t.Example = jv
-			return t.AsArray(), nil
+			schema = t.AsArray()
+			break
 		}
+		fallthrough
+
+	default:
+		schema = types(s)
 	}
-	t := types(s)
-	if t == nil {
+
+	if schema == nil {
 		return nil, fmt.Errorf("no OAS-type exists for type %q of field %s", s, f.StructField())
 	}
 
@@ -629,10 +630,10 @@ func OgenSchema(f *gen.Field) (*ogen.Schema, error) {
 		if err != nil {
 			return nil, fmt.Errorf("cannot marshal example annotation for field %s", f.Name)
 		}
-		t.Example = jv
+		schema.Example = jv
 	}
 
-	return t, nil
+	return schema, nil
 }
 
 // NodeOperations returns the list of operations to expose for this node.
