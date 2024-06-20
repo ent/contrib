@@ -703,7 +703,20 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 	default:
 		return nil, fmt.Errorf("requestBody: unsupported operation %q", op)
 	}
+
+	gs, err := GroupsForOperation(n.Annotations, op)
+	if err != nil {
+		return nil, err
+	}
 	for _, f := range n.Fields {
+		ok, err := serializeField(f, gs)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			continue
+		}
+
 		a, err := FieldAnnotation(f)
 		if err != nil {
 			return nil, err
