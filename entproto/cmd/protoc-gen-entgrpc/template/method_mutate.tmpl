@@ -38,10 +38,11 @@
 
 {{ define "create_builder_func" }}
     {{- $entType  := .Method.G.EntType.Name -}}
+    {{- $pbType := .Method.G.File.GoImportPath.Ident $entType | ident -}}
     {{- $inputVar := camel $entType -}}
-    {{- $outputType := printf "%s%s" $entType "Create" -}}
+    {{- $outputType := .Method.G.EntPackage.Ident ( printf "%s%s" $entType "Create" ) | ident  -}}
 
-    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
+    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $pbType }}) (*{{ $outputType }}, error) {
         m := svc.client.{{ $entType }}.Create()
         {{- template "mutate_helper" .Method -}}
         return m, nil

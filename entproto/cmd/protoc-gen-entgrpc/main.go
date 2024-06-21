@@ -30,19 +30,29 @@ import (
 )
 
 var (
-	entSchemaPath *string
-	snake         = gen.Funcs["snake"].(func(string) string)
-	status        = protogen.GoImportPath("google.golang.org/grpc/status")
-	codes         = protogen.GoImportPath("google.golang.org/grpc/codes")
+	entgrpcPackage *string
+	entSchemaPath  *string
+	entPackagePath *string
+
+	snake  = gen.Funcs["snake"].(func(string) string)
+	status = protogen.GoImportPath("google.golang.org/grpc/status")
+	codes  = protogen.GoImportPath("google.golang.org/grpc/codes")
 )
 
 func main() {
 	var flags flag.FlagSet
+	entgrpcPackage = flags.String("package", "", "package path to be generated")
 	entSchemaPath = flags.String("schema_path", "", "ent schema path")
+	entPackagePath = flags.String("entity_package", "", "ent entity package path")
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(plg *protogen.Plugin) error {
-		g, err := entc.LoadGraph(*entSchemaPath, &gen.Config{})
+		conf := gen.Config{}
+		if entPackagePath != nil {
+			conf.Package = *entPackagePath
+		}
+
+		g, err := entc.LoadGraph(*entSchemaPath, &conf)
 		if err != nil {
 			return err
 		}
@@ -99,19 +109,30 @@ func newServiceGenerator(plugin *protogen.Plugin, file *protogen.File, graph *ge
 	if err != nil {
 		return nil, err
 	}
+
+	entgrpcImportPath := file.GoImportPath
+	entgrpcPackageName := file.GoPackageName
+	if entgrpcPackage != nil {
+		entgrpcImportPath = protogen.GoImportPath(*entgrpcPackage)
+		entgrpcPackageName = protogen.GoPackageName(path.Base(*entgrpcPackage))
+	}
+
 	filename := file.GeneratedFilenamePrefix + "_" + snake(service.GoName) + ".go"
-	g := plugin.NewGeneratedFile(filename, file.GoImportPath)
+	g := plugin.NewGeneratedFile(filename, entgrpcImportPath)
 	fieldMap, err := adapter.FieldMap(typ.Name)
 	if err != nil {
 		return nil, err
 	}
+
 	return &serviceGenerator{
-		GeneratedFile: g,
-		EntPackage:    protogen.GoImportPath(graph.Config.Package),
-		File:          file,
-		Service:       service,
-		EntType:       typ,
-		FieldMap:      fieldMap,
+		GeneratedFile:      g,
+		EntgrpcPackageName: entgrpcPackageName,
+		EntgrpcPackage:     entgrpcImportPath,
+		EntPackage:         protogen.GoImportPath(graph.Config.Package),
+		File:               file,
+		Service:            service,
+		EntType:            typ,
+		FieldMap:           fieldMap,
 	}, nil
 }
 
@@ -161,11 +182,13 @@ func (g *serviceGenerator) generate() error {
 type (
 	serviceGenerator struct {
 		*protogen.GeneratedFile
-		EntPackage protogen.GoImportPath
-		File       *protogen.File
-		Service    *protogen.Service
-		EntType    *gen.Type
-		FieldMap   entproto.FieldMap
+		EntgrpcPackageName protogen.GoPackageName
+		EntgrpcPackage     protogen.GoImportPath
+		EntPackage         protogen.GoImportPath
+		File               *protogen.File
+		Service            *protogen.Service
+		EntType            *gen.Type
+		FieldMap           entproto.FieldMap
 	}
 	methodInput struct {
 		G      *serviceGenerator
