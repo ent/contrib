@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sync"
 
+	"entgo.io/contrib/entproto/internal/altdir/ent/account"
 	"entgo.io/contrib/entproto/internal/altdir/ent/user"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -73,7 +74,8 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table: user.ValidColumn,
+			account.Table: account.ValidColumn,
+			user.Table:    user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)
