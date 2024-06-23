@@ -505,7 +505,18 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 		if ant.Skip.Is(SkipWhereInput) {
 			continue
 		}
-		for i, op := range f.Ops() {
+
+		ops := f.Ops()
+		allowed := OpsALL
+		if ant.AllowedOps > 0 {
+			allowed = ant.AllowedOps
+		}
+
+		for i, op := range ops {
+			if !allowed.hasGenOp(op) {
+				continue
+			}
+
 			fd := e.fieldDefinitionOp(nodeGQLType, f, ant, op)
 			if i == 0 {
 				fd.Description = f.Name + " field predicates"
