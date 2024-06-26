@@ -60,6 +60,8 @@ type (
 		mutations []MutateFunc
 		out       io.Writer
 		spec      *ogen.Spec
+		marshalFn func(any) ([]byte, error)
+		outFile   string
 	}
 	// ExtensionOption allows managing Extension configuration using functional arguments.
 	ExtensionOption func(*Extension) error
@@ -69,11 +71,17 @@ type (
 
 // NewExtension returns a new entoas extension with default values.
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
-	ex := &Extension{config: &Config{
-		DefaultPolicy:   PolicyExpose,
-		MinItemsPerPage: one,
-		MaxItemsPerPage: maxu8,
-	}}
+	ex := &Extension{
+		marshalFn: func(v any) ([]byte, error) {
+			return json.MarshalIndent(v, "", " ")
+		},
+		outFile: "openapi.json",
+		config: &Config{
+			DefaultPolicy:   PolicyExpose,
+			MinItemsPerPage: one,
+			MaxItemsPerPage: maxu8,
+		},
+	}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
 			return nil, err
@@ -155,6 +163,22 @@ func WriteTo(out io.Writer) ExtensionOption {
 	}
 }
 
+// WithOutputFile specifies the file to write generated spec to.
+func WithOutputFile(outFile string) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.outFile = outFile
+		return nil
+	}
+}
+
+// WithMarshalFunc sets the marshaller to marshal spec.
+func WithMarshalFunc(marshalFn func(any) ([]byte, error)) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.marshalFn = marshalFn
+		return nil
+	}
+}
+
 // Spec allows to configure a pointer to an existing ogen.Spec where the code generator writes the final result to.
 // Any configured Mutations are run before the spec is written.
 func Spec(spec *ogen.Spec) ExtensionOption {
@@ -204,7 +228,7 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			*ex.spec = *spec
 		}
 		// Dump the spec.
-		b, err := json.MarshalIndent(spec, "", "  ")
+		b, err := ex.marshalFn(spec)
 		if err != nil {
 			return err
 		}
@@ -213,7 +237,7 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			_, err = ex.out.Write(b)
 			return err
 		}
-		return os.WriteFile(filepath.Join(g.Target, "openapi.json"), b, 0644)
+		return os.WriteFile(filepath.Join(g.Target, ex.outFile), b, 0644)
 	})
 }
 
