@@ -70,14 +70,20 @@ func schemas(g *gen.Graph, spec *ogen.Spec) error {
 				return fmt.Errorf("schema %q not found for edge %q on %q", e.Type.Name, e.Name, n.Name)
 			}
 			es = es.ToNamed(e.Type.Name).AsLocalRef()
-			if !e.Unique {
-				es = es.AsArray()
+			a, err := EdgeAnnotation(e)
+			if err != nil {
+				return fmt.Errorf("could not parse %q edge annotation for %q on %q", e.Type.Name, e.Name, n.Name)
 			}
-			addProperty(
-				spec.Components.Schemas[n.Name],
-				ogen.NewProperty().SetName(e.Name).SetSchema(es),
-				!e.Optional,
-			)
+			if !a.Skip {
+				if !e.Unique {
+					es = es.AsArray()
+				}
+				addProperty(
+					spec.Components.Schemas[n.Name],
+					ogen.NewProperty().SetName(e.Name).SetSchema(es),
+					!e.Optional,
+				)
+			}
 		}
 	}
 	// If the SimpleModels feature is enabled to not generate a schema per response.
@@ -110,14 +116,20 @@ func schemas(g *gen.Graph, spec *ogen.Spec) error {
 					return fmt.Errorf("schema %q not found for edge %q on %q", vn, e.Name, n)
 				}
 				es = es.ToNamed(vn).AsLocalRef()
-				if !e.Unique {
-					es = es.AsArray()
+				a, err := EdgeAnnotation(e)
+				if err != nil {
+					return fmt.Errorf("could not parse %q edge annotation for %q on %q", e.Name, e.Name, n)
 				}
-				addProperty(
-					spec.Components.Schemas[n],
-					ogen.NewProperty().SetName(e.Name).SetSchema(es),
-					!e.Optional,
-				)
+				if !a.Skip {
+					if !e.Unique {
+						es = es.AsArray()
+					}
+					addProperty(
+						spec.Components.Schemas[n],
+						ogen.NewProperty().SetName(e.Name).SetSchema(es),
+						!e.Optional,
+					)
+				}
 			}
 		}
 	}
@@ -662,6 +674,10 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 		if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
 			return nil, err
 		}
+		// Skipped edges get no operations
+		if ant.Skip {
+			return nil, nil
+		}
 		var ops []Operation
 		m := make(map[Operation]OperationConfig)
 		if e.Unique {
@@ -723,6 +739,13 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
+		}
+		a, err := EdgeAnnotation(e)
+		if err != nil {
+			return nil, err
+		}
+		if a.ReadOnly || a.Skip {
+			continue
 		}
 		if !e.Unique {
 			s = s.AsArray()
