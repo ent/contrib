@@ -195,6 +195,14 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 		}
 		// root for all operations on this node.
 		root := "/" + rules.Pluralize(strcase.KebabCase(n.Name))
+
+		ant := &Annotation{}
+		if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+			return err
+		}
+
+		path(spec, root).Common.Extensions = ant.Extensions
+
 		// Create operation.
 		if contains(ops, OpCreate) {
 			path(spec, root).Post, err = createOp(spec, n, cfg.AllowClientUUIDs)
@@ -294,6 +302,13 @@ func createOp(spec *ogen.Spec, n *gen.Type, allowClientUUIDs bool) (*ogen.Operat
 			spec.RefResponse(strconv.Itoa(http.StatusConflict)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.Create.Extensions
+
 	return op, nil
 }
 
@@ -325,6 +340,13 @@ func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.Read.Extensions
+
 	return op, nil
 }
 
@@ -395,6 +417,13 @@ func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.Update.Extensions
+
 	return op, nil
 }
 
@@ -421,6 +450,13 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.Delete.Extensions
+
 	return op, nil
 }
 
@@ -466,6 +502,13 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.List.Extensions
+
 	return op, nil
 }
 

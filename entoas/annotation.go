@@ -20,8 +20,11 @@ import (
 	"entgo.io/contrib/entoas/serialization"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
+	yaml "github.com/go-faster/yaml"
 	"github.com/ogen-go/ogen"
 )
+
+const XOgenOperationGroup = "x-ogen-operation-group"
 
 type (
 	// Annotation annotates fields and edges with metadata for spec generation.
@@ -46,11 +49,19 @@ type (
 		ReadOnly bool
 		// Skip specifies that the field will be ignored in spec.
 		Skip bool
+		// Extensions has map of OpenApi extenions
+		Extensions ogen.Extensions
 	}
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
-		Policy Policy
-		Groups serialization.Groups
+		Policy     Policy
+		Groups     serialization.Groups
+		Extensions ogen.Extensions
+	}
+	// OpenApiExtension holds meta information about OpenApi extension
+	OpenApiExtension struct {
+		Name  string
+		Value string
 	}
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
@@ -64,6 +75,43 @@ func Groups(gs ...string) Annotation {
 // OperationGroups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
 func OperationGroups(gs ...string) OperationConfigOption {
 	return func(c *OperationConfig) { c.Groups = gs }
+}
+
+func OperationExtentions(ext ...OpenApiExtension) OperationConfigOption {
+	return func(c *OperationConfig) {
+		if c.Extensions == nil {
+			c.Extensions = ogen.Extensions{}
+		}
+
+		for _, e := range ext {
+			c.Extensions[e.Name] = yaml.Node{Kind: yaml.ScalarNode, Value: e.Value}
+		}
+	}
+}
+
+func Extensions(ext ...OpenApiExtension) Annotation {
+	exts := ogen.Extensions{}
+
+	for _, e := range ext {
+		exts[e.Name] = yaml.Node{Kind: yaml.ScalarNode, Value: e.Value}
+	}
+
+	return Annotation{Extensions: exts}
+}
+
+func OperationExtentionGroup(group string) OperationConfigOption {
+	return OperationExtentions(OpenApiExtensionOperationGroup(group))
+}
+
+func ExtentionOperationGroup(group string) Annotation {
+	return Extensions(OpenApiExtensionOperationGroup(group))
+}
+
+func OpenApiExtensionOperationGroup(group string) OpenApiExtension {
+	return OpenApiExtension{
+		Name:  XOgenOperationGroup,
+		Value: group,
+	}
 }
 
 // OperationPolicy returns a OperationConfigOption that sets the Policy of a OperationConfig to the given one.
