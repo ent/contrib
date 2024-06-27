@@ -73,7 +73,7 @@ type (
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	ex := &Extension{
 		marshalFn: func(v any) ([]byte, error) {
-			return json.MarshalIndent(v, "", " ")
+			return json.MarshalIndent(v, "", "  ")
 		},
 		outFile: "openapi.json",
 		config: &Config{
