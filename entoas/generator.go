@@ -201,8 +201,6 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			return err
 		}
 
-		path(spec, root).Common.Extensions = ant.Extensions.Schema()
-
 		// Create operation.
 		if contains(ops, OpCreate) {
 			path(spec, root).Post, err = createOp(spec, n, cfg.AllowClientUUIDs)
@@ -259,6 +257,10 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 					return err
 				}
 			}
+		}
+
+		if len(ops) > 0 {
+			path(spec, root).Common.Extensions = ant.Extensions.Schema()
 		}
 	}
 	return nil
