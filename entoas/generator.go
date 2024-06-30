@@ -201,7 +201,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			return err
 		}
 
-		path(spec, root).Common.Extensions = ant.Extensions
+		path(spec, root).Common.Extensions = ant.Extensions.Schema()
 
 		// Create operation.
 		if contains(ops, OpCreate) {
@@ -307,7 +307,7 @@ func createOp(spec *ogen.Spec, n *gen.Type, allowClientUUIDs bool) (*ogen.Operat
 	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
-	op.Common.Extensions = ant.Create.Extensions
+	op.Common.Extensions = ant.Create.Extensions.Schema()
 
 	return op, nil
 }
@@ -345,7 +345,7 @@ func readOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
-	op.Common.Extensions = ant.Read.Extensions
+	op.Common.Extensions = ant.Read.Extensions.Schema()
 
 	return op, nil
 }
@@ -422,7 +422,7 @@ func updateOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
-	op.Common.Extensions = ant.Update.Extensions
+	op.Common.Extensions = ant.Update.Extensions.Schema()
 
 	return op, nil
 }
@@ -455,7 +455,7 @@ func deleteOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
-	op.Common.Extensions = ant.Delete.Extensions
+	op.Common.Extensions = ant.Delete.Extensions.Schema()
 
 	return op, nil
 }
@@ -507,7 +507,7 @@ func listOp(spec *ogen.Spec, n *gen.Type) (*ogen.Operation, error) {
 	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
 		return nil, err
 	}
-	op.Common.Extensions = ant.List.Extensions
+	op.Common.Extensions = ant.List.Extensions.Schema()
 
 	return op, nil
 }

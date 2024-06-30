@@ -50,13 +50,14 @@ type (
 		// Skip specifies that the field will be ignored in spec.
 		Skip bool
 		// Extensions has map of OpenApi extenions
-		Extensions ogen.Extensions
+		Extensions OgenExtensions
 	}
+	OgenExtensions ogen.Extensions
 	// OperationConfig holds meta information about a REST operation.
 	OperationConfig struct {
 		Policy     Policy
 		Groups     serialization.Groups
-		Extensions ogen.Extensions
+		Extensions OgenExtensions
 	}
 	// OpenApiExtension holds meta information about OpenApi extension
 	OpenApiExtension struct {
@@ -66,6 +67,10 @@ type (
 	// OperationConfigOption allows managing OperationConfig using functional arguments.
 	OperationConfigOption func(*OperationConfig)
 )
+
+func (o OgenExtensions) Schema() ogen.Extensions {
+	return ogen.Extensions(o)
+}
 
 // Groups returns a OperationConfigOption that adds the given serialization groups to a OperationConfig.
 func Groups(gs ...string) Annotation {
@@ -80,7 +85,7 @@ func OperationGroups(gs ...string) OperationConfigOption {
 func OperationExtentions(ext ...OpenApiExtension) OperationConfigOption {
 	return func(c *OperationConfig) {
 		if c.Extensions == nil {
-			c.Extensions = ogen.Extensions{}
+			c.Extensions = OgenExtensions{}
 		}
 
 		for _, e := range ext {
@@ -90,7 +95,7 @@ func OperationExtentions(ext ...OpenApiExtension) OperationConfigOption {
 }
 
 func Extensions(ext ...OpenApiExtension) Annotation {
-	exts := ogen.Extensions{}
+	exts := OgenExtensions{}
 
 	for _, e := range ext {
 		exts[e.Name] = yaml.Node{Kind: yaml.ScalarNode, Value: e.Value}
