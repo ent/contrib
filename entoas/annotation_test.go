@@ -36,19 +36,19 @@ func TestAnnotation(t *testing.T) {
 	require.Equal(t, serialization.Groups{"create", "groups"}, a.Groups)
 
 	a = CreateOperation(OperationGroups("create", "groups"), OperationPolicy(PolicyExpose))
-	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"create", "groups"}}, a.Create)
+	require.Equal(t, OperationConfig{Policy: PolicyExpose, Groups: serialization.Groups{"create", "groups"}}, a.Create)
 
 	a = ReadOperation(OperationGroups("read", "groups"), OperationPolicy(PolicyExpose))
-	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"read", "groups"}}, a.Read)
+	require.Equal(t, OperationConfig{Policy: PolicyExpose, Groups: serialization.Groups{"read", "groups"}}, a.Read)
 
 	a = UpdateOperation(OperationGroups("update", "groups"), OperationPolicy(PolicyExpose))
-	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"update", "groups"}}, a.Update)
+	require.Equal(t, OperationConfig{Policy: PolicyExpose, Groups: serialization.Groups{"update", "groups"}}, a.Update)
 
 	a = DeleteOperation(OperationGroups("delete", "groups"), OperationPolicy(PolicyExpose))
-	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"delete", "groups"}}, a.Delete)
+	require.Equal(t, OperationConfig{Policy: PolicyExpose, Groups: serialization.Groups{"delete", "groups"}}, a.Delete)
 
 	a = ListOperation(OperationGroups("list", "groups"), OperationPolicy(PolicyExpose))
-	require.Equal(t, OperationConfig{PolicyExpose, serialization.Groups{"list", "groups"}}, a.List)
+	require.Equal(t, OperationConfig{Policy: PolicyExpose, Groups: serialization.Groups{"list", "groups"}}, a.List)
 
 	b := Example("example")
 	require.Equal(t, "example", b.Example)
@@ -57,12 +57,18 @@ func TestAnnotation(t *testing.T) {
 	require.Equal(t, ogen.Binary(), c.Schema)
 
 	a = a.Merge(b).(Annotation).Merge(c).(Annotation)
+	// a.List.Extensions = ogen.Extensions{
+	// 	"zxc": yaml.Node{Kind: yaml.ScalarNode, Value: "ccc"},
+	// }
 	ex := Annotation{
 		Example: "example",
 		Schema:  ogen.Binary(),
 		List: OperationConfig{
 			Groups: serialization.Groups{"list", "groups"},
 			Policy: PolicyExpose,
+			// Extensions: ogen.Extensions{
+			// 	"zxc": yaml.Node{Kind: yaml.ScalarNode, Value: "ccc"},
+			// },
 		},
 	}
 	require.Equal(t, ex, a)
@@ -89,6 +95,7 @@ func TestAnnotation(t *testing.T) {
 	require.NotNil(t, ac)
 	ac, err = SchemaAnnotation(&gen.Type{Annotations: gen.Annotations{a.Name(): ex}})
 	require.NoError(t, err)
+
 	require.Equal(t, &ex, ac)
 
 	ac, err = FieldAnnotation(new(gen.Field))
