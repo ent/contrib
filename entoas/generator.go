@@ -207,6 +207,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
+			path(spec, root).Common.Extensions = ant.Extensions.Schema()
 		}
 		// Read operation.
 		if contains(ops, OpRead) {
@@ -214,6 +215,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
+			path(spec, root+"/{id}").Common.Extensions = ant.Extensions.Schema()
 		}
 		// Update operation.
 		if contains(ops, OpUpdate) {
@@ -221,6 +223,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
+			path(spec, root+"/{id}").Common.Extensions = ant.Extensions.Schema()
 		}
 		// Delete operation.
 		if contains(ops, OpDelete) {
@@ -228,6 +231,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
+			path(spec, root+"/{id}").Common.Extensions = ant.Extensions.Schema()
 		}
 		// List operation.
 		if contains(ops, OpList) {
@@ -235,6 +239,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 			if err != nil {
 				return err
 			}
+			path(spec, root).Common.Extensions = ant.Extensions.Schema()
 		}
 		// Sub-Resource operations.
 		for _, e := range n.Edges {
@@ -249,6 +254,7 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 				if err != nil {
 					return err
 				}
+				path(spec, subRoot).Common.Extensions = ant.Extensions.Schema()
 			}
 			// List operation.
 			if contains(ops, OpList) {
@@ -256,11 +262,8 @@ func paths(g *gen.Graph, spec *ogen.Spec) error {
 				if err != nil {
 					return err
 				}
+				path(spec, subRoot).Common.Extensions = ant.Extensions.Schema()
 			}
-		}
-
-		if len(ops) > 0 {
-			path(spec, root).Common.Extensions = ant.Extensions.Schema()
 		}
 	}
 	return nil
@@ -383,6 +386,13 @@ func readEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.Read.Extensions.Schema()
+
 	return op, nil
 }
 
@@ -557,6 +567,13 @@ func listEdgeOp(spec *ogen.Spec, n *gen.Type, e *gen.Edge) (*ogen.Operation, err
 			spec.RefResponse(strconv.Itoa(http.StatusNotFound)),
 			spec.RefResponse(strconv.Itoa(http.StatusInternalServerError)),
 		)
+
+	ant := &Annotation{}
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	op.Common.Extensions = ant.List.Extensions.Schema()
+
 	return op, nil
 }
 
