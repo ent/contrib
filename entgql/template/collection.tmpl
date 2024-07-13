@@ -14,6 +14,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 
 import (
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
