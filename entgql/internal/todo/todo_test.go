@@ -668,6 +668,59 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	})
 }
 
+func (s *todoTestSuite) TestPaginationNestedOrdering() {
+	s.Run("Order array coercion", func() {
+		var (
+			query = `query($id: ID!) {
+				 todo: node(id: $id) {
+					... on Todo {
+						id
+						children(orderBy: {direction: DESC, field: PRIORITY_ORDER}) {
+							edges {
+								node {
+									id
+									priorityOrder
+								}
+							}
+						}
+					}
+				}
+			}`
+			rsp struct {
+				Todo struct {
+					ID       string
+					Children struct {
+						Edges []struct {
+							Node struct {
+								ID            string
+								PriorityOrder int
+							}
+						}
+					}
+				}
+			}
+		)
+		ctx := context.Background()
+		id := s.ent.Todo.Query().Order(ent.Asc(todo.FieldID)).FirstIDX(ctx)
+		err := s.Post(query, &rsp, client.Var("id", id))
+		s.Require().NoError(err)
+
+		// List out the priorities in descending order.
+		var expectedPriorities []int
+		for i := maxTodos; i >= 2; i-- {
+			// Even numbers are parented to the root. Odd numbers are parented to i-2, which is why 3 is included.
+			if i%2 == 0 || i == 3 {
+				expectedPriorities = append(expectedPriorities, i)
+			}
+		}
+
+		s.Require().Len(rsp.Todo.Children.Edges, len(expectedPriorities))
+		for i, edge := range rsp.Todo.Children.Edges {
+			s.Require().Equal(expectedPriorities[i], edge.Node.PriorityOrder)
+		}
+	})
+}
+
 func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 	ctx := context.Background()
 	td1 := s.ent.Todo.Create().
