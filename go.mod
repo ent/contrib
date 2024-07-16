@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.6
 
 require (
-	entgo.io/ent v0.13.0
+	entgo.io/ent v0.13.2-0.20240715041559-3b3f84c347e0
 	github.com/99designs/gqlgen v0.17.48
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.7.0
@@ -43,6 +43,7 @@ require (
 	github.com/go-faster/jx v0.40.0 // indirect
 	github.com/go-faster/yamlx v0.4.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/addlicense v1.1.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
