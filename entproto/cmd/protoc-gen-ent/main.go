@@ -17,10 +17,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 
+	"entgo.io/contrib/entgql"
 	entopts "entgo.io/contrib/entproto/cmd/protoc-gen-ent/options/ent"
 	"entgo.io/contrib/schemast"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -108,8 +111,37 @@ func toSchema(m *protogen.Message, opts *entopts.Schema) (*schemast.UpsertSchema
 	if opts.Name != nil {
 		name = opts.GetName()
 	}
+	var annotations []schema.Annotation
+	gql := opts.GetGql()
+	if gql != nil {
+		if gql.GetQueryField() {
+			if gql.GetQueryFieldName() != "" {
+				annotations = append(annotations, entgql.QueryField(gql.GetQueryFieldName()).Annotation)
+			} else {
+				annotations = append(annotations, entgql.QueryField().Annotation)
+			}
+		}
+		if gql.GetType() != "" {
+			annotations = append(annotations, entgql.Type(gql.GetType()))
+		}
+		if gql.GetRelayConnection() {
+			annotations = append(annotations, entgql.RelayConnection())
+		}
+		var create, update = gql.GetMutationCreate(), gql.GetMutationUpdate()
+		if create || update {
+			var options []entgql.MutationOption
+			if create {
+				options = append(options, entgql.MutationCreate())
+			}
+			if update {
+				options = append(options, entgql.MutationUpdate())
+			}
+			annotations = append(annotations, entgql.Mutations(options...))
+		}
+	}
 	out := &schemast.UpsertSchema{
-		Name: name,
+		Name:        name,
+		Annotations: annotations,
 	}
 	for _, f := range m.Fields {
 		if isEdge(f) {
@@ -130,7 +162,16 @@ func toSchema(m *protogen.Message, opts *entopts.Schema) (*schemast.UpsertSchema
 }
 
 func isEdge(f *protogen.Field) bool {
-	return f.Desc.Kind() == protoreflect.MessageKind
+	isMessageKind := f.Desc.Kind() == protoreflect.MessageKind
+	if isMessageKind {
+		switch f.Desc.Message().FullName() {
+		case "google.protobuf.Timestamp":
+			return false
+		case "google.type.Date":
+			return false
+		}
+	}
+	return isMessageKind
 }
 
 func toEdge(f *protogen.Field) (ent.Edge, error) {
@@ -194,6 +235,15 @@ func toField(f *protogen.Field) (ent.Field, error) {
 			values = append(values, string(pbEnum.Get(i).Name()))
 		}
 		fld = field.Enum(name).Values(values...)
+	case protoreflect.MessageKind:
+		switch f.Desc.Message().FullName() {
+		case "google.protobuf.Timestamp":
+			fld = field.Time(name)
+		case "google.type.Date":
+			fld = field.Time(name)
+		default:
+			return nil, fmt.Errorf("protoc-gen-ent: unsupported kind %q", f.Desc.Kind())
+		}
 	default:
 		return nil, fmt.Errorf("protoc-gen-ent: unsupported kind %q", f.Desc.Kind())
 	}
@@ -214,6 +264,43 @@ func applyFieldOpts(fld ent.Field, opts *entopts.Field) {
 	d.Tag = opts.GetStructTag()
 	d.StorageKey = opts.GetStorageKey()
 	d.SchemaType = opts.GetSchemaType()
+
+	gql := opts.GetGql()
+	if gql != nil {
+		var annotations []schema.Annotation
+		if gql.GetOrderField() {
+			if gql.GetOrderFieldName() != "" {
+				annotations = append(annotations, entgql.OrderField(gql.GetOrderFieldName()))
+			} else {
+				annotations = append(annotations, entgql.OrderField(strings.ToUpper(fld.Descriptor().Name)))
+			}
+		}
+		if gql.GetType() != "" {
+			annotations = append(annotations, entgql.Type(gql.GetType()))
+		}
+		skipType, skipEnum, skipOrder, skipWhere, skipCreate, skipUpdate := gql.GetSkipType(), gql.GetSkipEnumField(), gql.GetSkipOrderField(), gql.GetSkipWhereInput(), gql.GetSkipMutationCreateInput(), gql.GetSkipMutationUpdateInput()
+		if skipType || skipEnum || skipOrder || skipWhere || skipCreate || skipUpdate {
+			var skipModeVals = []bool{
+				skipType, skipEnum, skipOrder, skipWhere, skipCreate, skipUpdate,
+			}
+			var skipModeList = []entgql.SkipMode{
+				entgql.SkipType,
+				entgql.SkipEnumField,
+				entgql.SkipOrderField,
+				entgql.SkipWhereInput,
+				entgql.SkipMutationCreateInput,
+				entgql.SkipMutationUpdateInput,
+			}
+			var skipMode entgql.SkipMode
+			for i, mode := range skipModeList {
+				if skipModeVals[i] {
+					skipMode |= mode
+				}
+			}
+			annotations = append(annotations, entgql.Skip(skipMode))
+		}
+		d.Annotations = annotations
+	}
 }
 
 func applyEdgeOpts(edg ent.Edge, opts *entopts.Edge) {
@@ -228,6 +315,34 @@ func applyEdgeOpts(edg ent.Edge, opts *entopts.Edge) {
 			Table:   sk.GetTable(),
 			Columns: sk.GetColumns(),
 		}
+	}
+
+	gql := opts.GetGql()
+	if gql != nil {
+		var annotations []schema.Annotation
+		skipType, skipWhere, skipCreate, skipUpdate := gql.GetSkipType(), gql.GetSkipWhereInput(), gql.GetSkipMutationCreateInput(), gql.GetSkipMutationUpdateInput()
+		if skipType || skipWhere || skipCreate || skipUpdate {
+			var skipModeVals = []bool{
+				skipType, skipWhere, skipCreate, skipUpdate,
+			}
+			var skipModeList = []entgql.SkipMode{
+				entgql.SkipType,
+				entgql.SkipWhereInput,
+				entgql.SkipMutationCreateInput,
+				entgql.SkipMutationUpdateInput,
+			}
+			var skipMode entgql.SkipMode
+			for i, mode := range skipModeList {
+				if skipModeVals[i] {
+					skipMode |= mode
+				}
+			}
+			annotations = append(annotations, entgql.Skip(skipMode))
+		}
+		if gql.GetRelayConnection() {
+			annotations = append(annotations, entgql.RelayConnection())
+		}
+		d.Annotations = annotations
 	}
 }
 
