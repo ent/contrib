@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -250,11 +251,15 @@ func (e *Extension) genSchemaHook() gen.Hook {
 					if err != nil {
 						return err
 					}
-					ant.Directives = append(ant.Directives, Deprecated(f.DeprecationReason()))
-					if f.Annotations == nil {
-						f.Annotations = make(map[string]interface{})
+					if !slices.ContainsFunc(ant.Directives, func(d Directive) bool {
+						return d.Name == "deprecated"
+					}) {
+						ant.Directives = append(ant.Directives, Deprecated(f.DeprecationReason()))
+						if f.Annotations == nil {
+							f.Annotations = make(map[string]interface{})
+						}
+						f.Annotations[ant.Name()] = ant
 					}
-					f.Annotations["EntGQL"] = ant
 				}
 			}
 			if !(e.genSchema || e.genWhereInput || e.genMutations) {
