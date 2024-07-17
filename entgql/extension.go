@@ -244,7 +244,19 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			if err = next.Generate(g); err != nil {
 				return err
 			}
-
+			for _, t := range g.Nodes {
+				for _, f := range t.DeprecatedFields() {
+					ant, err := annotation(f.Annotations)
+					if err != nil {
+						return err
+					}
+					ant.Directives = append(ant.Directives, Deprecated(f.DeprecationReason()))
+					if f.Annotations == nil {
+						f.Annotations = make(map[string]interface{})
+					}
+					f.Annotations["EntGQL"] = ant
+				}
+			}
 			if !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
