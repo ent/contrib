@@ -103,12 +103,10 @@ type UserEdges struct {
 // GroupOrErr returns the Group value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) GroupOrErr() (*Group, error) {
-	if e.loadedTypes[0] {
-		if e.Group == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: group.Label}
-		}
+	if e.Group != nil {
 		return e.Group, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: group.Label}
 	}
 	return nil, &NotLoadedError{edge: "group"}
 }
@@ -116,12 +114,10 @@ func (e UserEdges) GroupOrErr() (*Group, error) {
 // AttachmentOrErr returns the Attachment value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) AttachmentOrErr() (*Attachment, error) {
-	if e.loadedTypes[1] {
-		if e.Attachment == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: attachment.Label}
-		}
+	if e.Attachment != nil {
 		return e.Attachment, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: attachment.Label}
 	}
 	return nil, &NotLoadedError{edge: "attachment"}
 }
@@ -138,12 +134,10 @@ func (e UserEdges) Received1OrErr() ([]*Attachment, error) {
 // PetOrErr returns the Pet value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) PetOrErr() (*Pet, error) {
-	if e.loadedTypes[3] {
-		if e.Pet == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: pet.Label}
-		}
+	if e.Pet != nil {
 		return e.Pet, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: pet.Label}
 	}
 	return nil, &NotLoadedError{edge: "pet"}
 }
@@ -151,12 +145,10 @@ func (e UserEdges) PetOrErr() (*Pet, error) {
 // SkipEdgeOrErr returns the SkipEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) SkipEdgeOrErr() (*SkipEdgeExample, error) {
-	if e.loadedTypes[4] {
-		if e.SkipEdge == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: skipedgeexample.Label}
-		}
+	if e.SkipEdge != nil {
 		return e.SkipEdge, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: skipedgeexample.Label}
 	}
 	return nil, &NotLoadedError{edge: "skip_edge"}
 }

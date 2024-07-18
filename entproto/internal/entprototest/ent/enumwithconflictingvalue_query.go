@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/enumwithconflictingvalue"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (ewcvq *EnumWithConflictingValueQuery) Order(o ...enumwithconflictingvalue.
 // First returns the first EnumWithConflictingValue entity from the query.
 // Returns a *NotFoundError when no EnumWithConflictingValue was found.
 func (ewcvq *EnumWithConflictingValueQuery) First(ctx context.Context) (*EnumWithConflictingValue, error) {
-	nodes, err := ewcvq.Limit(1).All(setContextOp(ctx, ewcvq.ctx, "First"))
+	nodes, err := ewcvq.Limit(1).All(setContextOp(ctx, ewcvq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (ewcvq *EnumWithConflictingValueQuery) FirstX(ctx context.Context) *EnumWit
 // Returns a *NotFoundError when no EnumWithConflictingValue ID was found.
 func (ewcvq *EnumWithConflictingValueQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ewcvq.Limit(1).IDs(setContextOp(ctx, ewcvq.ctx, "FirstID")); err != nil {
+	if ids, err = ewcvq.Limit(1).IDs(setContextOp(ctx, ewcvq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (ewcvq *EnumWithConflictingValueQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one EnumWithConflictingValue entity is found.
 // Returns a *NotFoundError when no EnumWithConflictingValue entities are found.
 func (ewcvq *EnumWithConflictingValueQuery) Only(ctx context.Context) (*EnumWithConflictingValue, error) {
-	nodes, err := ewcvq.Limit(2).All(setContextOp(ctx, ewcvq.ctx, "Only"))
+	nodes, err := ewcvq.Limit(2).All(setContextOp(ctx, ewcvq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (ewcvq *EnumWithConflictingValueQuery) OnlyX(ctx context.Context) *EnumWith
 // Returns a *NotFoundError when no entities are found.
 func (ewcvq *EnumWithConflictingValueQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ewcvq.Limit(2).IDs(setContextOp(ctx, ewcvq.ctx, "OnlyID")); err != nil {
+	if ids, err = ewcvq.Limit(2).IDs(setContextOp(ctx, ewcvq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (ewcvq *EnumWithConflictingValueQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of EnumWithConflictingValues.
 func (ewcvq *EnumWithConflictingValueQuery) All(ctx context.Context) ([]*EnumWithConflictingValue, error) {
-	ctx = setContextOp(ctx, ewcvq.ctx, "All")
+	ctx = setContextOp(ctx, ewcvq.ctx, ent.OpQueryAll)
 	if err := ewcvq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (ewcvq *EnumWithConflictingValueQuery) IDs(ctx context.Context) (ids []int,
 	if ewcvq.ctx.Unique == nil && ewcvq.path != nil {
 		ewcvq.Unique(true)
 	}
-	ctx = setContextOp(ctx, ewcvq.ctx, "IDs")
+	ctx = setContextOp(ctx, ewcvq.ctx, ent.OpQueryIDs)
 	if err = ewcvq.Select(enumwithconflictingvalue.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (ewcvq *EnumWithConflictingValueQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ewcvq *EnumWithConflictingValueQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, ewcvq.ctx, "Count")
+	ctx = setContextOp(ctx, ewcvq.ctx, ent.OpQueryCount)
 	if err := ewcvq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (ewcvq *EnumWithConflictingValueQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ewcvq *EnumWithConflictingValueQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, ewcvq.ctx, "Exist")
+	ctx = setContextOp(ctx, ewcvq.ctx, ent.OpQueryExist)
 	switch _, err := ewcvq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (ewcvgb *EnumWithConflictingValueGroupBy) Aggregate(fns ...AggregateFunc) *
 
 // Scan applies the selector query and scans the result into the given value.
 func (ewcvgb *EnumWithConflictingValueGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ewcvgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, ewcvgb.build.ctx, ent.OpQueryGroupBy)
 	if err := ewcvgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (ewcvs *EnumWithConflictingValueSelect) Aggregate(fns ...AggregateFunc) *En
 
 // Scan applies the selector query and scans the result into the given value.
 func (ewcvs *EnumWithConflictingValueSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ewcvs.ctx, "Select")
+	ctx = setContextOp(ctx, ewcvs.ctx, ent.OpQuerySelect)
 	if err := ewcvs.prepareQuery(ctx); err != nil {
 		return err
 	}

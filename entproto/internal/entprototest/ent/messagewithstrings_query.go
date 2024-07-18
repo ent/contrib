@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (mwsq *MessageWithStringsQuery) Order(o ...messagewithstrings.OrderOption) 
 // First returns the first MessageWithStrings entity from the query.
 // Returns a *NotFoundError when no MessageWithStrings was found.
 func (mwsq *MessageWithStringsQuery) First(ctx context.Context) (*MessageWithStrings, error) {
-	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, "First"))
+	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (mwsq *MessageWithStringsQuery) FirstX(ctx context.Context) *MessageWithStr
 // Returns a *NotFoundError when no MessageWithStrings ID was found.
 func (mwsq *MessageWithStringsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, "FirstID")); err != nil {
+	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (mwsq *MessageWithStringsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithStrings entity is found.
 // Returns a *NotFoundError when no MessageWithStrings entities are found.
 func (mwsq *MessageWithStringsQuery) Only(ctx context.Context) (*MessageWithStrings, error) {
-	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, "Only"))
+	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (mwsq *MessageWithStringsQuery) OnlyX(ctx context.Context) *MessageWithStri
 // Returns a *NotFoundError when no entities are found.
 func (mwsq *MessageWithStringsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, "OnlyID")); err != nil {
+	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (mwsq *MessageWithStringsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithStringsSlice.
 func (mwsq *MessageWithStringsQuery) All(ctx context.Context) ([]*MessageWithStrings, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "All")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryAll)
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (mwsq *MessageWithStringsQuery) IDs(ctx context.Context) (ids []int, err er
 	if mwsq.ctx.Unique == nil && mwsq.path != nil {
 		mwsq.Unique(true)
 	}
-	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryIDs)
 	if err = mwsq.Select(messagewithstrings.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (mwsq *MessageWithStringsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwsq *MessageWithStringsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "Count")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryCount)
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (mwsq *MessageWithStringsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwsq *MessageWithStringsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "Exist")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryExist)
 	switch _, err := mwsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (mwsgb *MessageWithStringsGroupBy) Aggregate(fns ...AggregateFunc) *Message
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwsgb *MessageWithStringsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, mwsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := mwsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (mwss *MessageWithStringsSelect) Aggregate(fns ...AggregateFunc) *MessageWi
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MessageWithStringsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwss.ctx, "Select")
+	ctx = setContextOp(ctx, mwss.ctx, ent.OpQuerySelect)
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}

@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todogotype/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -76,7 +77,7 @@ func (vsq *VerySecretQuery) Order(o ...verysecret.OrderOption) *VerySecretQuery 
 // First returns the first VerySecret entity from the query.
 // Returns a *NotFoundError when no VerySecret was found.
 func (vsq *VerySecretQuery) First(ctx context.Context) (*VerySecret, error) {
-	nodes, err := vsq.Limit(1).All(setContextOp(ctx, vsq.ctx, "First"))
+	nodes, err := vsq.Limit(1).All(setContextOp(ctx, vsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +100,7 @@ func (vsq *VerySecretQuery) FirstX(ctx context.Context) *VerySecret {
 // Returns a *NotFoundError when no VerySecret ID was found.
 func (vsq *VerySecretQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = vsq.Limit(1).IDs(setContextOp(ctx, vsq.ctx, "FirstID")); err != nil {
+	if ids, err = vsq.Limit(1).IDs(setContextOp(ctx, vsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -122,7 +123,7 @@ func (vsq *VerySecretQuery) FirstIDX(ctx context.Context) string {
 // Returns a *NotSingularError when more than one VerySecret entity is found.
 // Returns a *NotFoundError when no VerySecret entities are found.
 func (vsq *VerySecretQuery) Only(ctx context.Context) (*VerySecret, error) {
-	nodes, err := vsq.Limit(2).All(setContextOp(ctx, vsq.ctx, "Only"))
+	nodes, err := vsq.Limit(2).All(setContextOp(ctx, vsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +151,7 @@ func (vsq *VerySecretQuery) OnlyX(ctx context.Context) *VerySecret {
 // Returns a *NotFoundError when no entities are found.
 func (vsq *VerySecretQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = vsq.Limit(2).IDs(setContextOp(ctx, vsq.ctx, "OnlyID")); err != nil {
+	if ids, err = vsq.Limit(2).IDs(setContextOp(ctx, vsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -175,7 +176,7 @@ func (vsq *VerySecretQuery) OnlyIDX(ctx context.Context) string {
 
 // All executes the query and returns a list of VerySecrets.
 func (vsq *VerySecretQuery) All(ctx context.Context) ([]*VerySecret, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "All")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryAll)
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func (vsq *VerySecretQuery) IDs(ctx context.Context) (ids []string, err error) {
 	if vsq.ctx.Unique == nil && vsq.path != nil {
 		vsq.Unique(true)
 	}
-	ctx = setContextOp(ctx, vsq.ctx, "IDs")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryIDs)
 	if err = vsq.Select(verysecret.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -215,7 +216,7 @@ func (vsq *VerySecretQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (vsq *VerySecretQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "Count")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryCount)
 	if err := vsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -233,7 +234,7 @@ func (vsq *VerySecretQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (vsq *VerySecretQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, vsq.ctx, "Exist")
+	ctx = setContextOp(ctx, vsq.ctx, ent.OpQueryExist)
 	switch _, err := vsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -476,7 +477,7 @@ func (vsgb *VerySecretGroupBy) Aggregate(fns ...AggregateFunc) *VerySecretGroupB
 
 // Scan applies the selector query and scans the result into the given value.
 func (vsgb *VerySecretGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, vsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := vsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -524,7 +525,7 @@ func (vss *VerySecretSelect) Aggregate(fns ...AggregateFunc) *VerySecretSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (vss *VerySecretSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vss.ctx, "Select")
+	ctx = setContextOp(ctx, vss.ctx, ent.OpQuerySelect)
 	if err := vss.prepareQuery(ctx); err != nil {
 		return err
 	}

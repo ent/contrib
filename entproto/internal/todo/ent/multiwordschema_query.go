@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/todo/ent/multiwordschema"
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (mwsq *MultiWordSchemaQuery) Order(o ...multiwordschema.OrderOption) *Multi
 // First returns the first MultiWordSchema entity from the query.
 // Returns a *NotFoundError when no MultiWordSchema was found.
 func (mwsq *MultiWordSchemaQuery) First(ctx context.Context) (*MultiWordSchema, error) {
-	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, "First"))
+	nodes, err := mwsq.Limit(1).All(setContextOp(ctx, mwsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (mwsq *MultiWordSchemaQuery) FirstX(ctx context.Context) *MultiWordSchema {
 // Returns a *NotFoundError when no MultiWordSchema ID was found.
 func (mwsq *MultiWordSchemaQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, "FirstID")); err != nil {
+	if ids, err = mwsq.Limit(1).IDs(setContextOp(ctx, mwsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (mwsq *MultiWordSchemaQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MultiWordSchema entity is found.
 // Returns a *NotFoundError when no MultiWordSchema entities are found.
 func (mwsq *MultiWordSchemaQuery) Only(ctx context.Context) (*MultiWordSchema, error) {
-	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, "Only"))
+	nodes, err := mwsq.Limit(2).All(setContextOp(ctx, mwsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (mwsq *MultiWordSchemaQuery) OnlyX(ctx context.Context) *MultiWordSchema {
 // Returns a *NotFoundError when no entities are found.
 func (mwsq *MultiWordSchemaQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, "OnlyID")); err != nil {
+	if ids, err = mwsq.Limit(2).IDs(setContextOp(ctx, mwsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (mwsq *MultiWordSchemaQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MultiWordSchemas.
 func (mwsq *MultiWordSchemaQuery) All(ctx context.Context) ([]*MultiWordSchema, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "All")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryAll)
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (mwsq *MultiWordSchemaQuery) IDs(ctx context.Context) (ids []int, err error
 	if mwsq.ctx.Unique == nil && mwsq.path != nil {
 		mwsq.Unique(true)
 	}
-	ctx = setContextOp(ctx, mwsq.ctx, "IDs")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryIDs)
 	if err = mwsq.Select(multiwordschema.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (mwsq *MultiWordSchemaQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwsq *MultiWordSchemaQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "Count")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryCount)
 	if err := mwsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (mwsq *MultiWordSchemaQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwsq *MultiWordSchemaQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mwsq.ctx, "Exist")
+	ctx = setContextOp(ctx, mwsq.ctx, ent.OpQueryExist)
 	switch _, err := mwsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (mwsgb *MultiWordSchemaGroupBy) Aggregate(fns ...AggregateFunc) *MultiWordS
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwsgb *MultiWordSchemaGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, mwsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := mwsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (mwss *MultiWordSchemaSelect) Aggregate(fns ...AggregateFunc) *MultiWordSch
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwss *MultiWordSchemaSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwss.ctx, "Select")
+	ctx = setContextOp(ctx, mwss.ctx, ent.OpQuerySelect)
 	if err := mwss.prepareQuery(ctx); err != nil {
 		return err
 	}
