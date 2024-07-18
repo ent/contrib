@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entoas/internal/oastypes/oastypes"
 	"entgo.io/contrib/entoas/internal/oastypes/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (otq *OASTypesQuery) Order(o ...oastypes.OrderOption) *OASTypesQuery {
 // First returns the first OASTypes entity from the query.
 // Returns a *NotFoundError when no OASTypes was found.
 func (otq *OASTypesQuery) First(ctx context.Context) (*OASTypes, error) {
-	nodes, err := otq.Limit(1).All(setContextOp(ctx, otq.ctx, "First"))
+	nodes, err := otq.Limit(1).All(setContextOp(ctx, otq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (otq *OASTypesQuery) FirstX(ctx context.Context) *OASTypes {
 // Returns a *NotFoundError when no OASTypes ID was found.
 func (otq *OASTypesQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otq.Limit(1).IDs(setContextOp(ctx, otq.ctx, "FirstID")); err != nil {
+	if ids, err = otq.Limit(1).IDs(setContextOp(ctx, otq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (otq *OASTypesQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one OASTypes entity is found.
 // Returns a *NotFoundError when no OASTypes entities are found.
 func (otq *OASTypesQuery) Only(ctx context.Context) (*OASTypes, error) {
-	nodes, err := otq.Limit(2).All(setContextOp(ctx, otq.ctx, "Only"))
+	nodes, err := otq.Limit(2).All(setContextOp(ctx, otq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (otq *OASTypesQuery) OnlyX(ctx context.Context) *OASTypes {
 // Returns a *NotFoundError when no entities are found.
 func (otq *OASTypesQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otq.Limit(2).IDs(setContextOp(ctx, otq.ctx, "OnlyID")); err != nil {
+	if ids, err = otq.Limit(2).IDs(setContextOp(ctx, otq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (otq *OASTypesQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of OASTypesSlice.
 func (otq *OASTypesQuery) All(ctx context.Context) ([]*OASTypes, error) {
-	ctx = setContextOp(ctx, otq.ctx, "All")
+	ctx = setContextOp(ctx, otq.ctx, ent.OpQueryAll)
 	if err := otq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (otq *OASTypesQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if otq.ctx.Unique == nil && otq.path != nil {
 		otq.Unique(true)
 	}
-	ctx = setContextOp(ctx, otq.ctx, "IDs")
+	ctx = setContextOp(ctx, otq.ctx, ent.OpQueryIDs)
 	if err = otq.Select(oastypes.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (otq *OASTypesQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (otq *OASTypesQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, otq.ctx, "Count")
+	ctx = setContextOp(ctx, otq.ctx, ent.OpQueryCount)
 	if err := otq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (otq *OASTypesQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (otq *OASTypesQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, otq.ctx, "Exist")
+	ctx = setContextOp(ctx, otq.ctx, ent.OpQueryExist)
 	switch _, err := otq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (otgb *OASTypesGroupBy) Aggregate(fns ...AggregateFunc) *OASTypesGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (otgb *OASTypesGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, otgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, otgb.build.ctx, ent.OpQueryGroupBy)
 	if err := otgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (ots *OASTypesSelect) Aggregate(fns ...AggregateFunc) *OASTypesSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ots *OASTypesSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ots.ctx, "Select")
+	ctx = setContextOp(ctx, ots.ctx, ent.OpQuerySelect)
 	if err := ots.prepareQuery(ctx); err != nil {
 		return err
 	}

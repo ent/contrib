@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -77,7 +78,7 @@ func (bpq *BillProductQuery) Order(o ...billproduct.OrderOption) *BillProductQue
 // First returns the first BillProduct entity from the query.
 // Returns a *NotFoundError when no BillProduct was found.
 func (bpq *BillProductQuery) First(ctx context.Context) (*BillProduct, error) {
-	nodes, err := bpq.Limit(1).All(setContextOp(ctx, bpq.ctx, "First"))
+	nodes, err := bpq.Limit(1).All(setContextOp(ctx, bpq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func (bpq *BillProductQuery) FirstX(ctx context.Context) *BillProduct {
 // Returns a *NotFoundError when no BillProduct ID was found.
 func (bpq *BillProductQuery) FirstID(ctx context.Context) (id pulid.ID, err error) {
 	var ids []pulid.ID
-	if ids, err = bpq.Limit(1).IDs(setContextOp(ctx, bpq.ctx, "FirstID")); err != nil {
+	if ids, err = bpq.Limit(1).IDs(setContextOp(ctx, bpq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -123,7 +124,7 @@ func (bpq *BillProductQuery) FirstIDX(ctx context.Context) pulid.ID {
 // Returns a *NotSingularError when more than one BillProduct entity is found.
 // Returns a *NotFoundError when no BillProduct entities are found.
 func (bpq *BillProductQuery) Only(ctx context.Context) (*BillProduct, error) {
-	nodes, err := bpq.Limit(2).All(setContextOp(ctx, bpq.ctx, "Only"))
+	nodes, err := bpq.Limit(2).All(setContextOp(ctx, bpq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,7 @@ func (bpq *BillProductQuery) OnlyX(ctx context.Context) *BillProduct {
 // Returns a *NotFoundError when no entities are found.
 func (bpq *BillProductQuery) OnlyID(ctx context.Context) (id pulid.ID, err error) {
 	var ids []pulid.ID
-	if ids, err = bpq.Limit(2).IDs(setContextOp(ctx, bpq.ctx, "OnlyID")); err != nil {
+	if ids, err = bpq.Limit(2).IDs(setContextOp(ctx, bpq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -176,7 +177,7 @@ func (bpq *BillProductQuery) OnlyIDX(ctx context.Context) pulid.ID {
 
 // All executes the query and returns a list of BillProducts.
 func (bpq *BillProductQuery) All(ctx context.Context) ([]*BillProduct, error) {
-	ctx = setContextOp(ctx, bpq.ctx, "All")
+	ctx = setContextOp(ctx, bpq.ctx, ent.OpQueryAll)
 	if err := bpq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -198,7 +199,7 @@ func (bpq *BillProductQuery) IDs(ctx context.Context) (ids []pulid.ID, err error
 	if bpq.ctx.Unique == nil && bpq.path != nil {
 		bpq.Unique(true)
 	}
-	ctx = setContextOp(ctx, bpq.ctx, "IDs")
+	ctx = setContextOp(ctx, bpq.ctx, ent.OpQueryIDs)
 	if err = bpq.Select(billproduct.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -216,7 +217,7 @@ func (bpq *BillProductQuery) IDsX(ctx context.Context) []pulid.ID {
 
 // Count returns the count of the given query.
 func (bpq *BillProductQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, bpq.ctx, "Count")
+	ctx = setContextOp(ctx, bpq.ctx, ent.OpQueryCount)
 	if err := bpq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -234,7 +235,7 @@ func (bpq *BillProductQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (bpq *BillProductQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, bpq.ctx, "Exist")
+	ctx = setContextOp(ctx, bpq.ctx, ent.OpQueryExist)
 	switch _, err := bpq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -477,7 +478,7 @@ func (bpgb *BillProductGroupBy) Aggregate(fns ...AggregateFunc) *BillProductGrou
 
 // Scan applies the selector query and scans the result into the given value.
 func (bpgb *BillProductGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bpgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, bpgb.build.ctx, ent.OpQueryGroupBy)
 	if err := bpgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -525,7 +526,7 @@ func (bps *BillProductSelect) Aggregate(fns ...AggregateFunc) *BillProductSelect
 
 // Scan applies the selector query and scans the result into the given value.
 func (bps *BillProductSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bps.ctx, "Select")
+	ctx = setContextOp(ctx, bps.ctx, ent.OpQuerySelect)
 	if err := bps.prepareQuery(ctx); err != nil {
 		return err
 	}
