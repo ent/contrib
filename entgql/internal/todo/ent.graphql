@@ -77,7 +77,7 @@ type Category implements Node {
   types: CategoryTypes
   duration: Duration
   count: Uint64
-  strings: [String!]
+  strings: [String!] @deprecated(reason: "use `string` instead")
   todos(
     """
     Returns the elements in the list that come after the specified cursor.

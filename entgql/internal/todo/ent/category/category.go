@@ -70,7 +70,6 @@ var Columns = []string{
 	FieldTypes,
 	FieldDuration,
 	FieldCount,
-	FieldStrings,
 }
 
 var (
@@ -83,6 +82,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for _, f := range [...]string{FieldStrings} {
+		if column == f {
 			return true
 		}
 	}
