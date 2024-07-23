@@ -546,6 +546,13 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 	var defs []*ast.Definition
 
 	for _, i := range ant.MutationInputs {
+		if i.IsCreate && ant.Skip.Is(SkipMutationCreateInput) {
+			continue
+		}
+		if !i.IsCreate && ant.Skip.Is(SkipMutationUpdateInput) {
+			continue
+		}
+
 		desc := MutationDescriptor{Type: t, IsCreate: i.IsCreate}
 		name, err := desc.Input()
 		if err != nil {
