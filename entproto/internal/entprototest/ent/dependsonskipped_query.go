@@ -11,6 +11,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/dependsonskipped"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/implicitskippedmessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -85,7 +86,7 @@ func (dosq *DependsOnSkippedQuery) QuerySkipped() *ImplicitSkippedMessageQuery {
 // First returns the first DependsOnSkipped entity from the query.
 // Returns a *NotFoundError when no DependsOnSkipped was found.
 func (dosq *DependsOnSkippedQuery) First(ctx context.Context) (*DependsOnSkipped, error) {
-	nodes, err := dosq.Limit(1).All(setContextOp(ctx, dosq.ctx, "First"))
+	nodes, err := dosq.Limit(1).All(setContextOp(ctx, dosq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (dosq *DependsOnSkippedQuery) FirstX(ctx context.Context) *DependsOnSkipped
 // Returns a *NotFoundError when no DependsOnSkipped ID was found.
 func (dosq *DependsOnSkippedQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dosq.Limit(1).IDs(setContextOp(ctx, dosq.ctx, "FirstID")); err != nil {
+	if ids, err = dosq.Limit(1).IDs(setContextOp(ctx, dosq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (dosq *DependsOnSkippedQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DependsOnSkipped entity is found.
 // Returns a *NotFoundError when no DependsOnSkipped entities are found.
 func (dosq *DependsOnSkippedQuery) Only(ctx context.Context) (*DependsOnSkipped, error) {
-	nodes, err := dosq.Limit(2).All(setContextOp(ctx, dosq.ctx, "Only"))
+	nodes, err := dosq.Limit(2).All(setContextOp(ctx, dosq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (dosq *DependsOnSkippedQuery) OnlyX(ctx context.Context) *DependsOnSkipped 
 // Returns a *NotFoundError when no entities are found.
 func (dosq *DependsOnSkippedQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dosq.Limit(2).IDs(setContextOp(ctx, dosq.ctx, "OnlyID")); err != nil {
+	if ids, err = dosq.Limit(2).IDs(setContextOp(ctx, dosq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (dosq *DependsOnSkippedQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DependsOnSkippeds.
 func (dosq *DependsOnSkippedQuery) All(ctx context.Context) ([]*DependsOnSkipped, error) {
-	ctx = setContextOp(ctx, dosq.ctx, "All")
+	ctx = setContextOp(ctx, dosq.ctx, ent.OpQueryAll)
 	if err := dosq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (dosq *DependsOnSkippedQuery) IDs(ctx context.Context) (ids []int, err erro
 	if dosq.ctx.Unique == nil && dosq.path != nil {
 		dosq.Unique(true)
 	}
-	ctx = setContextOp(ctx, dosq.ctx, "IDs")
+	ctx = setContextOp(ctx, dosq.ctx, ent.OpQueryIDs)
 	if err = dosq.Select(dependsonskipped.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -224,7 +225,7 @@ func (dosq *DependsOnSkippedQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (dosq *DependsOnSkippedQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, dosq.ctx, "Count")
+	ctx = setContextOp(ctx, dosq.ctx, ent.OpQueryCount)
 	if err := dosq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -242,7 +243,7 @@ func (dosq *DependsOnSkippedQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dosq *DependsOnSkippedQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, dosq.ctx, "Exist")
+	ctx = setContextOp(ctx, dosq.ctx, ent.OpQueryExist)
 	switch _, err := dosq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -529,7 +530,7 @@ func (dosgb *DependsOnSkippedGroupBy) Aggregate(fns ...AggregateFunc) *DependsOn
 
 // Scan applies the selector query and scans the result into the given value.
 func (dosgb *DependsOnSkippedGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dosgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, dosgb.build.ctx, ent.OpQueryGroupBy)
 	if err := dosgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -577,7 +578,7 @@ func (doss *DependsOnSkippedSelect) Aggregate(fns ...AggregateFunc) *DependsOnSk
 
 // Scan applies the selector query and scans the result into the given value.
 func (doss *DependsOnSkippedSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, doss.ctx, "Select")
+	ctx = setContextOp(ctx, doss.ctx, ent.OpQuerySelect)
 	if err := doss.prepareQuery(ctx); err != nil {
 		return err
 	}

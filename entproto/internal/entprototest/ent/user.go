@@ -57,12 +57,10 @@ func (e UserEdges) BlogPostsOrErr() ([]*BlogPost, error) {
 // ProfilePicOrErr returns the ProfilePic value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) ProfilePicOrErr() (*Image, error) {
-	if e.loadedTypes[1] {
-		if e.ProfilePic == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: image.Label}
-		}
+	if e.ProfilePic != nil {
 		return e.ProfilePic, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: image.Label}
 	}
 	return nil, &NotLoadedError{edge: "profile_pic"}
 }
@@ -70,12 +68,10 @@ func (e UserEdges) ProfilePicOrErr() (*Image, error) {
 // SkipEdgeOrErr returns the SkipEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) SkipEdgeOrErr() (*SkipEdgeExample, error) {
-	if e.loadedTypes[2] {
-		if e.SkipEdge == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: skipedgeexample.Label}
-		}
+	if e.SkipEdge != nil {
 		return e.SkipEdge, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: skipedgeexample.Label}
 	}
 	return nil, &NotLoadedError{edge: "skip_edge"}
 }

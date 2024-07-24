@@ -74,12 +74,10 @@ type TodoEdges struct {
 // ParentOrErr returns the Parent value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TodoEdges) ParentOrErr() (*Todo, error) {
-	if e.loadedTypes[0] {
-		if e.Parent == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: todo.Label}
-		}
+	if e.Parent != nil {
 		return e.Parent, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: todo.Label}
 	}
 	return nil, &NotLoadedError{edge: "parent"}
 }
@@ -96,12 +94,10 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 // CategoryOrErr returns the Category value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TodoEdges) CategoryOrErr() (*Category, error) {
-	if e.loadedTypes[2] {
-		if e.Category == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: category.Label}
-		}
+	if e.Category != nil {
 		return e.Category, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: category.Label}
 	}
 	return nil, &NotLoadedError{edge: "category"}
 }
@@ -109,12 +105,10 @@ func (e TodoEdges) CategoryOrErr() (*Category, error) {
 // SecretOrErr returns the Secret value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e TodoEdges) SecretOrErr() (*VerySecret, error) {
-	if e.loadedTypes[3] {
-		if e.Secret == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: verysecret.Label}
-		}
+	if e.Secret != nil {
 		return e.Secret, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: verysecret.Label}
 	}
 	return nil, &NotLoadedError{edge: "secret"}
 }

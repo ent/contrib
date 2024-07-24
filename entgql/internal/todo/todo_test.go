@@ -1687,11 +1687,11 @@ func TestNestedConnection(t *testing.T) {
 		)
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAcAAAAJ"),
+			client.Var("cursor", "gaFpzwAAAAcAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFpzwAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 

@@ -10,6 +10,7 @@ import (
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/user"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withmodifiedfield"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -85,7 +86,7 @@ func (wmfq *WithModifiedFieldQuery) QueryOwner() *UserQuery {
 // First returns the first WithModifiedField entity from the query.
 // Returns a *NotFoundError when no WithModifiedField was found.
 func (wmfq *WithModifiedFieldQuery) First(ctx context.Context) (*WithModifiedField, error) {
-	nodes, err := wmfq.Limit(1).All(setContextOp(ctx, wmfq.ctx, "First"))
+	nodes, err := wmfq.Limit(1).All(setContextOp(ctx, wmfq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (wmfq *WithModifiedFieldQuery) FirstX(ctx context.Context) *WithModifiedFie
 // Returns a *NotFoundError when no WithModifiedField ID was found.
 func (wmfq *WithModifiedFieldQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wmfq.Limit(1).IDs(setContextOp(ctx, wmfq.ctx, "FirstID")); err != nil {
+	if ids, err = wmfq.Limit(1).IDs(setContextOp(ctx, wmfq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (wmfq *WithModifiedFieldQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one WithModifiedField entity is found.
 // Returns a *NotFoundError when no WithModifiedField entities are found.
 func (wmfq *WithModifiedFieldQuery) Only(ctx context.Context) (*WithModifiedField, error) {
-	nodes, err := wmfq.Limit(2).All(setContextOp(ctx, wmfq.ctx, "Only"))
+	nodes, err := wmfq.Limit(2).All(setContextOp(ctx, wmfq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (wmfq *WithModifiedFieldQuery) OnlyX(ctx context.Context) *WithModifiedFiel
 // Returns a *NotFoundError when no entities are found.
 func (wmfq *WithModifiedFieldQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wmfq.Limit(2).IDs(setContextOp(ctx, wmfq.ctx, "OnlyID")); err != nil {
+	if ids, err = wmfq.Limit(2).IDs(setContextOp(ctx, wmfq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (wmfq *WithModifiedFieldQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WithModifiedFields.
 func (wmfq *WithModifiedFieldQuery) All(ctx context.Context) ([]*WithModifiedField, error) {
-	ctx = setContextOp(ctx, wmfq.ctx, "All")
+	ctx = setContextOp(ctx, wmfq.ctx, ent.OpQueryAll)
 	if err := wmfq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (wmfq *WithModifiedFieldQuery) IDs(ctx context.Context) (ids []int, err err
 	if wmfq.ctx.Unique == nil && wmfq.path != nil {
 		wmfq.Unique(true)
 	}
-	ctx = setContextOp(ctx, wmfq.ctx, "IDs")
+	ctx = setContextOp(ctx, wmfq.ctx, ent.OpQueryIDs)
 	if err = wmfq.Select(withmodifiedfield.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -224,7 +225,7 @@ func (wmfq *WithModifiedFieldQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wmfq *WithModifiedFieldQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, wmfq.ctx, "Count")
+	ctx = setContextOp(ctx, wmfq.ctx, ent.OpQueryCount)
 	if err := wmfq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -242,7 +243,7 @@ func (wmfq *WithModifiedFieldQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wmfq *WithModifiedFieldQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, wmfq.ctx, "Exist")
+	ctx = setContextOp(ctx, wmfq.ctx, ent.OpQueryExist)
 	switch _, err := wmfq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -536,7 +537,7 @@ func (wmfgb *WithModifiedFieldGroupBy) Aggregate(fns ...AggregateFunc) *WithModi
 
 // Scan applies the selector query and scans the result into the given value.
 func (wmfgb *WithModifiedFieldGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, wmfgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, wmfgb.build.ctx, ent.OpQueryGroupBy)
 	if err := wmfgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -584,7 +585,7 @@ func (wmfs *WithModifiedFieldSelect) Aggregate(fns ...AggregateFunc) *WithModifi
 
 // Scan applies the selector query and scans the result into the given value.
 func (wmfs *WithModifiedFieldSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, wmfs.ctx, "Select")
+	ctx = setContextOp(ctx, wmfs.ctx, ent.OpQuerySelect)
 	if err := wmfs.prepareQuery(ctx); err != nil {
 		return err
 	}
