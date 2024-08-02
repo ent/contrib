@@ -16,9 +16,9 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
+	// The users full name.
 	Name string `json:"name,omitempty"`
-	// Age holds the value of the "age" field.
+	// The age of the user.
 	Age int `json:"age,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
@@ -28,7 +28,7 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Pets holds the value of the pets edge.
+	// The pets that the user owns.
 	Pets []*Pet `json:"pets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.

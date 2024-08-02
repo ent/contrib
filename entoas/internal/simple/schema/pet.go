@@ -36,16 +36,19 @@ func (Pet) Fields() []ent.Field {
 			Annotations(
 				entoas.Groups("pet"),
 				entoas.Example("Kuro"),
-			),
+			).
+			Comment("Name of the pet."),
 		field.JSON("nicknames", []string{}).
 			Optional().
-			Annotations(entoas.Groups("pet")),
+			Annotations(entoas.Groups("pet")).
+			Comment("Various nicknames of the pet."),
 		field.Int("age").
 			Optional().
 			Annotations(
 				entoas.Groups("pet"),
 				entoas.Example(1),
-			),
+			).
+			Comment("Age of the pet."),
 	}
 }
 
@@ -53,14 +56,17 @@ func (Pet) Fields() []ent.Field {
 func (Pet) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("categories", Category.Type).
-			Ref("pets"),
+			Ref("pets").
+			Comment("Categories for which the pet belongs to."),
 		edge.From("owner", User.Type).
 			Ref("pets").
 			Unique().
 			Annotations(
 				entoas.Groups("pet:list", "pet:read", "test:edge", "test:view"),
-			),
-		edge.To("friends", Pet.Type),
+			).
+			Comment("Owner of the pet."),
+		edge.To("friends", Pet.Type).
+			Comment("Friends of the pet."),
 	}
 }
 
