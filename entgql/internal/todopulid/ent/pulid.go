@@ -20,13 +20,25 @@ import (
 	"context"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todopulid/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/verysecret"
 )
 
 // prefixMap maps PULID prefixes to table names.
 var prefixMap = map[pulid.ID]string{
+	"BP": billproduct.Table,
+	"CR": category.Table,
+	"FS": friendship.Table,
+	"GR": group.Table,
 	"TD": todo.Table,
+	"UR": user.Table,
+	"VR": verysecret.Table,
 }
 
 // IDToType maps a pulid.ID to the underlying table.
