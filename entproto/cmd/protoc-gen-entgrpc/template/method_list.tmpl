@@ -29,7 +29,11 @@
 
             {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "token" }}
         {{- else if .G.EntType.ID.IsUUID }}
-            {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "bytes" }}
+            token, err := {{ qualify "github.com/google/uuid" "ParseBytes" }}(bytes)
+            if err != nil {
+                return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
+            }
+            {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "[]byte(token[:])" }}
         {{- else if .G.EntType.ID.IsString }}
             {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "bytes" }}
         {{- end }}
