@@ -29,12 +29,9 @@
 
             {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "token" }}
         {{- else if .G.EntType.ID.IsUUID }}
-            pageToken, err := {{ qualify "github.com/google/uuid" "ParseBytes" }}(bytes)
-            if err != nil {
-                return nil, status.Errorf(codes.InvalidArgument, "page token is invalid")
-            }
+            {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "bytes" }}
         {{- else if .G.EntType.ID.IsString }}
-            pageToken := string(bytes)
+            {{- template "field_to_ent" dict "Field" .G.FieldMap.ID "VarName" "pageToken" "Ident" "bytes" }}
         {{- end }}
         listQuery = listQuery.
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "IDLTE" }}(pageToken))
