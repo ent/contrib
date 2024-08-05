@@ -64,9 +64,9 @@ type Todo struct {
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
 type TodoEdges struct {
-	// Parent holds the value of the parent edge.
+	// The parent of the todo
 	Parent *Todo `json:"parent,omitempty"`
-	// Children holds the value of the children edge.
+	// The children of the todo
 	Children []*Todo `json:"children,omitempty"`
 	// Category holds the value of the category edge.
 	Category *Category `json:"category,omitempty"`
