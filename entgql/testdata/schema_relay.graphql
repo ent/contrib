@@ -1361,13 +1361,7 @@ input UserWhereInput {
   username field predicates
   """
   username: UUID
-  usernameNEQ: UUID
   usernameIn: [UUID!]
-  usernameNotIn: [UUID!]
-  usernameGT: UUID
-  usernameGTE: UUID
-  usernameLT: UUID
-  usernameLTE: UUID
   """
   groups edge predicates
   """
