@@ -76,7 +76,8 @@ func (Category) Fields() []ent.Field {
 				entgql.Type("Uint64"),
 			),
 		field.Strings("strings").
-			Optional(),
+			Optional().
+			Deprecated("use `string` instead"),
 	}
 }
 

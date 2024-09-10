@@ -14,6 +14,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 
 import (
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
@@ -298,7 +299,7 @@ func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]a
 func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
-		if !ok {
+		if !ok || v == nil {
 			continue
 		}
 		i, err := graphql.UnmarshalInt(v)

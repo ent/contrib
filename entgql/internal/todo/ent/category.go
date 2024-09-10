@@ -46,6 +46,8 @@ type Category struct {
 	// Count holds the value of the "count" field.
 	Count uint64 `json:"count,omitempty"`
 	// Strings holds the value of the "strings" field.
+	//
+	// Deprecated: use `string` instead
 	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.

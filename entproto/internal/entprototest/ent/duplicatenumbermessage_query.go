@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/duplicatenumbermessage"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (dnmq *DuplicateNumberMessageQuery) Order(o ...duplicatenumbermessage.Order
 // First returns the first DuplicateNumberMessage entity from the query.
 // Returns a *NotFoundError when no DuplicateNumberMessage was found.
 func (dnmq *DuplicateNumberMessageQuery) First(ctx context.Context) (*DuplicateNumberMessage, error) {
-	nodes, err := dnmq.Limit(1).All(setContextOp(ctx, dnmq.ctx, "First"))
+	nodes, err := dnmq.Limit(1).All(setContextOp(ctx, dnmq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (dnmq *DuplicateNumberMessageQuery) FirstX(ctx context.Context) *DuplicateN
 // Returns a *NotFoundError when no DuplicateNumberMessage ID was found.
 func (dnmq *DuplicateNumberMessageQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dnmq.Limit(1).IDs(setContextOp(ctx, dnmq.ctx, "FirstID")); err != nil {
+	if ids, err = dnmq.Limit(1).IDs(setContextOp(ctx, dnmq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (dnmq *DuplicateNumberMessageQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DuplicateNumberMessage entity is found.
 // Returns a *NotFoundError when no DuplicateNumberMessage entities are found.
 func (dnmq *DuplicateNumberMessageQuery) Only(ctx context.Context) (*DuplicateNumberMessage, error) {
-	nodes, err := dnmq.Limit(2).All(setContextOp(ctx, dnmq.ctx, "Only"))
+	nodes, err := dnmq.Limit(2).All(setContextOp(ctx, dnmq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (dnmq *DuplicateNumberMessageQuery) OnlyX(ctx context.Context) *DuplicateNu
 // Returns a *NotFoundError when no entities are found.
 func (dnmq *DuplicateNumberMessageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dnmq.Limit(2).IDs(setContextOp(ctx, dnmq.ctx, "OnlyID")); err != nil {
+	if ids, err = dnmq.Limit(2).IDs(setContextOp(ctx, dnmq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (dnmq *DuplicateNumberMessageQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DuplicateNumberMessages.
 func (dnmq *DuplicateNumberMessageQuery) All(ctx context.Context) ([]*DuplicateNumberMessage, error) {
-	ctx = setContextOp(ctx, dnmq.ctx, "All")
+	ctx = setContextOp(ctx, dnmq.ctx, ent.OpQueryAll)
 	if err := dnmq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (dnmq *DuplicateNumberMessageQuery) IDs(ctx context.Context) (ids []int, er
 	if dnmq.ctx.Unique == nil && dnmq.path != nil {
 		dnmq.Unique(true)
 	}
-	ctx = setContextOp(ctx, dnmq.ctx, "IDs")
+	ctx = setContextOp(ctx, dnmq.ctx, ent.OpQueryIDs)
 	if err = dnmq.Select(duplicatenumbermessage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (dnmq *DuplicateNumberMessageQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (dnmq *DuplicateNumberMessageQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, dnmq.ctx, "Count")
+	ctx = setContextOp(ctx, dnmq.ctx, ent.OpQueryCount)
 	if err := dnmq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (dnmq *DuplicateNumberMessageQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dnmq *DuplicateNumberMessageQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, dnmq.ctx, "Exist")
+	ctx = setContextOp(ctx, dnmq.ctx, ent.OpQueryExist)
 	switch _, err := dnmq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (dnmgb *DuplicateNumberMessageGroupBy) Aggregate(fns ...AggregateFunc) *Dup
 
 // Scan applies the selector query and scans the result into the given value.
 func (dnmgb *DuplicateNumberMessageGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dnmgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, dnmgb.build.ctx, ent.OpQueryGroupBy)
 	if err := dnmgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (dnms *DuplicateNumberMessageSelect) Aggregate(fns ...AggregateFunc) *Dupli
 
 // Scan applies the selector query and scans the result into the given value.
 func (dnms *DuplicateNumberMessageSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dnms.ctx, "Select")
+	ctx = setContextOp(ctx, dnms.ctx, ent.OpQuerySelect)
 	if err := dnms.prepareQuery(ctx); err != nil {
 		return err
 	}

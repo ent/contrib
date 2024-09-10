@@ -9,9 +9,12 @@ in the LICENSE file in the root directory of this source tree.
 {{ define "gql_edge" }}
 {{ template "header" $ }}
 
+{{ template "import" $ }}
+
 import (
 	"context"
 
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 )
 
