@@ -228,12 +228,41 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 					ands = append(ands, sql.EQ(s.C(opts.Fields[j]), values[j]))
 				}
 			}
+			// TODO: Whenever nulls last is made configurable, we'll want to change this behavior. Sorting works differently
+			// when nulls last isn't specified. This code works for nulls last because that's the behavior we want, but before
+			// we can merge it back we need to spend some time making it configurable. Without nulls first nulls will appear
+			// first when in desc order, and last when ordering by asc order. So when we can expect to have values appear first
+			// and nulls appear second, we need to ad an `or x is null` when the cursor has a value. When using `nulls last`
+			// this is always the case, nulls are always last. When not using nulls last then we have to account for the
+			// possibility of nulls appearing first when sorting in descending order, which would mean we have to add an
+			// `or x is not null` so that we don't stop paginating early. This conflicts with the behavior we want with
+			// nulls last.
 			if opts.Directions[i] == OrderDirectionAsc {
-				ands = append(ands, sql.GT(s.C(opts.Fields[i]), values[i]))
+				if values[i] != nil {
+					// we have a value and we're sorting in ascending order, that means that we need to add `or x is null` so that
+					// pagination doesn't stop early, because > null doesn't work. If we add support for `nulls first` then this
+					// will need to change to accomodate that.
+					ands = append(ands, sql.Or(
+						sql.IsNull(s.C(opts.Fields[i])),
+						sql.GT(s.C(opts.Fields[i]), values[i]),
+					))
+				}
 			} else {
-				ands = append(ands, sql.LT(s.C(opts.Fields[i]), values[i]))
+				// TODO: Something like this will be needed when we make nulls last configurable, since if nulls are not last,
+				// they appear first when sorting in descending order
+				//if values[i] == nil {
+				//	or = append(or, sql.NotNull(s.C(opts.Fields[i])))
+				//} else {....
+				if values[i] != nil {
+					ands = append(ands, sql.Or(
+						sql.IsNull(s.C(opts.Fields[i])),
+						sql.LT(s.C(opts.Fields[i]), values[i]),
+					))
+				}
 			}
-			or = append(or, sql.And(ands...))
+			if len(ands) > 0 {
+				or = append(or, sql.And(ands...))
+			}
 		}
 		s.Where(sql.Or(or...))
 	}, nil

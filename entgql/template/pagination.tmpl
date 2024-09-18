@@ -333,7 +333,8 @@ func (p *{{ $pager }}) applyOrder(query *{{ $query }}) *{{ $query }} {
 			if p.reverse {
 				direction = direction.Reverse()
 			}
-			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+      {{- /* TODO: Make this configurable somehow */}}
+			query = query.Order(o.Field.toTerm(direction.OrderTermOption(), sql.OrderNullsLast()))
 			if o.Field.column == {{ $defaultOrder }}.Field.column {
 				defaultOrdered = true
 			}
@@ -400,7 +401,8 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 					if p.reverse {
 						direction = direction.Reverse()
 					}
-					query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+      		{{- /* TODO: Make this configurable somehow */}}
+					query = query.Order(o.Field.toTerm(direction.OrderTermOption(), sql.OrderNullsLast()))
 				default:
 					{{- /* Ensure the cursor field is selected to encode it back to the client. */}}
 					if len(query.ctx.Fields) > 0 {
