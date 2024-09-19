@@ -216,16 +216,30 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 		opts.Directions = append(opts.Directions, opts.DirectionID)
 	}
 	return func(s *sql.Selector) {
+		// getColumnNameForField gets the name for the term and considers non-ambigous matching of
+		// terms that may be joined instead of a column on the table.
+		getColumnNameForField := func(field string) string {
+			// The predicate function is executed on query generation time.
+			column := s.C(field)
+			// If there is a non-ambiguous match, we use it. That is because
+			// some order terms may append joined information to query selection.
+			if matches := s.FindSelection(field); len(matches) == 1 {
+				column = matches[0]
+			}
+			return column
+		}
 		// Given the following terms: x DESC, y ASC, etc. The following predicate will be
 		// generated: (x < x1 OR (x = x1 AND y > y1) OR (x = x1 AND y = y1 AND id > last)).
 		var or []*sql.Predicate
 		for i := range opts.Fields {
 			var ands []*sql.Predicate
+			column := getColumnNameForField(opts.Fields[i])
 			for j := 0; j < i; j++ {
+				column := getColumnNameForField(opts.Fields[j])
 				if values[j] == nil {
-					ands = append(ands, sql.IsNull(s.C(opts.Fields[j])))
+					ands = append(ands, sql.IsNull(s.C(column)))
 				} else {
-					ands = append(ands, sql.EQ(s.C(opts.Fields[j]), values[j]))
+					ands = append(ands, sql.EQ(s.C(column), values[j]))
 				}
 			}
 			// TODO: Whenever nulls last is made configurable, we'll want to change this behavior. Sorting works differently
@@ -243,8 +257,8 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 					// pagination doesn't stop early, because > null doesn't work. If we add support for `nulls first` then this
 					// will need to change to accomodate that.
 					ands = append(ands, sql.Or(
-						sql.IsNull(s.C(opts.Fields[i])),
-						sql.GT(s.C(opts.Fields[i]), values[i]),
+						sql.IsNull(s.C(column)),
+						sql.GT(s.C(column), values[i]),
 					))
 				}
 			} else {
@@ -255,8 +269,8 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 				//} else {....
 				if values[i] != nil {
 					ands = append(ands, sql.Or(
-						sql.IsNull(s.C(opts.Fields[i])),
-						sql.LT(s.C(opts.Fields[i]), values[i]),
+						sql.IsNull(s.C(column)),
+						sql.LT(s.C(column), values[i]),
 					))
 				}
 			}
