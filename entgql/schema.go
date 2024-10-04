@@ -586,7 +586,18 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if err != nil {
 				return nil, err
 			}
+			
 			scalar := e.mapScalar(gqlType, f.Field, ant, inputObjectFilter)
+			if i.IsCreate {
+				if ant.CreateInputType != "" {
+					scalar = ant.CreateInputType
+				}
+			} else {
+				if ant.UpdateInputType != "" {
+					scalar = ant.UpdateInputType
+				}
+			}
+
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
 			}
