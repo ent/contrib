@@ -649,9 +649,9 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 	if e.Annotations == nil || e.Annotations[ant.Name()] == nil {
 		if c.DefaultPolicy == PolicyExpose {
 			if e.Unique {
-				return []Operation{OpRead}, nil
+				return []Operation{OpRead, OpCreate, OpDelete, OpUpdate}, nil
 			} else {
-				return []Operation{OpList}, nil
+				return []Operation{OpList, OpCreate, OpDelete, OpUpdate}, nil
 			}
 		}
 		return nil, nil
@@ -664,6 +664,9 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 		}
 		var ops []Operation
 		m := make(map[Operation]OperationConfig)
+		m[OpCreate] = ant.Create
+		m[OpDelete] = ant.Delete
+		m[OpUpdate] = ant.Update
 		if e.Unique {
 			m[OpRead] = ant.Read
 		} else {
@@ -720,6 +723,13 @@ func reqBody(n *gen.Type, op Operation, allowClientUUIDs bool) (*ogen.RequestBod
 		}
 	}
 	for _, e := range n.Edges {
+		a, err := EdgeOperations(e)
+		if err != nil {
+			return nil, err
+		}
+		if !contains(a, op) {
+			continue
+		}
 		s, err := OgenSchema(e.Type.ID)
 		if err != nil {
 			return nil, err
