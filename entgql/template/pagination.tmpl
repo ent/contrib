@@ -138,6 +138,7 @@ type {{ $edge }} struct {
 // {{ $conn }} is the connection containing edges to {{ $name }}.
 type {{ $conn }} struct {
 	Edges []*{{ $edge }} `json:"edges"`
+	Nodes []*{{ $name }} `json:"nodes"`
 	PageInfo PageInfo    `json:"pageInfo"`
 	TotalCount int       `json:"totalCount"`
 }
@@ -167,6 +168,7 @@ func (c *{{ $conn }}) build(nodes []*{{ $name }}, pager *{{ $pager }}, after *Cu
 		}
 	}
 	c.Edges = make([]*{{ $edge }}, len(nodes))
+	c.Nodes = nodes
 	for i := range nodes {
 		node := nodeAt(i)
 		c.Edges[i] = &{{ $edge }}{
