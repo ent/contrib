@@ -923,6 +923,11 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				selectedFields = append(selectedFields, todo.FieldCustomp)
 				fieldSeen[todo.FieldCustomp] = struct{}{}
 			}
+		case "value":
+			if _, ok := fieldSeen[todo.FieldValue]; !ok {
+				selectedFields = append(selectedFields, todo.FieldValue)
+				fieldSeen[todo.FieldValue] = struct{}{}
+			}
 		case "categoryID":
 			if _, ok := fieldSeen[todo.FieldCategoryID]; !ok {
 				selectedFields = append(selectedFields, todo.FieldCategoryID)

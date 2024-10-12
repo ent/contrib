@@ -1160,6 +1160,16 @@ type TodoWhereInput struct {
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
+	// "value" field predicates.
+	Value      *int  `json:"value,omitempty"`
+	ValueNEQ   *int  `json:"valueNEQ,omitempty"`
+	ValueIn    []int `json:"valueIn,omitempty"`
+	ValueNotIn []int `json:"valueNotIn,omitempty"`
+	ValueGT    *int  `json:"valueGT,omitempty"`
+	ValueGTE   *int  `json:"valueGTE,omitempty"`
+	ValueLT    *int  `json:"valueLT,omitempty"`
+	ValueLTE   *int  `json:"valueLTE,omitempty"`
+
 	// "category_id" field predicates.
 	CategoryID       *uuid.UUID  `json:"categoryID,omitempty"`
 	CategoryIDNEQ    *uuid.UUID  `json:"categoryIDNEQ,omitempty"`
@@ -1374,6 +1384,30 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, todo.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.Value != nil {
+		predicates = append(predicates, todo.ValueEQ(*i.Value))
+	}
+	if i.ValueNEQ != nil {
+		predicates = append(predicates, todo.ValueNEQ(*i.ValueNEQ))
+	}
+	if len(i.ValueIn) > 0 {
+		predicates = append(predicates, todo.ValueIn(i.ValueIn...))
+	}
+	if len(i.ValueNotIn) > 0 {
+		predicates = append(predicates, todo.ValueNotIn(i.ValueNotIn...))
+	}
+	if i.ValueGT != nil {
+		predicates = append(predicates, todo.ValueGT(*i.ValueGT))
+	}
+	if i.ValueGTE != nil {
+		predicates = append(predicates, todo.ValueGTE(*i.ValueGTE))
+	}
+	if i.ValueLT != nil {
+		predicates = append(predicates, todo.ValueLT(*i.ValueLT))
+	}
+	if i.ValueLTE != nil {
+		predicates = append(predicates, todo.ValueLTE(*i.ValueLTE))
 	}
 	if i.CategoryID != nil {
 		predicates = append(predicates, todo.CategoryIDEQ(*i.CategoryID))

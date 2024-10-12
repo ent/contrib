@@ -49,6 +49,8 @@ const (
 	FieldCustom = "custom"
 	// FieldCustomp holds the string denoting the customp field in the database.
 	FieldCustomp = "customp"
+	// FieldValue holds the string denoting the value field in the database.
+	FieldValue = "value"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -95,6 +97,7 @@ var Columns = []string{
 	FieldInit,
 	FieldCustom,
 	FieldCustomp,
+	FieldValue,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "todos"
@@ -127,6 +130,8 @@ var (
 	DefaultPriority int
 	// TextValidator is a validator for the "text" field. It is called by the builders before save.
 	TextValidator func(string) error
+	// DefaultValue holds the default value on creation for the "value" field.
+	DefaultValue int
 )
 
 // Status defines the type for the "status" enum field.
@@ -184,6 +189,11 @@ func ByText(opts ...sql.OrderTermOption) OrderOption {
 // ByCategoryID orders the results by the category_id field.
 func ByCategoryID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCategoryID, opts...).ToFunc()
+}
+
+// ByValue orders the results by the value field.
+func ByValue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValue, opts...).ToFunc()
 }
 
 // ByParentField orders the results by parent field.

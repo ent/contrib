@@ -2337,7 +2337,7 @@ func TestReduceQueryComplexity(t *testing.T) {
 						children (first: 5) {
 							edges {
 								node {
-									text			
+									text
 								}
 							}
 						}
@@ -2347,7 +2347,7 @@ func TestReduceQueryComplexity(t *testing.T) {
 						todos (first: 10) {
 							edges {
 								node {
-									text					
+									text
 								}
 							}
 						}
@@ -2382,7 +2382,7 @@ func TestReduceQueryComplexity(t *testing.T) {
 						children (first: 5) {
 							edges {
 								node {
-									text			
+									text
 								}
 							}
 						}
@@ -2392,7 +2392,7 @@ func TestReduceQueryComplexity(t *testing.T) {
 						todos (first: 10) {
 							edges {
 								node {
-									text					
+									text
 								}
 							}
 						}
@@ -2582,7 +2582,7 @@ func TestFieldSelection(t *testing.T) {
 		"SELECT `todos`.`id`, `todos`.`created_at`, `todos`.`status`, " +
 			"`todos`.`priority`, `todos`.`text`, `todos`.`blob`, " +
 			"`todos`.`category_id`, `todos`.`init`, `todos`.`custom`, " +
-			"`todos`.`customp` FROM `todos` ORDER BY `todos`.`id`",
+			"`todos`.`customp`, `todos`.`value` FROM `todos` ORDER BY `todos`.`id`",
 	}, rec.queries)
 
 	rootO2M := ec.OneToMany.CreateBulk(

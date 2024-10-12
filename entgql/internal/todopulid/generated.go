@@ -220,6 +220,7 @@ type ComplexityRoot struct {
 		Priority      func(childComplexity int) int
 		Status        func(childComplexity int) int
 		Text          func(childComplexity int) int
+		Value         func(childComplexity int) int
 	}
 
 	TodoConnection struct {
@@ -1054,6 +1055,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Text(childComplexity), true
 
+	case "Todo.value":
+		if e.complexity.Todo.Value == nil {
+			break
+		}
+
+		return e.complexity.Todo.Value(childComplexity), true
+
 	case "TodoConnection.edges":
 		if e.complexity.TodoConnection.Edges == nil {
 			break
@@ -1725,6 +1733,7 @@ input CreateTodoInput {
   priority: Int
   text: String!
   init: Map
+  value: Int
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -2381,6 +2390,7 @@ type Todo implements Node {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  value: Int!
   parent: Todo
   children(
     """
@@ -2552,6 +2562,17 @@ input TodoWhereInput {
   categoryIDIsNil: Boolean
   categoryIDNotNil: Boolean
   """
+  value field predicates
+  """
+  value: Int
+  valueNEQ: Int
+  valueIn: [Int!]
+  valueNotIn: [Int!]
+  valueGT: Int
+  valueGTE: Int
+  valueLT: Int
+  valueLTE: Int
+  """
   parent edge predicates
   """
   hasParent: Boolean
@@ -2615,6 +2636,7 @@ input UpdateTodoInput {
   text: String
   init: Map
   clearInit: Boolean
+  value: Int
   parentID: ID
   clearParent: Boolean
   addChildIDs: [ID!]
@@ -6005,6 +6027,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_custom(ctx, field)
 			case "customp":
 				return ec.fieldContext_Todo_customp(ctx, field)
+			case "value":
+				return ec.fieldContext_Todo_value(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -6092,6 +6116,8 @@ func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context
 				return ec.fieldContext_Todo_custom(ctx, field)
 			case "customp":
 				return ec.fieldContext_Todo_customp(ctx, field)
+			case "value":
+				return ec.fieldContext_Todo_value(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -8259,6 +8285,50 @@ func (ec *executionContext) fieldContext_Todo_customp(_ context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_value(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_parent(ctx, field)
 	if err != nil {
@@ -8317,6 +8387,8 @@ func (ec *executionContext) fieldContext_Todo_parent(_ context.Context, field gr
 				return ec.fieldContext_Todo_custom(ctx, field)
 			case "customp":
 				return ec.fieldContext_Todo_customp(ctx, field)
+			case "value":
+				return ec.fieldContext_Todo_value(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -8704,6 +8776,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(_ context.Context, field 
 				return ec.fieldContext_Todo_custom(ctx, field)
 			case "customp":
 				return ec.fieldContext_Todo_customp(ctx, field)
+			case "value":
+				return ec.fieldContext_Todo_value(ctx, field)
 			case "parent":
 				return ec.fieldContext_Todo_parent(ctx, field)
 			case "children":
@@ -12172,7 +12246,7 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "priority", "text", "init", "parentID", "childIDs", "categoryID", "secretID"}
+	fieldsInOrder := [...]string{"status", "priority", "text", "init", "value", "parentID", "childIDs", "categoryID", "secretID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12209,6 +12283,13 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 				return it, err
 			}
 			it.Init = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		case "parentID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentID"))
 			data, err := ec.unmarshalOID2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋschemaᚋpulidᚐID(ctx, v)
@@ -13372,7 +13453,7 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "priority", "priorityNEQ", "priorityIn", "priorityNotIn", "priorityGT", "priorityGTE", "priorityLT", "priorityLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "categoryID", "categoryIDNEQ", "categoryIDIn", "categoryIDNotIn", "categoryIDIsNil", "categoryIDNotNil", "hasParent", "hasParentWith", "hasChildren", "hasChildrenWith", "hasCategory", "hasCategoryWith", "createdToday"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "priority", "priorityNEQ", "priorityIn", "priorityNotIn", "priorityGT", "priorityGTE", "priorityLT", "priorityLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "categoryID", "categoryIDNEQ", "categoryIDIn", "categoryIDNotIn", "categoryIDIsNil", "categoryIDNotNil", "value", "valueNEQ", "valueIn", "valueNotIn", "valueGT", "valueGTE", "valueLT", "valueLTE", "hasParent", "hasParentWith", "hasChildren", "hasChildrenWith", "hasCategory", "hasCategoryWith", "createdToday"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13737,6 +13818,62 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.CategoryIDNotNil = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		case "valueNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNEQ"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueNEQ = data
+		case "valueIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueIn = data
+		case "valueNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueNotIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueNotIn = data
+		case "valueGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueGT = data
+		case "valueGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueGTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueGTE = data
+		case "valueLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueLT = data
+		case "valueLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valueLTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValueLTE = data
 		case "hasParent":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -13997,7 +14134,7 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "priority", "text", "init", "clearInit", "parentID", "clearParent", "addChildIDs", "removeChildIDs", "clearChildren", "secretID", "clearSecret"}
+	fieldsInOrder := [...]string{"status", "priority", "text", "init", "clearInit", "value", "parentID", "clearParent", "addChildIDs", "removeChildIDs", "clearChildren", "secretID", "clearSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -14041,6 +14178,13 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 				return it, err
 			}
 			it.ClearInit = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		case "parentID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentID"))
 			data, err := ec.unmarshalOID2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋschemaᚋpulidᚐID(ctx, v)
@@ -16183,6 +16327,11 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Todo_custom(ctx, field, obj)
 		case "customp":
 			out.Values[i] = ec._Todo_customp(ctx, field, obj)
+		case "value":
+			out.Values[i] = ec._Todo_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "parent":
 			field := field
 

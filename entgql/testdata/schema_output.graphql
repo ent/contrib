@@ -71,6 +71,7 @@ input CreateTodoInput {
   priority: Int
   text: String!
   init: Map
+  value: Int
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -167,6 +168,7 @@ type Todo {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  value: Int!
   parent: Todo
   children: [Todo!]
   category: Category
@@ -252,6 +254,7 @@ input UpdateTodoInput {
   text: String
   init: Map
   clearInit: Boolean
+  value: Int
   parentID: ID
   clearParent: Boolean
   addChildIDs: [ID!]

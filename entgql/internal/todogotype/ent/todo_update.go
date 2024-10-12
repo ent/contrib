@@ -153,6 +153,27 @@ func (tu *TodoUpdate) ClearCustomp() *TodoUpdate {
 	return tu
 }
 
+// SetValue sets the "value" field.
+func (tu *TodoUpdate) SetValue(i int) *TodoUpdate {
+	tu.mutation.ResetValue()
+	tu.mutation.SetValue(i)
+	return tu
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableValue(i *int) *TodoUpdate {
+	if i != nil {
+		tu.SetValue(*i)
+	}
+	return tu
+}
+
+// AddValue adds i to the "value" field.
+func (tu *TodoUpdate) AddValue(i int) *TodoUpdate {
+	tu.mutation.AddValue(i)
+	return tu
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tu *TodoUpdate) SetParentID(id string) *TodoUpdate {
 	tu.mutation.SetParentID(id)
@@ -343,6 +364,12 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.CustompCleared() {
 		_spec.ClearField(todo.FieldCustomp, field.TypeJSON)
+	}
+	if value, ok := tu.mutation.Value(); ok {
+		_spec.SetField(todo.FieldValue, field.TypeInt, value)
+	}
+	if value, ok := tu.mutation.AddedValue(); ok {
+		_spec.AddField(todo.FieldValue, field.TypeInt, value)
 	}
 	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -576,6 +603,27 @@ func (tuo *TodoUpdateOne) ClearCustomp() *TodoUpdateOne {
 	return tuo
 }
 
+// SetValue sets the "value" field.
+func (tuo *TodoUpdateOne) SetValue(i int) *TodoUpdateOne {
+	tuo.mutation.ResetValue()
+	tuo.mutation.SetValue(i)
+	return tuo
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableValue(i *int) *TodoUpdateOne {
+	if i != nil {
+		tuo.SetValue(*i)
+	}
+	return tuo
+}
+
+// AddValue adds i to the "value" field.
+func (tuo *TodoUpdateOne) AddValue(i int) *TodoUpdateOne {
+	tuo.mutation.AddValue(i)
+	return tuo
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tuo *TodoUpdateOne) SetParentID(id string) *TodoUpdateOne {
 	tuo.mutation.SetParentID(id)
@@ -796,6 +844,12 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 	}
 	if tuo.mutation.CustompCleared() {
 		_spec.ClearField(todo.FieldCustomp, field.TypeJSON)
+	}
+	if value, ok := tuo.mutation.Value(); ok {
+		_spec.SetField(todo.FieldValue, field.TypeInt, value)
+	}
+	if value, ok := tuo.mutation.AddedValue(); ok {
+		_spec.AddField(todo.FieldValue, field.TypeInt, value)
 	}
 	if tuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
