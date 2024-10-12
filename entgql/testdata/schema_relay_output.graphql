@@ -316,6 +316,7 @@ input CreateTodoInput {
   priority: Int
   text: String!
   init: Map
+  value: Int
   parentID: ID
   childIDs: [ID!]
   categoryID: ID
@@ -922,6 +923,7 @@ type Todo implements Node {
   init: Map
   custom: [Custom!]
   customp: [Custom]
+  value: Int!
   parent: Todo
   children(
     """
@@ -1093,6 +1095,17 @@ input TodoWhereInput {
   categoryIDIsNil: Boolean
   categoryIDNotNil: Boolean
   """
+  value field predicates
+  """
+  value: Int
+  valueNEQ: Int
+  valueIn: [Int!]
+  valueNotIn: [Int!]
+  valueGT: Int
+  valueGTE: Int
+  valueLT: Int
+  valueLTE: Int
+  """
   parent edge predicates
   """
   hasParent: Boolean
@@ -1156,6 +1169,7 @@ input UpdateTodoInput {
   text: String
   init: Map
   clearInit: Boolean
+  value: Int
   parentID: ID
   clearParent: Boolean
   addChildIDs: [ID!]

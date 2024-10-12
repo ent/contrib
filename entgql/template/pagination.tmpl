@@ -484,7 +484,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					{{- if $f.IsFieldTerm }}
 						return {{ $r }}.{{ $f.Field.StructField }}, nil
 					{{- else }}
-						return {{ $r }}.Value({{ $f.VarField }})
+						return {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 					{{- end }}
 				},
 				{{- if $f.IsFieldTerm }}
@@ -515,7 +515,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 						}
 					{{- else }}
 						{{- /* Unxpected non-selected field error can occur. */}}
-						cv, _ := {{ $r }}.Value({{ $f.VarField }})
+						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 						return Cursor{
 							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 							Value: cv,

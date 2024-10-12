@@ -2532,6 +2532,8 @@ type TodoMutation struct {
 	appendcustom    []customstruct.Custom
 	customp         *[]*customstruct.Custom
 	appendcustomp   []*customstruct.Custom
+	value           *int
+	addvalue        *int
 	clearedFields   map[string]struct{}
 	parent          *uuid.UUID
 	clearedparent   bool
@@ -3043,6 +3045,62 @@ func (m *TodoMutation) ResetCustomp() {
 	delete(m.clearedFields, todo.FieldCustomp)
 }
 
+// SetValue sets the "value" field.
+func (m *TodoMutation) SetValue(i int) {
+	m.value = &i
+	m.addvalue = nil
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *TodoMutation) Value() (r int, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// AddValue adds i to the "value" field.
+func (m *TodoMutation) AddValue(i int) {
+	if m.addvalue != nil {
+		*m.addvalue += i
+	} else {
+		m.addvalue = &i
+	}
+}
+
+// AddedValue returns the value that was added to the "value" field in this mutation.
+func (m *TodoMutation) AddedValue() (r int, exists bool) {
+	v := m.addvalue
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *TodoMutation) ResetValue() {
+	m.value = nil
+	m.addvalue = nil
+}
+
 // SetCategoryID sets the "category_id" field.
 func (m *TodoMutation) SetCategoryID(u uuid.UUID) {
 	m.category = &u
@@ -3285,7 +3343,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -3309,6 +3367,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.customp != nil {
 		fields = append(fields, todo.FieldCustomp)
+	}
+	if m.value != nil {
+		fields = append(fields, todo.FieldValue)
 	}
 	if m.category != nil {
 		fields = append(fields, todo.FieldCategoryID)
@@ -3337,6 +3398,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Custom()
 	case todo.FieldCustomp:
 		return m.Customp()
+	case todo.FieldValue:
+		return m.Value()
 	case todo.FieldCategoryID:
 		return m.CategoryID()
 	}
@@ -3364,6 +3427,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCustom(ctx)
 	case todo.FieldCustomp:
 		return m.OldCustomp(ctx)
+	case todo.FieldValue:
+		return m.OldValue(ctx)
 	case todo.FieldCategoryID:
 		return m.OldCategoryID(ctx)
 	}
@@ -3431,6 +3496,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomp(v)
 		return nil
+	case todo.FieldValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
 	case todo.FieldCategoryID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -3449,6 +3521,9 @@ func (m *TodoMutation) AddedFields() []string {
 	if m.addpriority != nil {
 		fields = append(fields, todo.FieldPriority)
 	}
+	if m.addvalue != nil {
+		fields = append(fields, todo.FieldValue)
+	}
 	return fields
 }
 
@@ -3459,6 +3534,8 @@ func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldPriority:
 		return m.AddedPriority()
+	case todo.FieldValue:
+		return m.AddedValue()
 	}
 	return nil, false
 }
@@ -3474,6 +3551,13 @@ func (m *TodoMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPriority(v)
+		return nil
+	case todo.FieldValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddValue(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo numeric field %s", name)
@@ -3558,6 +3642,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldCustomp:
 		m.ResetCustomp()
+		return nil
+	case todo.FieldValue:
+		m.ResetValue()
 		return nil
 	case todo.FieldCategoryID:
 		m.ResetCategoryID()
