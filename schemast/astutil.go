@@ -76,6 +76,13 @@ func strLit(lit string) ast.Expr {
 	}
 }
 
+func boolLit(lit bool) ast.Expr {
+	return &ast.BasicLit{
+		Kind:  token.STRING,
+		Value: strconv.FormatBool(lit),
+	}
+}
+
 func structAttr(name string, val ast.Expr) ast.Expr {
 	return &ast.KeyValueExpr{
 		Key: &ast.BasicLit{

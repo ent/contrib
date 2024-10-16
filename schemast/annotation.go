@@ -185,7 +185,16 @@ func entSQL(annot schema.Annotation) (ast.Expr, bool, error) {
 			return nil, false, fmt.Errorf("schemast: unknown entsql ReferenceOption: %q", m.OnDelete)
 		}
 	}
-	// TODO(rotemtam): support m.Incremental (it is a *bool)
+	if m.WithComments != nil {
+		return fnCall(
+			selectorLit("entsql", "WithComments"), boolLit(*m.WithComments),
+		), true, nil
+	}
+	if m.Incremental != nil {
+		return fnCall(
+			selectorLit("entsql", "Incremental"), boolLit(*m.Incremental),
+		), true, nil
+	}
 	return c, true, nil
 }
 
