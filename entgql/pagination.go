@@ -146,7 +146,7 @@ func CursorsPredicate[T any](after, before *Cursor[T], idField, field string, di
 				s.Where(sql.P(func(b *sql.Builder) {
 					// The predicate function is executed on query generation time.
 					column := s.C(field)
-					// If there is a non-ambiguis match, we use it. That is because
+					// If there is a non-ambiguous match, we use it. That is because
 					// some order terms may append joined information to query selection.
 					if matches := s.FindSelection(field); len(matches) == 1 {
 						column = matches[0]
@@ -218,16 +218,32 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 	return func(s *sql.Selector) {
 		// Given the following terms: x DESC, y ASC, etc. The following predicate will be
 		// generated: (x < x1 OR (x = x1 AND y > y1) OR (x = x1 AND y = y1 AND id > last)).
+
+		// getColumnNameForField gets the name for the term and considers non-ambigous matching of
+		// terms that may be joined instead of a column on the table.
+		getColumnNameForField := func(field string) string  {
+			// The predicate function is executed on query generation time.
+			column := s.C(field)
+			// If there is a non-ambiguous match, we use it. That is because
+			// some order terms may append joined information to query selection.
+			if matches := s.FindSelection(field); len(matches) == 1 {
+				column = matches[0]
+			}
+			return column
+		}
+
 		var or []*sql.Predicate
 		for i := range opts.Fields {
 			var ands []*sql.Predicate
 			for j := 0; j < i; j++ {
-				ands = append(ands, sql.EQ(s.C(opts.Fields[j]), values[j]))
+				c := getColumnNameForField(opts.Fields[j])
+				ands = append(ands, sql.EQ(c, values[j]))
 			}
+			c := getColumnNameForField(opts.Fields[i])
 			if opts.Directions[i] == OrderDirectionAsc {
-				ands = append(ands, sql.GT(s.C(opts.Fields[i]), values[i]))
+				ands = append(ands, sql.GT(c, values[i]))
 			} else {
-				ands = append(ands, sql.LT(s.C(opts.Fields[i]), values[i]))
+				ands = append(ands, sql.LT(c, values[i]))
 			}
 			or = append(or, sql.And(ands...))
 		}
