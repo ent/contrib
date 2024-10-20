@@ -65,7 +65,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	case dpb.FieldDescriptorProto_TYPE_ENUM:
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toProto%s_%s", g.EntType.Name, enumName)
-		out.ToProtoConstructor = g.File.GoImportPath.Ident(method)
+		out.ToProtoConstructor = g.EntgrpcPackage.Ident(method)
 	case dpb.FieldDescriptorProto_TYPE_MESSAGE:
 		if fld.IsEdgeField {
 			if err := basicTypeConversion(fld.EdgeIDPbStructFieldDesc(), fld.EntEdge.Type.ID, out); err != nil {
@@ -110,7 +110,7 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 	case efld.IsEnum():
 		enumName := fld.PbFieldDescriptor.GetEnumType().GetName()
 		method := fmt.Sprintf("toEnt%s_%s", g.EntType.Name, enumName)
-		out.ToEntConstructor = g.File.GoImportPath.Ident(method)
+		out.ToEntConstructor = g.EntgrpcPackage.Ident(method)
 	case efld.IsJSON():
 		switch efld.Type.Ident {
 		case "[]string":
