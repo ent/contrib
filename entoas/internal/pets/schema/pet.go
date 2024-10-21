@@ -60,7 +60,9 @@ func (Pet) Edges() []ent.Edge {
 			Annotations(
 				entoas.Groups("pet:list", "pet:read", "test:edge", "test:view"),
 			),
-		edge.To("friends", Pet.Type),
+		edge.To("friends", Pet.Type).Annotations(
+			entoas.Annotation{Update: entoas.OperationConfig{Policy: entoas.PolicyExclude}},
+		),
 	}
 }
 
