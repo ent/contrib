@@ -52,7 +52,7 @@ func main() {
 				continue
 			}
 			options := &entproto.AdapterOptions{
-				OptionalEnable: *optionalEnable,
+				Proto3Optional: *optionalEnable,
 			}
 			if err := processFile(plg, f, g, options); err != nil {
 				return err

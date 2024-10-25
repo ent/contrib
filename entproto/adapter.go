@@ -80,7 +80,7 @@ type Adapter struct {
 
 // AdapterOptions are options for the Adapter
 type AdapterOptions struct {
-	OptionalEnable bool
+	Proto3Optional bool
 }
 
 // AllFileDescriptors returns a file descriptor per proto package for each package that contains
@@ -504,7 +504,7 @@ func extractProtoTypeDetails(f *gen.Field, options *AdapterOptions) (fieldType, 
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional && !options.OptionalEnable {
+	if f.Optional && !options.Proto3Optional {
 		if cfg.optionalType == "" {
 			return fieldType{}, unsupportedTypeError{Type: f.Type}
 		}
@@ -520,7 +520,7 @@ func extractProtoTypeDetails(f *gen.Field, options *AdapterOptions) (fieldType, 
 	return fieldType{
 		protoType:   cfg.pbType,
 		messageName: name,
-		optional:    options.OptionalEnable && f.Optional,
+		optional:    options.Proto3Optional && f.Optional,
 	}, nil
 }
 

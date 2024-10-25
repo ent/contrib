@@ -56,9 +56,9 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 //	}
 type Extension struct {
 	entc.DefaultExtension
-	protoDir        string
-	skipGenFile     bool
-	optionalEnabled bool
+	protoDir       string
+	skipGenFile    bool
+	Proto3Optional bool
 }
 
 // WithProtoDir sets the directory where the generated .proto files will be written.
@@ -78,7 +78,7 @@ func SkipGenFile() ExtensionOption {
 // EnableOptional enables the generation of optional fields in the .proto files.
 func EnableOptional() ExtensionOption {
 	return func(e *Extension) {
-		e.optionalEnabled = true
+		e.Proto3Optional = true
 	}
 }
 
@@ -133,7 +133,7 @@ func (e *Extension) Generate(g *gen.Graph) error {
 		entProtoDir = e.protoDir
 	}
 	adapter, err := LoadAdapter(g, &AdapterOptions{
-		OptionalEnable: e.optionalEnabled,
+		Proto3Optional: e.Proto3Optional,
 	})
 	if err != nil {
 		return fmt.Errorf("entproto: failed parsing ent graph: %w", err)
