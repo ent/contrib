@@ -17,6 +17,7 @@ package entproto
 import (
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/proto"
 	"path"
 	"path/filepath"
 	"strings"
@@ -39,7 +40,6 @@ const (
 var (
 	ErrSchemaSkipped   = errors.New("entproto: schema not annotated with Generate=true")
 	repeatedFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
-	optinalFieldLabel  = descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
 	wktsPaths          = map[string]string{
 		// TODO: handle more Well-Known proto types
 		"google.protobuf.Timestamp":   "google/protobuf/timestamp.proto",
@@ -490,7 +490,7 @@ func toProtoFieldDescriptor(f *gen.Field, options *AdapterOptions) (*descriptorp
 	if typeDetails.repeated {
 		fieldDesc.Label = &repeatedFieldLabel
 	} else if typeDetails.optional {
-		fieldDesc.Label = &optinalFieldLabel
+		fieldDesc.Proto3Optional = proto.Bool(true)
 	}
 
 	return fieldDesc, nil
