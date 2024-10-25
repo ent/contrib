@@ -97,7 +97,7 @@ func (e *Extension) hook() gen.Hook {
 			if err != nil {
 				return err
 			}
-			return e.generate(g)
+			return e.Generate(g)
 		})
 	}
 }
@@ -124,10 +124,10 @@ func Hook() gen.Hook {
 // To disable the generation of the generate.go file, use the `entproto.SkipGenFile()` option.
 func Generate(g *gen.Graph) error {
 	x := &Extension{}
-	return x.generate(g)
+	return x.Generate(g)
 }
 
-func (e *Extension) generate(g *gen.Graph) error {
+func (e *Extension) Generate(g *gen.Graph) error {
 	entProtoDir := path.Join(g.Config.Target, "proto")
 	if e.protoDir != "" {
 		entProtoDir = e.protoDir
