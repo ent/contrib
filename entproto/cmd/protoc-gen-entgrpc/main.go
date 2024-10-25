@@ -39,6 +39,7 @@ var (
 func main() {
 	var flags flag.FlagSet
 	entSchemaPath = flags.String("schema_path", "", "ent schema path")
+	optionalEnable := flags.Bool("optional", false, "proto optional keyword enabled")
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(plg *protogen.Plugin) error {
@@ -50,7 +51,10 @@ func main() {
 			if !f.Generate {
 				continue
 			}
-			if err := processFile(plg, f, g); err != nil {
+			options := &entproto.AdapterOptions{
+				OptionalEnable: *optionalEnable,
+			}
+			if err := processFile(plg, f, g, options); err != nil {
 				return err
 			}
 		}
@@ -59,11 +63,11 @@ func main() {
 }
 
 // processFile generates service implementations from all services defined in the file.
-func processFile(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph) error {
+func processFile(gen *protogen.Plugin, file *protogen.File, graph *gen.Graph, options *entproto.AdapterOptions) error {
 	if len(file.Services) == 0 {
 		return nil
 	}
-	adapter, err := entproto.LoadAdapter(graph)
+	adapter, err := entproto.LoadAdapter(graph, options)
 	if err != nil {
 		return err
 	}

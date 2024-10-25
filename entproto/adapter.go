@@ -39,6 +39,7 @@ const (
 var (
 	ErrSchemaSkipped   = errors.New("entproto: schema not annotated with Generate=true")
 	repeatedFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+	optinalFieldLabel  = descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
 	wktsPaths          = map[string]string{
 		// TODO: handle more Well-Known proto types
 		"google.protobuf.Timestamp":   "google/protobuf/timestamp.proto",
@@ -56,14 +57,14 @@ var (
 )
 
 // LoadAdapter takes a *gen.Graph and parses it into protobuf file descriptors
-func LoadAdapter(graph *gen.Graph) (*Adapter, error) {
+func LoadAdapter(graph *gen.Graph, options *AdapterOptions) (*Adapter, error) {
 	a := &Adapter{
 		graph:            graph,
 		descriptors:      make(map[string]*desc.FileDescriptor),
 		schemaProtoFiles: make(map[string]string),
 		errors:           make(map[string]error),
 	}
-	if err := a.parse(); err != nil {
+	if err := a.parse(options); err != nil {
 		return nil, err
 	}
 	return a, nil
@@ -75,6 +76,11 @@ type Adapter struct {
 	descriptors      map[string]*desc.FileDescriptor
 	schemaProtoFiles map[string]string
 	errors           map[string]error
+}
+
+// AdapterOptions are options for the Adapter
+type AdapterOptions struct {
+	OptionalEnable bool
 }
 
 // AllFileDescriptors returns a file descriptor per proto package for each package that contains
@@ -98,13 +104,13 @@ func (a *Adapter) GetMessageDescriptor(schemaName string) (*desc.MessageDescript
 }
 
 // parse transforms the ent gen.Type objects into file descriptors
-func (a *Adapter) parse() error {
+func (a *Adapter) parse(options *AdapterOptions) error {
 	var dpbDescriptors []*descriptorpb.FileDescriptorProto
 
 	protoPackages := make(map[string]*descriptorpb.FileDescriptorProto)
 
 	for _, genType := range a.graph.Nodes {
-		messageDescriptor, err := a.toProtoMessageDescriptor(genType)
+		messageDescriptor, err := a.toProtoMessageDescriptor(genType, options)
 
 		// store specific message parse failures
 		if err != nil {
@@ -148,7 +154,7 @@ func (a *Adapter) parse() error {
 			return err
 		}
 		if svcAnnotation.Generate {
-			svcResources, err := a.createServiceResources(genType, svcAnnotation.Methods)
+			svcResources, err := a.createServiceResources(genType, svcAnnotation.Methods, options)
 			if err != nil {
 				return err
 			}
@@ -303,7 +309,7 @@ func (e unsupportedTypeError) Error() string {
 	return fmt.Sprintf("unsupported field type %q", e.Type.ConstName())
 }
 
-func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.DescriptorProto, error) {
+func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type, options *AdapterOptions) (*descriptorpb.DescriptorProto, error) {
 	msgAnnot, err := extractMessageAnnotation(genType)
 	if err != nil || !msgAnnot.Generate {
 		return nil, ErrSchemaSkipped
@@ -325,7 +331,7 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 			continue
 		}
 
-		protoField, err := toProtoFieldDescriptor(f)
+		protoField, err := toProtoFieldDescriptor(f, options)
 		if err != nil {
 			return nil, err
 		}
@@ -453,7 +459,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	return dp, nil
 }
 
-func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, error) {
+func toProtoFieldDescriptor(f *gen.Field, options *AdapterOptions) (*descriptorpb.FieldDescriptorProto, error) {
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Name: &f.Name,
 	}
@@ -473,7 +479,7 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 		}
 		return fieldDesc, nil
 	}
-	typeDetails, err := extractProtoTypeDetails(f)
+	typeDetails, err := extractProtoTypeDetails(f, options)
 	if err != nil {
 		return nil, err
 	}
@@ -483,11 +489,14 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	}
 	if typeDetails.repeated {
 		fieldDesc.Label = &repeatedFieldLabel
+	} else if typeDetails.optional {
+		fieldDesc.Label = &optinalFieldLabel
 	}
+
 	return fieldDesc, nil
 }
 
-func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
+func extractProtoTypeDetails(f *gen.Field, options *AdapterOptions) (fieldType, error) {
 	if f.Type.Type == field.TypeJSON {
 		return extractJSONDetails(f)
 	}
@@ -495,7 +504,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional {
+	if f.Optional && !options.OptionalEnable {
 		if cfg.optionalType == "" {
 			return fieldType{}, unsupportedTypeError{Type: f.Type}
 		}
@@ -511,6 +520,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	return fieldType{
 		protoType:   cfg.pbType,
 		messageName: name,
+		optional:    options.OptionalEnable && f.Optional,
 	}, nil
 }
 
@@ -549,6 +559,7 @@ type fieldType struct {
 	messageName string
 	protoType   descriptorpb.FieldDescriptorProto_Type
 	repeated    bool
+	optional    bool
 }
 
 func strptr(s string) *string {

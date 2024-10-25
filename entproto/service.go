@@ -92,7 +92,7 @@ func Service(opts ...ServiceOption) schema.Annotation {
 	return s
 }
 
-func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (serviceResources, error) {
+func (a *Adapter) createServiceResources(genType *gen.Type, methods Method, options *AdapterOptions) (serviceResources, error) {
 	name := genType.Name
 	serviceFqn := fmt.Sprintf("%sService", name)
 
@@ -107,7 +107,7 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 			continue
 		}
 
-		resources, err := a.genMethodProtos(genType, m)
+		resources, err := a.genMethodProtos(genType, m, options)
 		if err != nil {
 			return serviceResources{}, err
 		}
@@ -121,9 +121,9 @@ func (a *Adapter) createServiceResources(genType *gen.Type, methods Method) (ser
 
 var plural = gen.Funcs["plural"].(func(string) string)
 
-func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources, error) {
+func (a *Adapter) genMethodProtos(genType *gen.Type, m Method, options *AdapterOptions) (methodResources, error) {
 	input := &descriptorpb.DescriptorProto{}
-	idField, err := toProtoFieldDescriptor(genType.ID)
+	idField, err := toProtoFieldDescriptor(genType.ID, options)
 	if err != nil {
 		return methodResources{}, err
 	}
