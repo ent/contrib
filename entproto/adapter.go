@@ -325,7 +325,7 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 		if _, ok := f.Annotations[SkipAnnotation]; ok {
 			continue
 		}
-		protoField, err := toProtoFieldDescriptor(f, msgAnnot.EnableOptionLabel)
+		protoField, err := toProtoFieldDescriptor(f, msgAnnot.EnableOptionalLabel)
 		if err != nil {
 			return nil, err
 		}
@@ -453,7 +453,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	return dp, nil
 }
 
-func toProtoFieldDescriptor(f *gen.Field, enableOptionLabel bool) (*descriptorpb.FieldDescriptorProto, error) {
+func toProtoFieldDescriptor(f *gen.Field, enableOptionalLabel bool) (*descriptorpb.FieldDescriptorProto, error) {
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Name: &f.Name,
 	}
@@ -473,7 +473,7 @@ func toProtoFieldDescriptor(f *gen.Field, enableOptionLabel bool) (*descriptorpb
 		}
 		return fieldDesc, nil
 	}
-	typeDetails, err := extractProtoTypeDetails(f, enableOptionLabel)
+	typeDetails, err := extractProtoTypeDetails(f, enableOptionalLabel)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +489,7 @@ func toProtoFieldDescriptor(f *gen.Field, enableOptionLabel bool) (*descriptorpb
 	return fieldDesc, nil
 }
 
-func extractProtoTypeDetails(f *gen.Field, enableOptionLabel bool) (fieldType, error) {
+func extractProtoTypeDetails(f *gen.Field, enableOptionalLabel bool) (fieldType, error) {
 	if f.Type.Type == field.TypeJSON {
 		return extractJSONDetails(f) // repeat fields are not required for optional label.
 	}
@@ -497,7 +497,7 @@ func extractProtoTypeDetails(f *gen.Field, enableOptionLabel bool) (fieldType, e
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional && !enableOptionLabel {
+	if f.Optional && !enableOptionalLabel {
 		if cfg.optionalType == "" {
 			return fieldType{}, unsupportedTypeError{Type: f.Type}
 		}
@@ -513,7 +513,7 @@ func extractProtoTypeDetails(f *gen.Field, enableOptionLabel bool) (fieldType, e
 	return fieldType{
 		protoType:   cfg.pbType,
 		messageName: name,
-		optional:    f.Optional && enableOptionLabel,
+		optional:    f.Optional && enableOptionalLabel,
 	}, nil
 }
 
