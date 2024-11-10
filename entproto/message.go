@@ -55,9 +55,18 @@ func PackageName(pkg string) MessageOption {
 	}
 }
 
+// EnableOptionLabel enables the option label in the generated protobuf message instead of google/protobuf/wrappers.proto
+func EnableOptionLabel() MessageOption {
+	return func(msg *message) {
+		msg.EnableOptionLabel = true
+	}
+}
+
 type message struct {
 	Generate bool
 	Package  string
+
+	EnableOptionLabel bool
 }
 
 func (m message) Name() string {

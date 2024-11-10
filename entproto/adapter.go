@@ -39,6 +39,7 @@ const (
 var (
 	ErrSchemaSkipped   = errors.New("entproto: schema not annotated with Generate=true")
 	repeatedFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+	optionalFieldLabel = descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
 	wktsPaths          = map[string]string{
 		// TODO: handle more Well-Known proto types
 		"google.protobuf.Timestamp":   "google/protobuf/timestamp.proto",
@@ -324,8 +325,7 @@ func (a *Adapter) toProtoMessageDescriptor(genType *gen.Type) (*descriptorpb.Des
 		if _, ok := f.Annotations[SkipAnnotation]; ok {
 			continue
 		}
-
-		protoField, err := toProtoFieldDescriptor(f)
+		protoField, err := toProtoFieldDescriptor(f, msgAnnot.EnableOptionLabel)
 		if err != nil {
 			return nil, err
 		}
@@ -453,7 +453,7 @@ func toProtoEnumDescriptor(fld *gen.Field) (*descriptorpb.EnumDescriptorProto, e
 	return dp, nil
 }
 
-func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, error) {
+func toProtoFieldDescriptor(f *gen.Field, enableOptionLabel bool) (*descriptorpb.FieldDescriptorProto, error) {
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Name: &f.Name,
 	}
@@ -473,7 +473,7 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 		}
 		return fieldDesc, nil
 	}
-	typeDetails, err := extractProtoTypeDetails(f)
+	typeDetails, err := extractProtoTypeDetails(f, enableOptionLabel)
 	if err != nil {
 		return nil, err
 	}
@@ -483,19 +483,21 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	}
 	if typeDetails.repeated {
 		fieldDesc.Label = &repeatedFieldLabel
+	} else if typeDetails.optional {
+		fieldDesc.Label = &optionalFieldLabel
 	}
 	return fieldDesc, nil
 }
 
-func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
+func extractProtoTypeDetails(f *gen.Field, enableOptionLabel bool) (fieldType, error) {
 	if f.Type.Type == field.TypeJSON {
-		return extractJSONDetails(f)
+		return extractJSONDetails(f) // repeat fields are not required for optional label.
 	}
 	cfg, ok := typeMap[f.Type.Type]
 	if !ok || cfg.unsupported {
 		return fieldType{}, unsupportedTypeError{Type: f.Type}
 	}
-	if f.Optional {
+	if f.Optional && !enableOptionLabel {
 		if cfg.optionalType == "" {
 			return fieldType{}, unsupportedTypeError{Type: f.Type}
 		}
@@ -511,6 +513,7 @@ func extractProtoTypeDetails(f *gen.Field) (fieldType, error) {
 	return fieldType{
 		protoType:   cfg.pbType,
 		messageName: name,
+		optional:    f.Optional && enableOptionLabel,
 	}, nil
 }
 
@@ -549,6 +552,7 @@ type fieldType struct {
 	messageName string
 	protoType   descriptorpb.FieldDescriptorProto_Type
 	repeated    bool
+	optional    bool
 }
 
 func strptr(s string) *string {
