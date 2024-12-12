@@ -113,7 +113,7 @@ type TodoEdge {
   """
   The item at the end of the edge.
   """
-  node: Todo
+  node: Todo!
   """
   A cursor for use in pagination.
   """
@@ -157,7 +157,7 @@ type SuperTodoEdge {
   """
   The item at the end of the edge.
   """
-  node: SuperTodo
+  node: SuperTodo!
   """
   A cursor for use in pagination.
   """
