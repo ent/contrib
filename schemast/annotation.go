@@ -22,7 +22,7 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
