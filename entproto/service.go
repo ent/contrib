@@ -123,7 +123,7 @@ var plural = gen.Funcs["plural"].(func(string) string)
 
 func (a *Adapter) genMethodProtos(genType *gen.Type, m Method) (methodResources, error) {
 	input := &descriptorpb.DescriptorProto{}
-	idField, err := toProtoFieldDescriptor(genType.ID)
+	idField, err := toProtoFieldDescriptor(genType.ID, false)
 	if err != nil {
 		return methodResources{}, err
 	}
