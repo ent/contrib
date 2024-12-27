@@ -56,7 +56,7 @@ import (
             {{- end }}
         {{- end }}
 
-        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/model/fields/*"  }}
+        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/fields/*"  }}
             {{- range $tmpl := $tmpls }}
                 {{- xtemplate $tmpl $n }}
             {{- end }}
