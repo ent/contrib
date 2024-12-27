@@ -55,6 +55,12 @@ import (
                 {{- end }}
             {{- end }}
         {{- end }}
+
+        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/fields/*"  }}
+            {{- range $tmpl := $tmpls }}
+                {{- xtemplate $tmpl $n }}
+            {{- end }}
+        {{- end }}
     }
 
     // Mutate applies the {{ $input }} on the {{ $n.MutationName }} builder.
@@ -108,6 +114,12 @@ import (
                         m.{{ $e.MutationRemove }}(v...)
                     }
                 {{- end }}
+            {{- end }}
+        {{- end }}
+
+        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/mutate/*"  }}
+            {{- range $tmpl := $tmpls }}
+                {{- xtemplate $tmpl $n }}
             {{- end }}
         {{- end }}
     }
