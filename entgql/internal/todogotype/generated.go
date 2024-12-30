@@ -1574,7 +1574,7 @@ type CategoryEdge {
   """
   The item at the end of the edge.
   """
-  node: Category
+  node: Category!
   """
   A cursor for use in pagination.
   """
@@ -1783,7 +1783,7 @@ type FriendshipEdge {
   """
   The item at the end of the edge.
   """
-  node: Friendship
+  node: Friendship!
   """
   A cursor for use in pagination.
   """
@@ -1879,7 +1879,7 @@ type GroupEdge {
   """
   The item at the end of the edge.
   """
-  node: Group
+  node: Group!
   """
   A cursor for use in pagination.
   """
@@ -1971,7 +1971,7 @@ type OneToManyEdge {
   """
   The item at the end of the edge.
   """
-  node: OneToMany
+  node: OneToMany!
   """
   A cursor for use in pagination.
   """
@@ -2443,7 +2443,7 @@ type TodoEdge {
   """
   The item at the end of the edge.
   """
-  node: Todo
+  node: Todo!
   """
   A cursor for use in pagination.
   """
@@ -2772,7 +2772,7 @@ type UserEdge {
   """
   The item at the end of the edge.
   """
-  node: User
+  node: User!
   """
   A cursor for use in pagination.
   """
@@ -6401,11 +6401,14 @@ func (ec *executionContext) _CategoryEdge_node(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Category)
 	fc.Result = res
-	return ec.marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐCategory(ctx, field.Selections, res)
+	return ec.marshalNCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CategoryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7040,11 +7043,14 @@ func (ec *executionContext) _FriendshipEdge_node(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Friendship)
 	fc.Result = res
-	return ec.marshalOFriendship2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐFriendship(ctx, field.Selections, res)
+	return ec.marshalNFriendship2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐFriendship(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_FriendshipEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7462,11 +7468,14 @@ func (ec *executionContext) _GroupEdge_node(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Group)
 	fc.Result = res
-	return ec.marshalOGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroup(ctx, field.Selections, res)
+	return ec.marshalNGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GroupEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8305,11 +8314,14 @@ func (ec *executionContext) _OneToManyEdge_node(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*OneToMany)
 	fc.Result = res
-	return ec.marshalOOneToMany2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOneToMany(ctx, field.Selections, res)
+	return ec.marshalNOneToMany2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐOneToMany(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OneToManyEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10386,11 +10398,14 @@ func (ec *executionContext) _TodoEdge_node(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Todo)
 	fc.Result = res
-	return ec.marshalOTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_TodoEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11056,11 +11071,14 @@ func (ec *executionContext) _UserEdge_node(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -17072,6 +17090,9 @@ func (ec *executionContext) _CategoryEdge(ctx context.Context, sel ast.Selection
 				continue
 			}
 			out.Values[i] = ec._CategoryEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -17558,6 +17579,9 @@ func (ec *executionContext) _FriendshipEdge(ctx context.Context, sel ast.Selecti
 				continue
 			}
 			out.Values[i] = ec._FriendshipEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -17854,6 +17878,9 @@ func (ec *executionContext) _GroupEdge(ctx context.Context, sel ast.SelectionSet
 				continue
 			}
 			out.Values[i] = ec._GroupEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -18278,6 +18305,9 @@ func (ec *executionContext) _OneToManyEdge(ctx context.Context, sel ast.Selectio
 				continue
 			}
 			out.Values[i] = ec._OneToManyEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -19309,6 +19339,9 @@ func (ec *executionContext) _TodoEdge(ctx context.Context, sel ast.SelectionSet,
 				continue
 			}
 			out.Values[i] = ec._TodoEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -19727,6 +19760,9 @@ func (ec *executionContext) _UserEdge(ctx context.Context, sel ast.SelectionSet,
 				continue
 			}
 			out.Values[i] = ec._UserEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "cursor":
 			field := field
 
@@ -21021,6 +21057,16 @@ func (ec *executionContext) unmarshalNFriendshipWhereInput2ᚖentgoᚗioᚋcontr
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Group(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNGroupConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroupConnection(ctx context.Context, sel ast.SelectionSet, v ent.GroupConnection) graphql.Marshaler {
 	return ec._GroupConnection(ctx, sel, &v)
 }
@@ -22193,13 +22239,6 @@ func (ec *executionContext) marshalODuration2ᚖtimeᚐDuration(ctx context.Cont
 	return res
 }
 
-func (ec *executionContext) marshalOFriendship2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐFriendship(ctx context.Context, sel ast.SelectionSet, v *ent.Friendship) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Friendship(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOFriendshipEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐFriendshipEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.FriendshipEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -22274,13 +22313,6 @@ func (ec *executionContext) unmarshalOFriendshipWhereInput2ᚖentgoᚗioᚋcontr
 	}
 	res, err := ec.unmarshalInputFriendshipWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Group(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOGroupEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐGroupEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.GroupEdge) graphql.Marshaler {
@@ -23168,13 +23200,6 @@ func (ec *executionContext) marshalOUint642ᚖuint64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalUint64(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserEdge2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚋentᚐUserEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.UserEdge) graphql.Marshaler {
