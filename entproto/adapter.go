@@ -17,6 +17,7 @@ package entproto
 import (
 	"errors"
 	"fmt"
+	"math"
 	"path"
 	"path/filepath"
 	"strings"
@@ -387,7 +388,10 @@ func (a *Adapter) extractEdgeFieldDescriptor(source *gen.Type, e *gen.Edge) (*de
 		return nil, fmt.Errorf("entproto: edge %q has number 1 which is reserved for id", e.Name)
 	}
 
-	fieldNum := int32(edgeAnnotation.Number)
+	if num := int64(edgeAnnotation.Number); num > math.MaxInt32 || num < math.MinInt32 {
+		return nil, fmt.Errorf("value %v overflows int32", num)
+	}
+	fieldNum := int32(edgeAnnotation.Number) //nolint:gosec
 	fieldDesc := &descriptorpb.FieldDescriptorProto{
 		Number: &fieldNum,
 		Name:   &e.Name,
@@ -461,7 +465,10 @@ func toProtoFieldDescriptor(f *gen.Field) (*descriptorpb.FieldDescriptorProto, e
 	if err != nil {
 		return nil, err
 	}
-	fieldNumber := int32(fann.Number)
+	if num := int64(fann.Number); num > math.MaxInt32 || num < math.MinInt32 {
+		return nil, fmt.Errorf("value %v overflows int32", num)
+	}
+	fieldNumber := int32(fann.Number) //nolint:gosec
 	if fieldNumber == 1 && strings.ToUpper(f.Name) != "ID" {
 		return nil, fmt.Errorf("entproto: field %q has number 1 which is reserved for id", f.Name)
 	}
