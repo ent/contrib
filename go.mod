@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	entgo.io/ent v0.13.2-0.20240717044502-34158f2c129b
-	github.com/99designs/gqlgen v0.17.61 // Version v0.17.52 has an issue with ent field collection. Bad commit: https://github.com/99designs/gqlgen/commit/f81239e47a7ebaf1ab276689344e1189f83ac0a0
+	github.com/99designs/gqlgen v0.17.62 // Version v0.17.52 has an issue with ent field collection. Bad commit: https://github.com/99designs/gqlgen/commit/f81239e47a7ebaf1ab276689344e1189f83ac0a0
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.7.0
 	github.com/go-openapi/inflect v0.19.0
@@ -25,7 +25,7 @@ require (
 	golang.org/x/sync v0.10.0
 	golang.org/x/tools v0.24.0
 	google.golang.org/grpc v1.52.3
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.1
 )
 
 require github.com/golang/protobuf v1.5.4 // indirect

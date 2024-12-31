@@ -554,11 +554,7 @@ func (ec *executionContext) field_Entity_findTodoByID_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -586,11 +582,7 @@ func (ec *executionContext) field_Mutation_createTodo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (TodoInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal TodoInput
 		return zeroVal, nil
 	}
@@ -618,11 +610,7 @@ func (ec *executionContext) field_Query___type_argsName(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["name"]
-	if !ok {
+	if _, ok := rawArgs["name"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -650,11 +638,7 @@ func (ec *executionContext) field_Query__entities_argsRepresentations(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]map[string]any, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["representations"]
-	if !ok {
+	if _, ok := rawArgs["representations"]; !ok {
 		var zeroVal []map[string]any
 		return zeroVal, nil
 	}
@@ -682,11 +666,7 @@ func (ec *executionContext) field_Query_node_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -714,11 +694,7 @@ func (ec *executionContext) field_Query_nodes_argsIds(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["ids"]
-	if !ok {
+	if _, ok := rawArgs["ids"]; !ok {
 		var zeroVal []int
 		return zeroVal, nil
 	}
@@ -766,11 +742,7 @@ func (ec *executionContext) field_Query_todos_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -788,11 +760,7 @@ func (ec *executionContext) field_Query_todos_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -810,11 +778,7 @@ func (ec *executionContext) field_Query_todos_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -832,11 +796,7 @@ func (ec *executionContext) field_Query_todos_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -854,11 +814,7 @@ func (ec *executionContext) field_Query_todos_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal *ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -886,11 +842,7 @@ func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -918,11 +870,7 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}

@@ -1312,11 +1312,7 @@ func (ec *executionContext) dir_hasPermissions_argsPermissions(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["permissions"]
-	if !ok {
+	if _, ok := rawArgs["permissions"]; !ok {
 		var zeroVal []string
 		return zeroVal, nil
 	}
@@ -1369,11 +1365,7 @@ func (ec *executionContext) field_Category_subCategories_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1391,11 +1383,7 @@ func (ec *executionContext) field_Category_subCategories_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1413,11 +1401,7 @@ func (ec *executionContext) field_Category_subCategories_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1435,11 +1419,7 @@ func (ec *executionContext) field_Category_subCategories_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1457,11 +1437,7 @@ func (ec *executionContext) field_Category_subCategories_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.CategoryOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.CategoryOrder
 		return zeroVal, nil
 	}
@@ -1479,11 +1455,7 @@ func (ec *executionContext) field_Category_subCategories_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.CategoryWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.CategoryWhereInput
 		return zeroVal, nil
 	}
@@ -1536,11 +1508,7 @@ func (ec *executionContext) field_Category_todos_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1558,11 +1526,7 @@ func (ec *executionContext) field_Category_todos_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1580,11 +1544,7 @@ func (ec *executionContext) field_Category_todos_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1602,11 +1562,7 @@ func (ec *executionContext) field_Category_todos_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1624,11 +1580,7 @@ func (ec *executionContext) field_Category_todos_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -1646,11 +1598,7 @@ func (ec *executionContext) field_Category_todos_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.TodoWhereInput
 		return zeroVal, nil
 	}
@@ -1703,11 +1651,7 @@ func (ec *executionContext) field_Group_users_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1725,11 +1669,7 @@ func (ec *executionContext) field_Group_users_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1747,11 +1687,7 @@ func (ec *executionContext) field_Group_users_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -1769,11 +1705,7 @@ func (ec *executionContext) field_Group_users_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -1791,11 +1723,7 @@ func (ec *executionContext) field_Group_users_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal *ent.UserOrder
 		return zeroVal, nil
 	}
@@ -1813,11 +1741,7 @@ func (ec *executionContext) field_Group_users_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.UserWhereInput
 		return zeroVal, nil
 	}
@@ -1845,11 +1769,7 @@ func (ec *executionContext) field_Mutation_createCategory_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ent.CreateCategoryInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ent.CreateCategoryInput
 		return zeroVal, nil
 	}
@@ -1877,11 +1797,7 @@ func (ec *executionContext) field_Mutation_createTodo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ent.CreateTodoInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ent.CreateTodoInput
 		return zeroVal, nil
 	}
@@ -1914,11 +1830,7 @@ func (ec *executionContext) field_Mutation_updateFriendship_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -1936,11 +1848,7 @@ func (ec *executionContext) field_Mutation_updateFriendship_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ent.UpdateFriendshipInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ent.UpdateFriendshipInput
 		return zeroVal, nil
 	}
@@ -1973,11 +1881,7 @@ func (ec *executionContext) field_Mutation_updateTodo_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -1995,11 +1899,7 @@ func (ec *executionContext) field_Mutation_updateTodo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (ent.UpdateTodoInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["input"]
-	if !ok {
+	if _, ok := rawArgs["input"]; !ok {
 		var zeroVal ent.UpdateTodoInput
 		return zeroVal, nil
 	}
@@ -2052,11 +1952,7 @@ func (ec *executionContext) field_Project_todos_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2074,11 +1970,7 @@ func (ec *executionContext) field_Project_todos_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2096,11 +1988,7 @@ func (ec *executionContext) field_Project_todos_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2118,11 +2006,7 @@ func (ec *executionContext) field_Project_todos_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2140,11 +2024,7 @@ func (ec *executionContext) field_Project_todos_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -2162,11 +2042,7 @@ func (ec *executionContext) field_Project_todos_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.TodoWhereInput
 		return zeroVal, nil
 	}
@@ -2194,11 +2070,7 @@ func (ec *executionContext) field_Query___type_argsName(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["name"]
-	if !ok {
+	if _, ok := rawArgs["name"]; !ok {
 		var zeroVal string
 		return zeroVal, nil
 	}
@@ -2251,11 +2123,7 @@ func (ec *executionContext) field_Query_categories_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2273,11 +2141,7 @@ func (ec *executionContext) field_Query_categories_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2295,11 +2159,7 @@ func (ec *executionContext) field_Query_categories_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2317,11 +2177,7 @@ func (ec *executionContext) field_Query_categories_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2339,11 +2195,7 @@ func (ec *executionContext) field_Query_categories_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.CategoryOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.CategoryOrder
 		return zeroVal, nil
 	}
@@ -2361,11 +2213,7 @@ func (ec *executionContext) field_Query_categories_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.CategoryWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.CategoryWhereInput
 		return zeroVal, nil
 	}
@@ -2413,11 +2261,7 @@ func (ec *executionContext) field_Query_groups_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2435,11 +2279,7 @@ func (ec *executionContext) field_Query_groups_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2457,11 +2297,7 @@ func (ec *executionContext) field_Query_groups_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2479,11 +2315,7 @@ func (ec *executionContext) field_Query_groups_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2501,11 +2333,7 @@ func (ec *executionContext) field_Query_groups_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.GroupWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.GroupWhereInput
 		return zeroVal, nil
 	}
@@ -2533,11 +2361,7 @@ func (ec *executionContext) field_Query_node_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["id"]
-	if !ok {
+	if _, ok := rawArgs["id"]; !ok {
 		var zeroVal int
 		return zeroVal, nil
 	}
@@ -2565,11 +2389,7 @@ func (ec *executionContext) field_Query_nodes_argsIds(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["ids"]
-	if !ok {
+	if _, ok := rawArgs["ids"]; !ok {
 		var zeroVal []int
 		return zeroVal, nil
 	}
@@ -2622,11 +2442,7 @@ func (ec *executionContext) field_Query_oneToMany_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2644,11 +2460,7 @@ func (ec *executionContext) field_Query_oneToMany_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2666,11 +2478,7 @@ func (ec *executionContext) field_Query_oneToMany_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2688,11 +2496,7 @@ func (ec *executionContext) field_Query_oneToMany_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2710,11 +2514,7 @@ func (ec *executionContext) field_Query_oneToMany_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.OneToManyOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal *ent.OneToManyOrder
 		return zeroVal, nil
 	}
@@ -2732,11 +2532,7 @@ func (ec *executionContext) field_Query_oneToMany_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.OneToManyWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.OneToManyWhereInput
 		return zeroVal, nil
 	}
@@ -2789,11 +2585,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2811,11 +2603,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2833,11 +2621,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2855,11 +2639,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -2877,11 +2657,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -2899,11 +2675,7 @@ func (ec *executionContext) field_Query_todosWithJoins_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.TodoWhereInput
 		return zeroVal, nil
 	}
@@ -2956,11 +2728,7 @@ func (ec *executionContext) field_Query_todos_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -2978,11 +2746,7 @@ func (ec *executionContext) field_Query_todos_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3000,11 +2764,7 @@ func (ec *executionContext) field_Query_todos_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3022,11 +2782,7 @@ func (ec *executionContext) field_Query_todos_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3044,11 +2800,7 @@ func (ec *executionContext) field_Query_todos_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -3066,11 +2818,7 @@ func (ec *executionContext) field_Query_todos_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.TodoWhereInput
 		return zeroVal, nil
 	}
@@ -3123,11 +2871,7 @@ func (ec *executionContext) field_Query_users_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3145,11 +2889,7 @@ func (ec *executionContext) field_Query_users_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3167,11 +2907,7 @@ func (ec *executionContext) field_Query_users_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3189,11 +2925,7 @@ func (ec *executionContext) field_Query_users_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3211,11 +2943,7 @@ func (ec *executionContext) field_Query_users_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal *ent.UserOrder
 		return zeroVal, nil
 	}
@@ -3233,11 +2961,7 @@ func (ec *executionContext) field_Query_users_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.UserWhereInput
 		return zeroVal, nil
 	}
@@ -3290,11 +3014,7 @@ func (ec *executionContext) field_Todo_children_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3312,11 +3032,7 @@ func (ec *executionContext) field_Todo_children_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3334,11 +3050,7 @@ func (ec *executionContext) field_Todo_children_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3356,11 +3068,7 @@ func (ec *executionContext) field_Todo_children_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3378,11 +3086,7 @@ func (ec *executionContext) field_Todo_children_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) ([]*ent.TodoOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal []*ent.TodoOrder
 		return zeroVal, nil
 	}
@@ -3400,11 +3104,7 @@ func (ec *executionContext) field_Todo_children_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.TodoWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.TodoWhereInput
 		return zeroVal, nil
 	}
@@ -3457,11 +3157,7 @@ func (ec *executionContext) field_User_friends_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3479,11 +3175,7 @@ func (ec *executionContext) field_User_friends_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3501,11 +3193,7 @@ func (ec *executionContext) field_User_friends_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3523,11 +3211,7 @@ func (ec *executionContext) field_User_friends_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3545,11 +3229,7 @@ func (ec *executionContext) field_User_friends_argsOrderBy(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserOrder, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["orderBy"]
-	if !ok {
+	if _, ok := rawArgs["orderBy"]; !ok {
 		var zeroVal *ent.UserOrder
 		return zeroVal, nil
 	}
@@ -3567,11 +3247,7 @@ func (ec *executionContext) field_User_friends_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.UserWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.UserWhereInput
 		return zeroVal, nil
 	}
@@ -3619,11 +3295,7 @@ func (ec *executionContext) field_User_friendships_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3641,11 +3313,7 @@ func (ec *executionContext) field_User_friendships_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3663,11 +3331,7 @@ func (ec *executionContext) field_User_friendships_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3685,11 +3349,7 @@ func (ec *executionContext) field_User_friendships_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3707,11 +3367,7 @@ func (ec *executionContext) field_User_friendships_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.FriendshipWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.FriendshipWhereInput
 		return zeroVal, nil
 	}
@@ -3759,11 +3415,7 @@ func (ec *executionContext) field_User_groups_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["after"]
-	if !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3781,11 +3433,7 @@ func (ec *executionContext) field_User_groups_argsFirst(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["first"]
-	if !ok {
+	if _, ok := rawArgs["first"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3803,11 +3451,7 @@ func (ec *executionContext) field_User_groups_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*entgql.Cursor[int], error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["before"]
-	if !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *entgql.Cursor[int]
 		return zeroVal, nil
 	}
@@ -3825,11 +3469,7 @@ func (ec *executionContext) field_User_groups_argsLast(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*int, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["last"]
-	if !ok {
+	if _, ok := rawArgs["last"]; !ok {
 		var zeroVal *int
 		return zeroVal, nil
 	}
@@ -3847,11 +3487,7 @@ func (ec *executionContext) field_User_groups_argsWhere(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*ent.GroupWhereInput, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["where"]
-	if !ok {
+	if _, ok := rawArgs["where"]; !ok {
 		var zeroVal *ent.GroupWhereInput
 		return zeroVal, nil
 	}
@@ -3879,11 +3515,7 @@ func (ec *executionContext) field___Type_enumValues_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
@@ -3911,11 +3543,7 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (bool, error) {
-	// We won't call the directive if the argument is null.
-	// Set call_argument_directives_with_null to true to call directives
-	// even if the argument is null.
-	_, ok := rawArgs["includeDeprecated"]
-	if !ok {
+	if _, ok := rawArgs["includeDeprecated"]; !ok {
 		var zeroVal bool
 		return zeroVal, nil
 	}
