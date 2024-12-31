@@ -11,6 +11,7 @@ import (
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -162,7 +163,7 @@ func (svc *PetService) Update(ctx context.Context, req *UpdatePetRequest) (*Pet,
 }
 
 // Delete implements PetServiceServer.Delete
-func (svc *PetService) Delete(ctx context.Context, req *DeletePetRequest) (*emptypb.Empty, error) {
+func (svc *PetService) Delete(ctx context.Context, req *DeletePetRequest) (*empty.Empty, error) {
 	var err error
 	id := int(req.GetId())
 	err = svc.client.Pet.DeleteOneID(id).Exec(ctx)

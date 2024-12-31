@@ -9,6 +9,7 @@ import (
 	user "entgo.io/contrib/entproto/internal/altdir/ent/user"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -131,7 +132,7 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 }
 
 // Delete implements UserServiceServer.Delete
-func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*emptypb.Empty, error) {
+func (svc *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (*empty.Empty, error) {
 	var err error
 	id := int(req.GetId())
 	err = svc.client.User.DeleteOneID(id).Exec(ctx)

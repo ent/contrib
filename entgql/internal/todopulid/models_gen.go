@@ -203,7 +203,7 @@ func (e OneToManyOrderField) String() string {
 	return string(e)
 }
 
-func (e *OneToManyOrderField) UnmarshalGQL(v interface{}) error {
+func (e *OneToManyOrderField) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")

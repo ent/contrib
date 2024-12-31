@@ -28,6 +28,8 @@ require (
 	google.golang.org/protobuf v1.35.2
 )
 
+require github.com/golang/protobuf v1.5.4
+
 require (
 	ariga.io/atlas v0.25.1-0.20240717145915-af51d3945208 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
@@ -41,7 +43,7 @@ require (
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-faster/jx v0.40.0 // indirect
 	github.com/go-faster/yamlx v0.4.1 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/addlicense v1.1.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
