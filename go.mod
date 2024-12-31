@@ -28,7 +28,7 @@ require (
 	google.golang.org/protobuf v1.35.2
 )
 
-require github.com/golang/protobuf v1.5.4
+require github.com/golang/protobuf v1.5.4 // indirect
 
 require (
 	ariga.io/atlas v0.25.1-0.20240717145915-af51d3945208 // indirect

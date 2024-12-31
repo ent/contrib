@@ -10,7 +10,6 @@ import (
 	user "entgo.io/contrib/entproto/internal/todo/ent/user"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	fmt "fmt"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	uuid "github.com/google/uuid"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -164,7 +163,7 @@ func (svc *AttachmentService) Update(ctx context.Context, req *UpdateAttachmentR
 }
 
 // Delete implements AttachmentServiceServer.Delete
-func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentRequest) (*empty.Empty, error) {
+func (svc *AttachmentService) Delete(ctx context.Context, req *DeleteAttachmentRequest) (*emptypb.Empty, error) {
 	var err error
 	var id uuid.UUID
 	if err := (&id).UnmarshalBinary(req.GetId()); err != nil {
