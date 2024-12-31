@@ -43,6 +43,7 @@ require (
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-faster/jx v0.40.0 // indirect
 	github.com/go-faster/yamlx v0.4.1 // indirect
+	github.com/google/addlicense v1.1.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
