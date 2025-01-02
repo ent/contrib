@@ -159,6 +159,12 @@ func (a *Adapter) parse() error {
 		}
 	}
 
+	if len(a.errors) > 0 {
+		for _, err := range a.errors {
+			return err
+		}
+	}
+
 	// Append the well known types to the context.
 	for _, wktPath := range wktsPaths {
 		typeDesc, err := desc.LoadFileDescriptor(wktPath)
