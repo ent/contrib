@@ -18,6 +18,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"testing"
@@ -36,15 +37,15 @@ func TestOgenSchema(t *testing.T) {
 	for d, ex := range map[*entfield.Descriptor]*ogen.Schema{
 		// Numeric
 		entfield.Int("int").Descriptor():         ogen.Int(),
-		entfield.Int8("int8").Descriptor():       ogen.Int32().SetMinimum(&min8).SetMaximum(&max8),
-		entfield.Int16("int16").Descriptor():     ogen.Int32().SetMinimum(&min16).SetMaximum(&max16),
-		entfield.Int32("int32").Descriptor():     ogen.Int32(),
-		entfield.Int64("int64").Descriptor():     ogen.Int64(),
-		entfield.Uint("uint").Descriptor():       ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		entfield.Uint8("uint8").Descriptor():     ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu8),
-		entfield.Uint16("uint16").Descriptor():   ogen.Int32().SetMinimum(&zero).SetMaximum(&maxu16),
-		entfield.Uint32("uint32").Descriptor():   ogen.Int64().SetMinimum(&zero).SetMaximum(&maxu32),
-		entfield.Uint64("uint64").Descriptor():   ogen.Int64().SetMinimum(&zero),
+		entfield.Int8("int8").Descriptor():       ogen.Int32().SetMinimum(ptr(int64(math.MinInt8))).SetMaximum(ptr(int64(math.MaxInt8))),
+		entfield.Int16("int16").Descriptor():     ogen.Int32().SetMinimum(ptr(int64(math.MinInt16))).SetMaximum(ptr(int64(math.MaxInt16))),
+		entfield.Int32("int32").Descriptor():     ogen.Int32().SetMinimum(ptr(int64(math.MinInt32))).SetMaximum(ptr(int64(math.MaxInt32))),
+		entfield.Int64("int64").Descriptor():     ogen.Int64().SetMinimum(ptr(int64(math.MinInt64))).SetMaximum(ptr(int64(math.MaxInt64))),
+		entfield.Uint("uint").Descriptor():       ogen.Int64().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint32))),
+		entfield.Uint8("uint8").Descriptor():     ogen.Int32().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint8))),
+		entfield.Uint16("uint16").Descriptor():   ogen.Int32().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint16))),
+		entfield.Uint32("uint32").Descriptor():   ogen.Int64().SetMinimum(ptr(int64(0))).SetMaximum(ptr(int64(math.MaxUint32))),
+		entfield.Uint64("uint64").Descriptor():   ogen.Int64().SetMinimum(ptr(int64(0))),
 		entfield.Float32("float32").Descriptor(): ogen.Float(),
 		entfield.Float("float64").Descriptor():   ogen.Double(),
 		// Basic
@@ -121,7 +122,7 @@ func DefaultLink() *Link {
 }
 
 // Scan implements the Scanner interface.
-func (l *Link) Scan(value interface{}) (err error) {
+func (l *Link) Scan(value any) (err error) {
 	switch v := value.(type) {
 	case nil:
 	case []byte:
