@@ -1989,6 +1989,84 @@ func TestMutation_ClearChildren(t *testing.T) {
 	require.False(t, root.QueryChildren().ExistX(ctx))
 }
 
+func TestQuery_SortUserByFriendshipsCount(t *testing.T) {
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	srv := handler.NewDefaultServer(gen.NewSchema(ec))
+	srv.Use(entgql.Transactioner{TxOpener: ec})
+	gqlc := client.New(srv)
+
+	ctx := context.Background()
+	user := ec.User.Create().SetRequiredMetadata(map[string]any{}).SaveX(ctx)
+	friend := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriends(user).SaveX(ctx)
+	secondFriend := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriends(user, friend).SaveX(ctx)
+	thirdFried := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriends(user).SaveX(ctx)
+
+	require.True(t, user.QueryFriends().ExistX(ctx))
+	require.True(t, friend.QueryFriends().ExistX(ctx))
+	require.True(t, secondFriend.QueryFriends().ExistX(ctx))
+	require.True(t, thirdFried.QueryFriends().ExistX(ctx))
+
+	var rsp struct {
+		Users struct {
+			Edges []struct {
+				Node struct {
+					ID      string
+					Friends struct {
+						TotalCount int
+					}
+				}
+			}
+		}
+	}
+
+	query := `
+	query testThroughEdgeOrderByQuery($orderDirection: OrderDirection!) {
+		users (orderBy:{ field: FRIENDS_COUNT, direction: $orderDirection }) {
+            edges {
+                node {	
+                    id
+				    friends {
+                    	totalCount
+                    }
+                }
+           }
+		}
+	}
+	`
+
+	testCases := []struct {
+		direction          string
+		expectedCountOrder []int
+	}{
+		{
+			direction:          "DESC",
+			expectedCountOrder: []int{3, 2, 2, 1},
+		},
+		{
+			direction:          "ASC",
+			expectedCountOrder: []int{1, 2, 2, 3},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.direction, func(t *testing.T) {
+			err := gqlc.Post(
+				query,
+				&rsp,
+				client.Var("orderDirection", tc.direction))
+
+			require.NoError(t, err)
+			require.Len(t, rsp.Users.Edges, 4)
+			for i, edge := range rsp.Users.Edges {
+				require.Equal(t, edge.Node.Friends.TotalCount, tc.expectedCountOrder[i])
+			}
+		})
+	}
+}
+
 func TestMutation_ClearFriend(t *testing.T) {
 	ec := enttest.Open(t, dialect.SQLite,
 		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
