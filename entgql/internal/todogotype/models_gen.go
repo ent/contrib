@@ -50,6 +50,8 @@ func (OneToMany) IsNode() {}
 type OneToManyConnection struct {
 	// A list of edges.
 	Edges []*OneToManyEdge `json:"edges,omitempty"`
+	// A list of nodes.
+	Nodes []*OneToMany `json:"nodes,omitempty"`
 	// Information to aid in pagination.
 	PageInfo *entgql.PageInfo[string] `json:"pageInfo"`
 	// Identifies the total count of items in the connection.
