@@ -77,6 +77,6 @@ jobs:
           if [ -n "$status" ]; then
             echo "you need to run 'go generate ./...' and commit the changes"
             echo "$status"
-            git diff
+            git --no-pager diff
             exit 1
           fi

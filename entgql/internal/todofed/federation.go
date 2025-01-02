@@ -36,7 +36,7 @@ func (ec *executionContext) __resolve__service(ctx context.Context) (fedruntime.
 	}, nil
 }
 
-func (ec *executionContext) __resolve_entities(ctx context.Context, representations []map[string]interface{}) []fedruntime.Entity {
+func (ec *executionContext) __resolve_entities(ctx context.Context, representations []map[string]any) []fedruntime.Entity {
 	list := make([]fedruntime.Entity, len(representations))
 
 	repsMap := ec.buildRepresentationGroups(ctx, representations)
@@ -199,10 +199,13 @@ func (ec *executionContext) resolveManyEntities(
 }
 
 func entityResolverNameForTodo(ctx context.Context, rep EntityRepresentation) (string, error) {
+	// we collect errors because a later entity resolver may work fine
+	// when an entity has multiple keys
+	entityResolverErrs := []error{}
 	for {
 		var (
 			m   EntityRepresentation
-			val interface{}
+			val any
 			ok  bool
 		)
 		_ = val
@@ -212,15 +215,20 @@ func entityResolverNameForTodo(ctx context.Context, rep EntityRepresentation) (s
 		m = rep
 		val, ok = m["id"]
 		if !ok {
+			entityResolverErrs = append(entityResolverErrs,
+				fmt.Errorf("%w due to missing Key Field \"id\" for Todo", ErrTypeNotFound))
 			break
 		}
 		if allNull {
 			allNull = val == nil
 		}
 		if allNull {
+			entityResolverErrs = append(entityResolverErrs,
+				fmt.Errorf("%w due to all null value KeyFields for Todo", ErrTypeNotFound))
 			break
 		}
 		return "findTodoByID", nil
 	}
-	return "", fmt.Errorf("%w for Todo", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for Todo due to %v", ErrTypeNotFound,
+		errors.Join(entityResolverErrs...).Error())
 }
