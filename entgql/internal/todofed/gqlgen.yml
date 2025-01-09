@@ -9,7 +9,7 @@ schema:
 
 resolver:
   layout: follow-schema
-  preserve_resolver: true
+  preserve_resolver: false
   dir: .
 
 federation:
