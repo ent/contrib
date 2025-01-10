@@ -1,6 +1,5 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_mutate" }}
-    
     {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
@@ -40,8 +39,9 @@
     {{- $entType  := .Method.G.EntType.Name -}}
     {{- $inputVar := camel $entType -}}
     {{- $outputType := printf "%s%s" $entType "Create" -}}
+    {{- $entPackage := .Method.G.EntPackage | base -}}
 
-    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $entType }}) (*ent.{{ $outputType }}, error) {
+    func (svc *{{ .ServiceName }}) createBuilder({{ $inputVar }} *{{ $entType }}) (*{{ $entPackage }}.{{ $outputType }}, error) {
         m := svc.client.{{ $entType }}.Create()
         {{- template "mutate_helper" .Method -}}
         return m, nil
