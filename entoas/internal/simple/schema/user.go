@@ -28,14 +28,14 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name"),
-		field.Int("age"),
+		field.String("name").Comment("The users full name."),
+		field.Int("age").Comment("The age of the user."),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("pets", Pet.Type),
+		edge.To("pets", Pet.Type).Comment("The pets that the user owns."),
 	}
 }
