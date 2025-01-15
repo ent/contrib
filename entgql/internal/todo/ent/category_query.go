@@ -319,8 +319,9 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		withTodos:         cq.withTodos.Clone(),
 		withSubCategories: cq.withSubCategories.Clone(),
 		// clone intermediate query.
-		sql:  cq.sql.Clone(),
-		path: cq.path,
+		sql:       cq.sql.Clone(),
+		path:      cq.path,
+		modifiers: append([]func(*sql.Selector){}, cq.modifiers...),
 	}
 }
 

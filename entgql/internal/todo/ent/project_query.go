@@ -294,8 +294,9 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		predicates: append([]predicate.Project{}, pq.predicates...),
 		withTodos:  pq.withTodos.Clone(),
 		// clone intermediate query.
-		sql:  pq.sql.Clone(),
-		path: pq.path,
+		sql:       pq.sql.Clone(),
+		path:      pq.path,
+		modifiers: append([]func(*sql.Selector){}, pq.modifiers...),
 	}
 }
 

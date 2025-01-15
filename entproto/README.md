@@ -506,7 +506,7 @@ Build the image:
 
 ```shell
 cd entproto
-docker build --platform=linux/x86_64 -t entproto-dev .
+docker build `--platform=linux/x86_64` -t entproto-dev .
 cd ..
 ```
 
@@ -521,8 +521,8 @@ From within the Docker image, compile and install your current `protoc-gen-entgr
 binary, regenerate all code and run the tests.
 
 ```shell
-go install ./cmd/protoc-gen-entgrpc &&
-	go install ./cmd/protoc-gen-ent &&
+go install -buildvcs=false ./cmd/protoc-gen-entgrpc &&
+	go install -buildvcs=false  ./cmd/protoc-gen-ent &&
 	go generate ./... &&
 	go test ./...
 ```
