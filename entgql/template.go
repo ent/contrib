@@ -445,15 +445,17 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 		case !f.Type.Comparable():
 			return nil, fmt.Errorf("entgql: ordered field %s.%s must be comparable", n.Name, f.Name)
 		default:
-			for _, field := range ant.OrderField {
+			if len(ant.OrderField) > 1 {
+				return nil, fmt.Errorf("entgql: ordered field %s.%s has more than one order field, fields can only have one order field", n.Name, f.Name)
+			}
+			if len(ant.OrderField) == 1 {
 				terms = append(terms, &OrderTerm{
 					Owner: n,
-					GQL:   field,
+					GQL:   ant.OrderField[0],
 					Type:  n,
 					Field: f,
 				})
 			}
-
 		}
 	}
 	for _, e := range n.Edges {
