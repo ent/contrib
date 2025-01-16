@@ -24,7 +24,7 @@ import (
 func TestAnnotation(t *testing.T) {
 	t.Parallel()
 	annotation := entgql.OrderField("foo")
-	require.Equal(t, "foo", annotation.OrderField)
+	require.Equal(t, []string{"foo"}, annotation.OrderField)
 
 	annotation = entgql.Bind()
 	require.False(t, annotation.Unbind)
@@ -45,14 +45,14 @@ func TestAnnotationDecode(t *testing.T) {
 	require.Equal(t, ann, &entgql.Annotation{})
 	ann = &entgql.Annotation{}
 	err = ann.Decode(map[string]interface{}{
-		"OrderField": "NAME",
+		"OrderField": []string{"NAME"},
 		"Unbind":     true,
 		"Mapping":    []string{"f1", "f2"},
 		"Skip":       entgql.SkipAll,
 	})
 	require.NoError(t, err)
 	require.Equal(t, ann, &entgql.Annotation{
-		OrderField: "NAME",
+		OrderField: []string{"NAME"},
 		Unbind:     true,
 		Mapping:    []string{"f1", "f2"},
 		Skip:       entgql.SkipAll,
