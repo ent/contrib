@@ -267,7 +267,8 @@
     "/categories/{id}/pets": {
       "get": {
         "tags": [
-          "Category"
+          "Category",
+          "Pet"
         ],
         "summary": "List attached Pets",
         "description": "List attached Pets.",
@@ -400,7 +401,8 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
                     "type": "array",
@@ -409,7 +411,8 @@
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -564,7 +567,8 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
                     "type": "array",
@@ -573,7 +577,8 @@
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -625,7 +630,8 @@
     "/pets/{id}/categories": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "Category"
         ],
         "summary": "List attached Categories",
         "description": "List attached Categories.",
@@ -753,7 +759,8 @@
     "/pets/{id}/owner": {
       "get": {
         "tags": [
-          "Pet"
+          "Pet",
+          "User"
         ],
         "summary": "Find the attached User",
         "description": "Find the attached User of the Pet with the given ID",
@@ -1063,7 +1070,8 @@
     "/users/{id}/pets": {
       "get": {
         "tags": [
-          "User"
+          "User",
+          "Pet"
         ],
         "summary": "List attached Pets",
         "description": "List attached Pets.",
@@ -1215,7 +1223,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1224,7 +1233,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
@@ -1239,7 +1249,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1248,7 +1259,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           },
           "categories": {
             "type": "array",
@@ -1278,7 +1290,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1287,7 +1300,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
@@ -1302,7 +1316,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1311,7 +1326,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
@@ -1323,7 +1339,8 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1332,7 +1349,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           },
           "owner": {
             "$ref": "#/components/schemas/PetRead_Owner"
@@ -1368,7 +1386,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1377,7 +1396,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
@@ -1407,7 +1427,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1416,7 +1437,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
@@ -1551,7 +1573,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1560,7 +1583,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           }
         },
         "required": [
