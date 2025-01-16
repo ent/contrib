@@ -3,7 +3,7 @@ module entgo.io/contrib
 go 1.23.4
 
 require (
-	entgo.io/ent v0.13.2-0.20240717044502-34158f2c129b
+	entgo.io/ent v0.14.2-0.20250116103911-b91f8daf0e32
 	github.com/99designs/gqlgen v0.17.63
 	github.com/AlekSi/pointer v1.1.0
 	github.com/alecthomas/kong v0.7.0
@@ -32,7 +32,7 @@ require (
 require github.com/golang/protobuf v1.5.4 // indirect
 
 require (
-	ariga.io/atlas v0.25.1-0.20240717145915-af51d3945208 // indirect
+	ariga.io/atlas v0.27.1-0.20240912191503-92195304dbe1 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.2.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect

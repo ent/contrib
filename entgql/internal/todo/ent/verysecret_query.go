@@ -267,8 +267,9 @@ func (vsq *VerySecretQuery) Clone() *VerySecretQuery {
 		inters:     append([]Interceptor{}, vsq.inters...),
 		predicates: append([]predicate.VerySecret{}, vsq.predicates...),
 		// clone intermediate query.
-		sql:  vsq.sql.Clone(),
-		path: vsq.path,
+		sql:       vsq.sql.Clone(),
+		path:      vsq.path,
+		modifiers: append([]func(*sql.Selector){}, vsq.modifiers...),
 	}
 }
 

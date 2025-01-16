@@ -267,8 +267,9 @@ func (bpq *BillProductQuery) Clone() *BillProductQuery {
 		inters:     append([]Interceptor{}, bpq.inters...),
 		predicates: append([]predicate.BillProduct{}, bpq.predicates...),
 		// clone intermediate query.
-		sql:  bpq.sql.Clone(),
-		path: bpq.path,
+		sql:       bpq.sql.Clone(),
+		path:      bpq.path,
+		modifiers: append([]func(*sql.Selector){}, bpq.modifiers...),
 	}
 }
 
