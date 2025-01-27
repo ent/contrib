@@ -167,6 +167,100 @@ func (c *CategoryUpdateOne) SetInput(i UpdateCategoryInput) *CategoryUpdateOne {
 	return c
 }
 
+// CreateDirectiveExampleInput represents a mutation input for creating directiveexamples.
+type CreateDirectiveExampleInput struct {
+	OnTypeField      *string
+	OnMutationFields *string
+	OnMutationCreate *string
+	OnMutationUpdate *string
+	OnAllFields      *string
+}
+
+// Mutate applies the CreateDirectiveExampleInput on the DirectiveExampleMutation builder.
+func (i *CreateDirectiveExampleInput) Mutate(m *DirectiveExampleMutation) {
+	if v := i.OnTypeField; v != nil {
+		m.SetOnTypeField(*v)
+	}
+	if v := i.OnMutationFields; v != nil {
+		m.SetOnMutationFields(*v)
+	}
+	if v := i.OnMutationCreate; v != nil {
+		m.SetOnMutationCreate(*v)
+	}
+	if v := i.OnMutationUpdate; v != nil {
+		m.SetOnMutationUpdate(*v)
+	}
+	if v := i.OnAllFields; v != nil {
+		m.SetOnAllFields(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateDirectiveExampleInput on the DirectiveExampleCreate builder.
+func (c *DirectiveExampleCreate) SetInput(i CreateDirectiveExampleInput) *DirectiveExampleCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateDirectiveExampleInput represents a mutation input for updating directiveexamples.
+type UpdateDirectiveExampleInput struct {
+	ClearOnTypeField      bool
+	OnTypeField           *string
+	ClearOnMutationFields bool
+	OnMutationFields      *string
+	ClearOnMutationCreate bool
+	OnMutationCreate      *string
+	ClearOnMutationUpdate bool
+	OnMutationUpdate      *string
+	ClearOnAllFields      bool
+	OnAllFields           *string
+}
+
+// Mutate applies the UpdateDirectiveExampleInput on the DirectiveExampleMutation builder.
+func (i *UpdateDirectiveExampleInput) Mutate(m *DirectiveExampleMutation) {
+	if i.ClearOnTypeField {
+		m.ClearOnTypeField()
+	}
+	if v := i.OnTypeField; v != nil {
+		m.SetOnTypeField(*v)
+	}
+	if i.ClearOnMutationFields {
+		m.ClearOnMutationFields()
+	}
+	if v := i.OnMutationFields; v != nil {
+		m.SetOnMutationFields(*v)
+	}
+	if i.ClearOnMutationCreate {
+		m.ClearOnMutationCreate()
+	}
+	if v := i.OnMutationCreate; v != nil {
+		m.SetOnMutationCreate(*v)
+	}
+	if i.ClearOnMutationUpdate {
+		m.ClearOnMutationUpdate()
+	}
+	if v := i.OnMutationUpdate; v != nil {
+		m.SetOnMutationUpdate(*v)
+	}
+	if i.ClearOnAllFields {
+		m.ClearOnAllFields()
+	}
+	if v := i.OnAllFields; v != nil {
+		m.SetOnAllFields(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateDirectiveExampleInput on the DirectiveExampleUpdate builder.
+func (c *DirectiveExampleUpdate) SetInput(i UpdateDirectiveExampleInput) *DirectiveExampleUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateDirectiveExampleInput on the DirectiveExampleUpdateOne builder.
+func (c *DirectiveExampleUpdateOne) SetInput(i UpdateDirectiveExampleInput) *DirectiveExampleUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // UpdateFriendshipInput represents a mutation input for updating friendships.
 type UpdateFriendshipInput struct {
 	CreatedAt *time.Time

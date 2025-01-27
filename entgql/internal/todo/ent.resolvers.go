@@ -20,6 +20,7 @@ package todo
 
 import (
 	"context"
+	"fmt"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
@@ -47,6 +48,11 @@ func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[int
 			ent.WithCategoryOrder(orderBy),
 			ent.WithCategoryFilter(where.Filter),
 		)
+}
+
+// DirectiveExamples is the resolver for the directiveExamples field.
+func (r *queryResolver) DirectiveExamples(ctx context.Context) ([]*ent.DirectiveExample, error) {
+	return []*ent.DirectiveExample{}, fmt.Errorf("not implemented: DirectiveExamples - directiveExamples")
 }
 
 // Groups is the resolver for the groups field.

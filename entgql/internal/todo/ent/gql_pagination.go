@@ -26,6 +26,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -806,6 +807,255 @@ func (c *Category) ToEdge(order *CategoryOrder) *CategoryEdge {
 	return &CategoryEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// DirectiveExampleEdge is the edge representation of DirectiveExample.
+type DirectiveExampleEdge struct {
+	Node   *DirectiveExample `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// DirectiveExampleConnection is the connection containing edges to DirectiveExample.
+type DirectiveExampleConnection struct {
+	Edges      []*DirectiveExampleEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *DirectiveExampleConnection) build(nodes []*DirectiveExample, pager *directiveexamplePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *DirectiveExample
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *DirectiveExample {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *DirectiveExample {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*DirectiveExampleEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &DirectiveExampleEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// DirectiveExamplePaginateOption enables pagination customization.
+type DirectiveExamplePaginateOption func(*directiveexamplePager) error
+
+// WithDirectiveExampleOrder configures pagination ordering.
+func WithDirectiveExampleOrder(order *DirectiveExampleOrder) DirectiveExamplePaginateOption {
+	if order == nil {
+		order = DefaultDirectiveExampleOrder
+	}
+	o := *order
+	return func(pager *directiveexamplePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultDirectiveExampleOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithDirectiveExampleFilter configures pagination filter.
+func WithDirectiveExampleFilter(filter func(*DirectiveExampleQuery) (*DirectiveExampleQuery, error)) DirectiveExamplePaginateOption {
+	return func(pager *directiveexamplePager) error {
+		if filter == nil {
+			return errors.New("DirectiveExampleQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type directiveexamplePager struct {
+	reverse bool
+	order   *DirectiveExampleOrder
+	filter  func(*DirectiveExampleQuery) (*DirectiveExampleQuery, error)
+}
+
+func newDirectiveExamplePager(opts []DirectiveExamplePaginateOption, reverse bool) (*directiveexamplePager, error) {
+	pager := &directiveexamplePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultDirectiveExampleOrder
+	}
+	return pager, nil
+}
+
+func (p *directiveexamplePager) applyFilter(query *DirectiveExampleQuery) (*DirectiveExampleQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *directiveexamplePager) toCursor(de *DirectiveExample) Cursor {
+	return p.order.Field.toCursor(de)
+}
+
+func (p *directiveexamplePager) applyCursors(query *DirectiveExampleQuery, after, before *Cursor) (*DirectiveExampleQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultDirectiveExampleOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *directiveexamplePager) applyOrder(query *DirectiveExampleQuery) *DirectiveExampleQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultDirectiveExampleOrder.Field {
+		query = query.Order(DefaultDirectiveExampleOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *directiveexamplePager) orderExpr(query *DirectiveExampleQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultDirectiveExampleOrder.Field {
+			b.Comma().Ident(DefaultDirectiveExampleOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to DirectiveExample.
+func (de *DirectiveExampleQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...DirectiveExamplePaginateOption,
+) (*DirectiveExampleConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newDirectiveExamplePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if de, err = pager.applyFilter(de); err != nil {
+		return nil, err
+	}
+	conn := &DirectiveExampleConnection{Edges: []*DirectiveExampleEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := de.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if de, err = pager.applyCursors(de, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		de.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := de.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	de = pager.applyOrder(de)
+	nodes, err := de.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// DirectiveExampleOrderField defines the ordering field of DirectiveExample.
+type DirectiveExampleOrderField struct {
+	// Value extracts the ordering value from the given DirectiveExample.
+	Value    func(*DirectiveExample) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) directiveexample.OrderOption
+	toCursor func(*DirectiveExample) Cursor
+}
+
+// DirectiveExampleOrder defines the ordering of DirectiveExample.
+type DirectiveExampleOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *DirectiveExampleOrderField `json:"field"`
+}
+
+// DefaultDirectiveExampleOrder is the default ordering of DirectiveExample.
+var DefaultDirectiveExampleOrder = &DirectiveExampleOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &DirectiveExampleOrderField{
+		Value: func(de *DirectiveExample) (ent.Value, error) {
+			return de.ID, nil
+		},
+		column: directiveexample.FieldID,
+		toTerm: directiveexample.ByID,
+		toCursor: func(de *DirectiveExample) Cursor {
+			return Cursor{ID: de.ID}
+		},
+	},
+}
+
+// ToEdge converts DirectiveExample into DirectiveExampleEdge.
+func (de *DirectiveExample) ToEdge(order *DirectiveExampleOrder) *DirectiveExampleEdge {
+	if order == nil {
+		order = DefaultDirectiveExampleOrder
+	}
+	return &DirectiveExampleEdge{
+		Node:   de,
+		Cursor: order.Field.toCursor(de),
 	}
 }
 

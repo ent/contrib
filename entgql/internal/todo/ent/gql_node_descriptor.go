@@ -175,6 +175,58 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 }
 
 // Node implements Noder interface
+func (de *DirectiveExample) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     de.ID,
+		Type:   "DirectiveExample",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(de.OnTypeField); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "on_type_field",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(de.OnMutationFields); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "on_mutation_fields",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(de.OnMutationCreate); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "on_mutation_create",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(de.OnMutationUpdate); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "on_mutation_update",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(de.OnAllFields); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "on_all_fields",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
+// Node implements Noder interface
 func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     f.ID,

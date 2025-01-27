@@ -52,6 +52,21 @@ var (
 		Columns:    CategoriesColumns,
 		PrimaryKey: []*schema.Column{CategoriesColumns[0]},
 	}
+	// DirectiveExamplesColumns holds the columns for the "directive_examples" table.
+	DirectiveExamplesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "on_type_field", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "on_mutation_fields", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "on_mutation_create", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "on_mutation_update", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "on_all_fields", Type: field.TypeString, Nullable: true, Size: 2147483647},
+	}
+	// DirectiveExamplesTable holds the schema information for the "directive_examples" table.
+	DirectiveExamplesTable = &schema.Table{
+		Name:       "directive_examples",
+		Columns:    DirectiveExamplesColumns,
+		PrimaryKey: []*schema.Column{DirectiveExamplesColumns[0]},
+	}
 	// FriendshipsColumns holds the columns for the "friendships" table.
 	FriendshipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -268,6 +283,7 @@ var (
 	Tables = []*schema.Table{
 		BillProductsTable,
 		CategoriesTable,
+		DirectiveExamplesTable,
 		FriendshipsTable,
 		GroupsTable,
 		OneToManiesTable,

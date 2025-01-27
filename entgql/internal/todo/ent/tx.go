@@ -30,6 +30,8 @@ type Tx struct {
 	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// DirectiveExample is the client for interacting with the DirectiveExample builders.
+	DirectiveExample *DirectiveExampleClient
 	// Friendship is the client for interacting with the Friendship builders.
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
@@ -179,6 +181,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.BillProduct = NewBillProductClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
+	tx.DirectiveExample = NewDirectiveExampleClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
 	tx.OneToMany = NewOneToManyClient(tx.config)

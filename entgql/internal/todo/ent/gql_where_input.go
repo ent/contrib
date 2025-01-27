@@ -23,6 +23,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -664,6 +665,440 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		return predicates[0], nil
 	default:
 		return category.And(predicates...), nil
+	}
+}
+
+// DirectiveExampleWhereInput represents a where input for filtering DirectiveExample queries.
+type DirectiveExampleWhereInput struct {
+	Predicates []predicate.DirectiveExample  `json:"-"`
+	Not        *DirectiveExampleWhereInput   `json:"not,omitempty"`
+	Or         []*DirectiveExampleWhereInput `json:"or,omitempty"`
+	And        []*DirectiveExampleWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *int  `json:"id,omitempty"`
+	IDNEQ   *int  `json:"idNEQ,omitempty"`
+	IDIn    []int `json:"idIn,omitempty"`
+	IDNotIn []int `json:"idNotIn,omitempty"`
+	IDGT    *int  `json:"idGT,omitempty"`
+	IDGTE   *int  `json:"idGTE,omitempty"`
+	IDLT    *int  `json:"idLT,omitempty"`
+	IDLTE   *int  `json:"idLTE,omitempty"`
+
+	// "on_type_field" field predicates.
+	OnTypeField             *string  `json:"onTypeField,omitempty"`
+	OnTypeFieldNEQ          *string  `json:"onTypeFieldNEQ,omitempty"`
+	OnTypeFieldIn           []string `json:"onTypeFieldIn,omitempty"`
+	OnTypeFieldNotIn        []string `json:"onTypeFieldNotIn,omitempty"`
+	OnTypeFieldGT           *string  `json:"onTypeFieldGT,omitempty"`
+	OnTypeFieldGTE          *string  `json:"onTypeFieldGTE,omitempty"`
+	OnTypeFieldLT           *string  `json:"onTypeFieldLT,omitempty"`
+	OnTypeFieldLTE          *string  `json:"onTypeFieldLTE,omitempty"`
+	OnTypeFieldContains     *string  `json:"onTypeFieldContains,omitempty"`
+	OnTypeFieldHasPrefix    *string  `json:"onTypeFieldHasPrefix,omitempty"`
+	OnTypeFieldHasSuffix    *string  `json:"onTypeFieldHasSuffix,omitempty"`
+	OnTypeFieldIsNil        bool     `json:"onTypeFieldIsNil,omitempty"`
+	OnTypeFieldNotNil       bool     `json:"onTypeFieldNotNil,omitempty"`
+	OnTypeFieldEqualFold    *string  `json:"onTypeFieldEqualFold,omitempty"`
+	OnTypeFieldContainsFold *string  `json:"onTypeFieldContainsFold,omitempty"`
+
+	// "on_mutation_fields" field predicates.
+	OnMutationFields             *string  `json:"onMutationFields,omitempty"`
+	OnMutationFieldsNEQ          *string  `json:"onMutationFieldsNEQ,omitempty"`
+	OnMutationFieldsIn           []string `json:"onMutationFieldsIn,omitempty"`
+	OnMutationFieldsNotIn        []string `json:"onMutationFieldsNotIn,omitempty"`
+	OnMutationFieldsGT           *string  `json:"onMutationFieldsGT,omitempty"`
+	OnMutationFieldsGTE          *string  `json:"onMutationFieldsGTE,omitempty"`
+	OnMutationFieldsLT           *string  `json:"onMutationFieldsLT,omitempty"`
+	OnMutationFieldsLTE          *string  `json:"onMutationFieldsLTE,omitempty"`
+	OnMutationFieldsContains     *string  `json:"onMutationFieldsContains,omitempty"`
+	OnMutationFieldsHasPrefix    *string  `json:"onMutationFieldsHasPrefix,omitempty"`
+	OnMutationFieldsHasSuffix    *string  `json:"onMutationFieldsHasSuffix,omitempty"`
+	OnMutationFieldsIsNil        bool     `json:"onMutationFieldsIsNil,omitempty"`
+	OnMutationFieldsNotNil       bool     `json:"onMutationFieldsNotNil,omitempty"`
+	OnMutationFieldsEqualFold    *string  `json:"onMutationFieldsEqualFold,omitempty"`
+	OnMutationFieldsContainsFold *string  `json:"onMutationFieldsContainsFold,omitempty"`
+
+	// "on_mutation_create" field predicates.
+	OnMutationCreate             *string  `json:"onMutationCreate,omitempty"`
+	OnMutationCreateNEQ          *string  `json:"onMutationCreateNEQ,omitempty"`
+	OnMutationCreateIn           []string `json:"onMutationCreateIn,omitempty"`
+	OnMutationCreateNotIn        []string `json:"onMutationCreateNotIn,omitempty"`
+	OnMutationCreateGT           *string  `json:"onMutationCreateGT,omitempty"`
+	OnMutationCreateGTE          *string  `json:"onMutationCreateGTE,omitempty"`
+	OnMutationCreateLT           *string  `json:"onMutationCreateLT,omitempty"`
+	OnMutationCreateLTE          *string  `json:"onMutationCreateLTE,omitempty"`
+	OnMutationCreateContains     *string  `json:"onMutationCreateContains,omitempty"`
+	OnMutationCreateHasPrefix    *string  `json:"onMutationCreateHasPrefix,omitempty"`
+	OnMutationCreateHasSuffix    *string  `json:"onMutationCreateHasSuffix,omitempty"`
+	OnMutationCreateIsNil        bool     `json:"onMutationCreateIsNil,omitempty"`
+	OnMutationCreateNotNil       bool     `json:"onMutationCreateNotNil,omitempty"`
+	OnMutationCreateEqualFold    *string  `json:"onMutationCreateEqualFold,omitempty"`
+	OnMutationCreateContainsFold *string  `json:"onMutationCreateContainsFold,omitempty"`
+
+	// "on_mutation_update" field predicates.
+	OnMutationUpdate             *string  `json:"onMutationUpdate,omitempty"`
+	OnMutationUpdateNEQ          *string  `json:"onMutationUpdateNEQ,omitempty"`
+	OnMutationUpdateIn           []string `json:"onMutationUpdateIn,omitempty"`
+	OnMutationUpdateNotIn        []string `json:"onMutationUpdateNotIn,omitempty"`
+	OnMutationUpdateGT           *string  `json:"onMutationUpdateGT,omitempty"`
+	OnMutationUpdateGTE          *string  `json:"onMutationUpdateGTE,omitempty"`
+	OnMutationUpdateLT           *string  `json:"onMutationUpdateLT,omitempty"`
+	OnMutationUpdateLTE          *string  `json:"onMutationUpdateLTE,omitempty"`
+	OnMutationUpdateContains     *string  `json:"onMutationUpdateContains,omitempty"`
+	OnMutationUpdateHasPrefix    *string  `json:"onMutationUpdateHasPrefix,omitempty"`
+	OnMutationUpdateHasSuffix    *string  `json:"onMutationUpdateHasSuffix,omitempty"`
+	OnMutationUpdateIsNil        bool     `json:"onMutationUpdateIsNil,omitempty"`
+	OnMutationUpdateNotNil       bool     `json:"onMutationUpdateNotNil,omitempty"`
+	OnMutationUpdateEqualFold    *string  `json:"onMutationUpdateEqualFold,omitempty"`
+	OnMutationUpdateContainsFold *string  `json:"onMutationUpdateContainsFold,omitempty"`
+
+	// "on_all_fields" field predicates.
+	OnAllFields             *string  `json:"onAllFields,omitempty"`
+	OnAllFieldsNEQ          *string  `json:"onAllFieldsNEQ,omitempty"`
+	OnAllFieldsIn           []string `json:"onAllFieldsIn,omitempty"`
+	OnAllFieldsNotIn        []string `json:"onAllFieldsNotIn,omitempty"`
+	OnAllFieldsGT           *string  `json:"onAllFieldsGT,omitempty"`
+	OnAllFieldsGTE          *string  `json:"onAllFieldsGTE,omitempty"`
+	OnAllFieldsLT           *string  `json:"onAllFieldsLT,omitempty"`
+	OnAllFieldsLTE          *string  `json:"onAllFieldsLTE,omitempty"`
+	OnAllFieldsContains     *string  `json:"onAllFieldsContains,omitempty"`
+	OnAllFieldsHasPrefix    *string  `json:"onAllFieldsHasPrefix,omitempty"`
+	OnAllFieldsHasSuffix    *string  `json:"onAllFieldsHasSuffix,omitempty"`
+	OnAllFieldsIsNil        bool     `json:"onAllFieldsIsNil,omitempty"`
+	OnAllFieldsNotNil       bool     `json:"onAllFieldsNotNil,omitempty"`
+	OnAllFieldsEqualFold    *string  `json:"onAllFieldsEqualFold,omitempty"`
+	OnAllFieldsContainsFold *string  `json:"onAllFieldsContainsFold,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *DirectiveExampleWhereInput) AddPredicates(predicates ...predicate.DirectiveExample) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the DirectiveExampleWhereInput filter on the DirectiveExampleQuery builder.
+func (i *DirectiveExampleWhereInput) Filter(q *DirectiveExampleQuery) (*DirectiveExampleQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyDirectiveExampleWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyDirectiveExampleWhereInput is returned in case the DirectiveExampleWhereInput is empty.
+var ErrEmptyDirectiveExampleWhereInput = errors.New("ent: empty predicate DirectiveExampleWhereInput")
+
+// P returns a predicate for filtering directiveexamples.
+// An error is returned if the input is empty or invalid.
+func (i *DirectiveExampleWhereInput) P() (predicate.DirectiveExample, error) {
+	var predicates []predicate.DirectiveExample
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, directiveexample.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.DirectiveExample, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, directiveexample.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.DirectiveExample, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, directiveexample.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, directiveexample.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, directiveexample.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, directiveexample.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, directiveexample.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, directiveexample.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, directiveexample.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, directiveexample.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, directiveexample.IDLTE(*i.IDLTE))
+	}
+	if i.OnTypeField != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldEQ(*i.OnTypeField))
+	}
+	if i.OnTypeFieldNEQ != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldNEQ(*i.OnTypeFieldNEQ))
+	}
+	if len(i.OnTypeFieldIn) > 0 {
+		predicates = append(predicates, directiveexample.OnTypeFieldIn(i.OnTypeFieldIn...))
+	}
+	if len(i.OnTypeFieldNotIn) > 0 {
+		predicates = append(predicates, directiveexample.OnTypeFieldNotIn(i.OnTypeFieldNotIn...))
+	}
+	if i.OnTypeFieldGT != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldGT(*i.OnTypeFieldGT))
+	}
+	if i.OnTypeFieldGTE != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldGTE(*i.OnTypeFieldGTE))
+	}
+	if i.OnTypeFieldLT != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldLT(*i.OnTypeFieldLT))
+	}
+	if i.OnTypeFieldLTE != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldLTE(*i.OnTypeFieldLTE))
+	}
+	if i.OnTypeFieldContains != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldContains(*i.OnTypeFieldContains))
+	}
+	if i.OnTypeFieldHasPrefix != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldHasPrefix(*i.OnTypeFieldHasPrefix))
+	}
+	if i.OnTypeFieldHasSuffix != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldHasSuffix(*i.OnTypeFieldHasSuffix))
+	}
+	if i.OnTypeFieldIsNil {
+		predicates = append(predicates, directiveexample.OnTypeFieldIsNil())
+	}
+	if i.OnTypeFieldNotNil {
+		predicates = append(predicates, directiveexample.OnTypeFieldNotNil())
+	}
+	if i.OnTypeFieldEqualFold != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldEqualFold(*i.OnTypeFieldEqualFold))
+	}
+	if i.OnTypeFieldContainsFold != nil {
+		predicates = append(predicates, directiveexample.OnTypeFieldContainsFold(*i.OnTypeFieldContainsFold))
+	}
+	if i.OnMutationFields != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsEQ(*i.OnMutationFields))
+	}
+	if i.OnMutationFieldsNEQ != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsNEQ(*i.OnMutationFieldsNEQ))
+	}
+	if len(i.OnMutationFieldsIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationFieldsIn(i.OnMutationFieldsIn...))
+	}
+	if len(i.OnMutationFieldsNotIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationFieldsNotIn(i.OnMutationFieldsNotIn...))
+	}
+	if i.OnMutationFieldsGT != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsGT(*i.OnMutationFieldsGT))
+	}
+	if i.OnMutationFieldsGTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsGTE(*i.OnMutationFieldsGTE))
+	}
+	if i.OnMutationFieldsLT != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsLT(*i.OnMutationFieldsLT))
+	}
+	if i.OnMutationFieldsLTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsLTE(*i.OnMutationFieldsLTE))
+	}
+	if i.OnMutationFieldsContains != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsContains(*i.OnMutationFieldsContains))
+	}
+	if i.OnMutationFieldsHasPrefix != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsHasPrefix(*i.OnMutationFieldsHasPrefix))
+	}
+	if i.OnMutationFieldsHasSuffix != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsHasSuffix(*i.OnMutationFieldsHasSuffix))
+	}
+	if i.OnMutationFieldsIsNil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsIsNil())
+	}
+	if i.OnMutationFieldsNotNil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsNotNil())
+	}
+	if i.OnMutationFieldsEqualFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsEqualFold(*i.OnMutationFieldsEqualFold))
+	}
+	if i.OnMutationFieldsContainsFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationFieldsContainsFold(*i.OnMutationFieldsContainsFold))
+	}
+	if i.OnMutationCreate != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateEQ(*i.OnMutationCreate))
+	}
+	if i.OnMutationCreateNEQ != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateNEQ(*i.OnMutationCreateNEQ))
+	}
+	if len(i.OnMutationCreateIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationCreateIn(i.OnMutationCreateIn...))
+	}
+	if len(i.OnMutationCreateNotIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationCreateNotIn(i.OnMutationCreateNotIn...))
+	}
+	if i.OnMutationCreateGT != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateGT(*i.OnMutationCreateGT))
+	}
+	if i.OnMutationCreateGTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateGTE(*i.OnMutationCreateGTE))
+	}
+	if i.OnMutationCreateLT != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateLT(*i.OnMutationCreateLT))
+	}
+	if i.OnMutationCreateLTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateLTE(*i.OnMutationCreateLTE))
+	}
+	if i.OnMutationCreateContains != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateContains(*i.OnMutationCreateContains))
+	}
+	if i.OnMutationCreateHasPrefix != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateHasPrefix(*i.OnMutationCreateHasPrefix))
+	}
+	if i.OnMutationCreateHasSuffix != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateHasSuffix(*i.OnMutationCreateHasSuffix))
+	}
+	if i.OnMutationCreateIsNil {
+		predicates = append(predicates, directiveexample.OnMutationCreateIsNil())
+	}
+	if i.OnMutationCreateNotNil {
+		predicates = append(predicates, directiveexample.OnMutationCreateNotNil())
+	}
+	if i.OnMutationCreateEqualFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateEqualFold(*i.OnMutationCreateEqualFold))
+	}
+	if i.OnMutationCreateContainsFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationCreateContainsFold(*i.OnMutationCreateContainsFold))
+	}
+	if i.OnMutationUpdate != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateEQ(*i.OnMutationUpdate))
+	}
+	if i.OnMutationUpdateNEQ != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateNEQ(*i.OnMutationUpdateNEQ))
+	}
+	if len(i.OnMutationUpdateIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationUpdateIn(i.OnMutationUpdateIn...))
+	}
+	if len(i.OnMutationUpdateNotIn) > 0 {
+		predicates = append(predicates, directiveexample.OnMutationUpdateNotIn(i.OnMutationUpdateNotIn...))
+	}
+	if i.OnMutationUpdateGT != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateGT(*i.OnMutationUpdateGT))
+	}
+	if i.OnMutationUpdateGTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateGTE(*i.OnMutationUpdateGTE))
+	}
+	if i.OnMutationUpdateLT != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateLT(*i.OnMutationUpdateLT))
+	}
+	if i.OnMutationUpdateLTE != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateLTE(*i.OnMutationUpdateLTE))
+	}
+	if i.OnMutationUpdateContains != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateContains(*i.OnMutationUpdateContains))
+	}
+	if i.OnMutationUpdateHasPrefix != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateHasPrefix(*i.OnMutationUpdateHasPrefix))
+	}
+	if i.OnMutationUpdateHasSuffix != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateHasSuffix(*i.OnMutationUpdateHasSuffix))
+	}
+	if i.OnMutationUpdateIsNil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateIsNil())
+	}
+	if i.OnMutationUpdateNotNil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateNotNil())
+	}
+	if i.OnMutationUpdateEqualFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateEqualFold(*i.OnMutationUpdateEqualFold))
+	}
+	if i.OnMutationUpdateContainsFold != nil {
+		predicates = append(predicates, directiveexample.OnMutationUpdateContainsFold(*i.OnMutationUpdateContainsFold))
+	}
+	if i.OnAllFields != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsEQ(*i.OnAllFields))
+	}
+	if i.OnAllFieldsNEQ != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsNEQ(*i.OnAllFieldsNEQ))
+	}
+	if len(i.OnAllFieldsIn) > 0 {
+		predicates = append(predicates, directiveexample.OnAllFieldsIn(i.OnAllFieldsIn...))
+	}
+	if len(i.OnAllFieldsNotIn) > 0 {
+		predicates = append(predicates, directiveexample.OnAllFieldsNotIn(i.OnAllFieldsNotIn...))
+	}
+	if i.OnAllFieldsGT != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsGT(*i.OnAllFieldsGT))
+	}
+	if i.OnAllFieldsGTE != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsGTE(*i.OnAllFieldsGTE))
+	}
+	if i.OnAllFieldsLT != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsLT(*i.OnAllFieldsLT))
+	}
+	if i.OnAllFieldsLTE != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsLTE(*i.OnAllFieldsLTE))
+	}
+	if i.OnAllFieldsContains != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsContains(*i.OnAllFieldsContains))
+	}
+	if i.OnAllFieldsHasPrefix != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsHasPrefix(*i.OnAllFieldsHasPrefix))
+	}
+	if i.OnAllFieldsHasSuffix != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsHasSuffix(*i.OnAllFieldsHasSuffix))
+	}
+	if i.OnAllFieldsIsNil {
+		predicates = append(predicates, directiveexample.OnAllFieldsIsNil())
+	}
+	if i.OnAllFieldsNotNil {
+		predicates = append(predicates, directiveexample.OnAllFieldsNotNil())
+	}
+	if i.OnAllFieldsEqualFold != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsEqualFold(*i.OnAllFieldsEqualFold))
+	}
+	if i.OnAllFieldsContainsFold != nil {
+		predicates = append(predicates, directiveexample.OnAllFieldsContainsFold(*i.OnAllFieldsContainsFold))
+	}
+
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyDirectiveExampleWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return directiveexample.And(predicates...), nil
 	}
 }
 

@@ -57,6 +57,10 @@ type (
 	Directive struct {
 		Name      string          `json:"name,omitempty"`
 		Arguments []*ast.Argument `json:"arguments,omitempty"`
+
+		SkipTypeField          bool `json:"skipOnTypeField,omitempty"`
+		AddCreateMutationField bool `json:"onInputMutationField,omitempty"`
+		AddUpdateMutationField bool `json:"onUpdateMutationField,omitempty"`
 	}
 
 	// SkipMode is a bit flag for the Skip annotation.
@@ -79,6 +83,21 @@ type (
 		Description string `json:"Description,omitempty"`
 	}
 )
+
+func (d Directive) SkipOnTypeField() Directive {
+	d.SkipTypeField = true
+	return d
+}
+
+func (d Directive) OnCreateMutationField() Directive {
+	d.AddCreateMutationField = true
+	return d
+}
+
+func (d Directive) OnUpdateMutationField() Directive {
+	d.AddUpdateMutationField = true
+	return d
+}
 
 const (
 	// SkipType skips generating GraphQL types or fields in the schema.

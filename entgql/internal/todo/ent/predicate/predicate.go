@@ -26,6 +26,9 @@ type BillProduct func(*sql.Selector)
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 
+// DirectiveExample is the predicate function for directiveexample builders.
+type DirectiveExample func(*sql.Selector)
+
 // Friendship is the predicate function for friendship builders.
 type Friendship func(*sql.Selector)
 

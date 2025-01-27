@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -55,6 +56,11 @@ var categoryImplementors = []string{"Category", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Category) IsNode() {}
+
+var directiveexampleImplementors = []string{"DirectiveExample", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*DirectiveExample) IsNode() {}
 
 var friendshipImplementors = []string{"Friendship", "Node"}
 
@@ -166,6 +172,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			Where(category.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, categoryImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case directiveexample.Table:
+		query := c.DirectiveExample.Query().
+			Where(directiveexample.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, directiveexampleImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -326,6 +341,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Category.Query().
 			Where(category.IDIn(ids...))
 		query, err := query.CollectFields(ctx, categoryImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case directiveexample.Table:
+		query := c.DirectiveExample.Query().
+			Where(directiveexample.IDIn(ids...))
+		query, err := query.CollectFields(ctx, directiveexampleImplementors...)
 		if err != nil {
 			return nil, err
 		}
