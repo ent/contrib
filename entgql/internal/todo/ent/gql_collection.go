@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -415,6 +416,93 @@ func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*CategoryWhereInput); ok {
 		args.opts = append(args.opts, WithCategoryFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (de *DirectiveExampleQuery) CollectFields(ctx context.Context, satisfies ...string) (*DirectiveExampleQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return de, nil
+	}
+	if err := de.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return de, nil
+}
+
+func (de *DirectiveExampleQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(directiveexample.Columns))
+		selectedFields = []string{directiveexample.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "onTypeField":
+			if _, ok := fieldSeen[directiveexample.FieldOnTypeField]; !ok {
+				selectedFields = append(selectedFields, directiveexample.FieldOnTypeField)
+				fieldSeen[directiveexample.FieldOnTypeField] = struct{}{}
+			}
+		case "onMutationFields":
+			if _, ok := fieldSeen[directiveexample.FieldOnMutationFields]; !ok {
+				selectedFields = append(selectedFields, directiveexample.FieldOnMutationFields)
+				fieldSeen[directiveexample.FieldOnMutationFields] = struct{}{}
+			}
+		case "onMutationCreate":
+			if _, ok := fieldSeen[directiveexample.FieldOnMutationCreate]; !ok {
+				selectedFields = append(selectedFields, directiveexample.FieldOnMutationCreate)
+				fieldSeen[directiveexample.FieldOnMutationCreate] = struct{}{}
+			}
+		case "onMutationUpdate":
+			if _, ok := fieldSeen[directiveexample.FieldOnMutationUpdate]; !ok {
+				selectedFields = append(selectedFields, directiveexample.FieldOnMutationUpdate)
+				fieldSeen[directiveexample.FieldOnMutationUpdate] = struct{}{}
+			}
+		case "onAllFields":
+			if _, ok := fieldSeen[directiveexample.FieldOnAllFields]; !ok {
+				selectedFields = append(selectedFields, directiveexample.FieldOnAllFields)
+				fieldSeen[directiveexample.FieldOnAllFields] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		de.Select(selectedFields...)
+	}
+	return nil
+}
+
+type directiveexamplePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []DirectiveExamplePaginateOption
+}
+
+func newDirectiveExamplePaginateArgs(rv map[string]any) *directiveexamplePaginateArgs {
+	args := &directiveexamplePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*DirectiveExampleWhereInput); ok {
+		args.opts = append(args.opts, WithDirectiveExampleFilter(v.Filter))
 	}
 	return args
 }

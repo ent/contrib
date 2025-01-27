@@ -15,6 +15,8 @@
 package todo
 
 import (
+	"context"
+
 	"entgo.io/contrib/entgql/internal/todo/ent"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -28,6 +30,9 @@ func NewSchema(client *ent.Client) graphql.ExecutableSchema {
 		Resolvers: &Resolver{client},
 		Directives: DirectiveRoot{
 			HasPermissions: HasPermission(),
+			FieldDirective: func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error) {
+				return next(ctx)
+			},
 		},
 	})
 }

@@ -1,4 +1,5 @@
 directive @hasPermissions(permissions: [String!]!) on OBJECT | FIELD_DEFINITION
+directive @fieldDirective on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 type CategoryConfig {
   maxMembers: Int

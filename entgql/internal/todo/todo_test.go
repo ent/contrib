@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 6 << 32
+	idOffset = 7 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1685,13 +1685,40 @@ func TestNestedConnection(t *testing.T) {
 				}
 			}
 		)
+		allUsersQuery := `query ($id: ID!) {
+			group: node(id: $id) {
+				... on Group {
+					name
+					users {
+						edges {
+							cursor
+						}
+					}
+				}
+		}
+	}`
+		var allUsersRes struct {
+			Group struct {
+				Name  string
+				Users struct {
+					Edges []struct {
+						Cursor string
+					}
+				}
+			}
+		}
+		gid := groups[0].ID
+		err = gqlc.Post(allUsersQuery, &allUsersRes, client.Var("id", gid))
+		require.NoError(t, err)
+
+		edgeIdx := len(allUsersRes.Group.Users.Edges) - 1
 		err = gqlc.Post(query, &rsp,
-			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFpzwAAAAcAAAAJ"),
+			client.Var("id", gid),
+			client.Var("cursor", allUsersRes.Group.Users.Edges[edgeIdx].Cursor),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFpzwAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, allUsersRes.Group.Users.Edges[edgeIdx-1].Cursor, rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 

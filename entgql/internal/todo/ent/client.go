@@ -28,6 +28,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -50,6 +51,8 @@ type Client struct {
 	BillProduct *BillProductClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// DirectiveExample is the client for interacting with the DirectiveExample builders.
+	DirectiveExample *DirectiveExampleClient
 	// Friendship is the client for interacting with the Friendship builders.
 	Friendship *FriendshipClient
 	// Group is the client for interacting with the Group builders.
@@ -81,6 +84,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.BillProduct = NewBillProductClient(c.config)
 	c.Category = NewCategoryClient(c.config)
+	c.DirectiveExample = NewDirectiveExampleClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
 	c.OneToMany = NewOneToManyClient(c.config)
@@ -179,18 +183,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		BillProduct: NewBillProductClient(cfg),
-		Category:    NewCategoryClient(cfg),
-		Friendship:  NewFriendshipClient(cfg),
-		Group:       NewGroupClient(cfg),
-		OneToMany:   NewOneToManyClient(cfg),
-		Project:     NewProjectClient(cfg),
-		Todo:        NewTodoClient(cfg),
-		User:        NewUserClient(cfg),
-		VerySecret:  NewVerySecretClient(cfg),
-		Workspace:   NewWorkspaceClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		BillProduct:      NewBillProductClient(cfg),
+		Category:         NewCategoryClient(cfg),
+		DirectiveExample: NewDirectiveExampleClient(cfg),
+		Friendship:       NewFriendshipClient(cfg),
+		Group:            NewGroupClient(cfg),
+		OneToMany:        NewOneToManyClient(cfg),
+		Project:          NewProjectClient(cfg),
+		Todo:             NewTodoClient(cfg),
+		User:             NewUserClient(cfg),
+		VerySecret:       NewVerySecretClient(cfg),
+		Workspace:        NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -208,18 +213,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		BillProduct: NewBillProductClient(cfg),
-		Category:    NewCategoryClient(cfg),
-		Friendship:  NewFriendshipClient(cfg),
-		Group:       NewGroupClient(cfg),
-		OneToMany:   NewOneToManyClient(cfg),
-		Project:     NewProjectClient(cfg),
-		Todo:        NewTodoClient(cfg),
-		User:        NewUserClient(cfg),
-		VerySecret:  NewVerySecretClient(cfg),
-		Workspace:   NewWorkspaceClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		BillProduct:      NewBillProductClient(cfg),
+		Category:         NewCategoryClient(cfg),
+		DirectiveExample: NewDirectiveExampleClient(cfg),
+		Friendship:       NewFriendshipClient(cfg),
+		Group:            NewGroupClient(cfg),
+		OneToMany:        NewOneToManyClient(cfg),
+		Project:          NewProjectClient(cfg),
+		Todo:             NewTodoClient(cfg),
+		User:             NewUserClient(cfg),
+		VerySecret:       NewVerySecretClient(cfg),
+		Workspace:        NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -249,8 +255,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret, c.Workspace,
+		c.BillProduct, c.Category, c.DirectiveExample, c.Friendship, c.Group,
+		c.OneToMany, c.Project, c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Use(hooks...)
 	}
@@ -260,8 +266,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret, c.Workspace,
+		c.BillProduct, c.Category, c.DirectiveExample, c.Friendship, c.Group,
+		c.OneToMany, c.Project, c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -274,6 +280,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.BillProduct.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
+	case *DirectiveExampleMutation:
+		return c.DirectiveExample.mutate(ctx, m)
 	case *FriendshipMutation:
 		return c.Friendship.mutate(ctx, m)
 	case *GroupMutation:
@@ -590,6 +598,139 @@ func (c *CategoryClient) mutate(ctx context.Context, m *CategoryMutation) (Value
 		return (&CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Category mutation op: %q", m.Op())
+	}
+}
+
+// DirectiveExampleClient is a client for the DirectiveExample schema.
+type DirectiveExampleClient struct {
+	config
+}
+
+// NewDirectiveExampleClient returns a client for the DirectiveExample from the given config.
+func NewDirectiveExampleClient(c config) *DirectiveExampleClient {
+	return &DirectiveExampleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `directiveexample.Hooks(f(g(h())))`.
+func (c *DirectiveExampleClient) Use(hooks ...Hook) {
+	c.hooks.DirectiveExample = append(c.hooks.DirectiveExample, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `directiveexample.Intercept(f(g(h())))`.
+func (c *DirectiveExampleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DirectiveExample = append(c.inters.DirectiveExample, interceptors...)
+}
+
+// Create returns a builder for creating a DirectiveExample entity.
+func (c *DirectiveExampleClient) Create() *DirectiveExampleCreate {
+	mutation := newDirectiveExampleMutation(c.config, OpCreate)
+	return &DirectiveExampleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DirectiveExample entities.
+func (c *DirectiveExampleClient) CreateBulk(builders ...*DirectiveExampleCreate) *DirectiveExampleCreateBulk {
+	return &DirectiveExampleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DirectiveExampleClient) MapCreateBulk(slice any, setFunc func(*DirectiveExampleCreate, int)) *DirectiveExampleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DirectiveExampleCreateBulk{err: fmt.Errorf("calling to DirectiveExampleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DirectiveExampleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DirectiveExampleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DirectiveExample.
+func (c *DirectiveExampleClient) Update() *DirectiveExampleUpdate {
+	mutation := newDirectiveExampleMutation(c.config, OpUpdate)
+	return &DirectiveExampleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DirectiveExampleClient) UpdateOne(de *DirectiveExample) *DirectiveExampleUpdateOne {
+	mutation := newDirectiveExampleMutation(c.config, OpUpdateOne, withDirectiveExample(de))
+	return &DirectiveExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DirectiveExampleClient) UpdateOneID(id int) *DirectiveExampleUpdateOne {
+	mutation := newDirectiveExampleMutation(c.config, OpUpdateOne, withDirectiveExampleID(id))
+	return &DirectiveExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DirectiveExample.
+func (c *DirectiveExampleClient) Delete() *DirectiveExampleDelete {
+	mutation := newDirectiveExampleMutation(c.config, OpDelete)
+	return &DirectiveExampleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DirectiveExampleClient) DeleteOne(de *DirectiveExample) *DirectiveExampleDeleteOne {
+	return c.DeleteOneID(de.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DirectiveExampleClient) DeleteOneID(id int) *DirectiveExampleDeleteOne {
+	builder := c.Delete().Where(directiveexample.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DirectiveExampleDeleteOne{builder}
+}
+
+// Query returns a query builder for DirectiveExample.
+func (c *DirectiveExampleClient) Query() *DirectiveExampleQuery {
+	return &DirectiveExampleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDirectiveExample},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DirectiveExample entity by its id.
+func (c *DirectiveExampleClient) Get(ctx context.Context, id int) (*DirectiveExample, error) {
+	return c.Query().Where(directiveexample.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DirectiveExampleClient) GetX(ctx context.Context, id int) *DirectiveExample {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DirectiveExampleClient) Hooks() []Hook {
+	return c.hooks.DirectiveExample
+}
+
+// Interceptors returns the client interceptors.
+func (c *DirectiveExampleClient) Interceptors() []Interceptor {
+	return c.inters.DirectiveExample
+}
+
+func (c *DirectiveExampleClient) mutate(ctx context.Context, m *DirectiveExampleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DirectiveExampleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DirectiveExampleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DirectiveExampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DirectiveExampleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DirectiveExample mutation op: %q", m.Op())
 	}
 }
 
@@ -1868,11 +2009,11 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret, Workspace []ent.Hook
+		BillProduct, Category, DirectiveExample, Friendship, Group, OneToMany, Project,
+		Todo, User, VerySecret, Workspace []ent.Hook
 	}
 	inters struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret, Workspace []ent.Interceptor
+		BillProduct, Category, DirectiveExample, Friendship, Group, OneToMany, Project,
+		Todo, User, VerySecret, Workspace []ent.Interceptor
 	}
 )

@@ -25,6 +25,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/directiveexample"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
@@ -50,16 +51,17 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeBillProduct = "BillProduct"
-	TypeCategory    = "Category"
-	TypeFriendship  = "Friendship"
-	TypeGroup       = "Group"
-	TypeOneToMany   = "OneToMany"
-	TypeProject     = "Project"
-	TypeTodo        = "Todo"
-	TypeUser        = "User"
-	TypeVerySecret  = "VerySecret"
-	TypeWorkspace   = "Workspace"
+	TypeBillProduct      = "BillProduct"
+	TypeCategory         = "Category"
+	TypeDirectiveExample = "DirectiveExample"
+	TypeFriendship       = "Friendship"
+	TypeGroup            = "Group"
+	TypeOneToMany        = "OneToMany"
+	TypeProject          = "Project"
+	TypeTodo             = "Todo"
+	TypeUser             = "User"
+	TypeVerySecret       = "VerySecret"
+	TypeWorkspace        = "Workspace"
 )
 
 // BillProductMutation represents an operation that mutates the BillProduct nodes in the graph.
@@ -1548,6 +1550,646 @@ func (m *CategoryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Category edge %s", name)
+}
+
+// DirectiveExampleMutation represents an operation that mutates the DirectiveExample nodes in the graph.
+type DirectiveExampleMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	on_type_field      *string
+	on_mutation_fields *string
+	on_mutation_create *string
+	on_mutation_update *string
+	on_all_fields      *string
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*DirectiveExample, error)
+	predicates         []predicate.DirectiveExample
+}
+
+var _ ent.Mutation = (*DirectiveExampleMutation)(nil)
+
+// directiveexampleOption allows management of the mutation configuration using functional options.
+type directiveexampleOption func(*DirectiveExampleMutation)
+
+// newDirectiveExampleMutation creates new mutation for the DirectiveExample entity.
+func newDirectiveExampleMutation(c config, op Op, opts ...directiveexampleOption) *DirectiveExampleMutation {
+	m := &DirectiveExampleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDirectiveExample,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDirectiveExampleID sets the ID field of the mutation.
+func withDirectiveExampleID(id int) directiveexampleOption {
+	return func(m *DirectiveExampleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DirectiveExample
+		)
+		m.oldValue = func(ctx context.Context) (*DirectiveExample, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DirectiveExample.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDirectiveExample sets the old DirectiveExample of the mutation.
+func withDirectiveExample(node *DirectiveExample) directiveexampleOption {
+	return func(m *DirectiveExampleMutation) {
+		m.oldValue = func(context.Context) (*DirectiveExample, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DirectiveExampleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DirectiveExampleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DirectiveExampleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DirectiveExampleMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DirectiveExample.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOnTypeField sets the "on_type_field" field.
+func (m *DirectiveExampleMutation) SetOnTypeField(s string) {
+	m.on_type_field = &s
+}
+
+// OnTypeField returns the value of the "on_type_field" field in the mutation.
+func (m *DirectiveExampleMutation) OnTypeField() (r string, exists bool) {
+	v := m.on_type_field
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnTypeField returns the old "on_type_field" field's value of the DirectiveExample entity.
+// If the DirectiveExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DirectiveExampleMutation) OldOnTypeField(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnTypeField is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnTypeField requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnTypeField: %w", err)
+	}
+	return oldValue.OnTypeField, nil
+}
+
+// ClearOnTypeField clears the value of the "on_type_field" field.
+func (m *DirectiveExampleMutation) ClearOnTypeField() {
+	m.on_type_field = nil
+	m.clearedFields[directiveexample.FieldOnTypeField] = struct{}{}
+}
+
+// OnTypeFieldCleared returns if the "on_type_field" field was cleared in this mutation.
+func (m *DirectiveExampleMutation) OnTypeFieldCleared() bool {
+	_, ok := m.clearedFields[directiveexample.FieldOnTypeField]
+	return ok
+}
+
+// ResetOnTypeField resets all changes to the "on_type_field" field.
+func (m *DirectiveExampleMutation) ResetOnTypeField() {
+	m.on_type_field = nil
+	delete(m.clearedFields, directiveexample.FieldOnTypeField)
+}
+
+// SetOnMutationFields sets the "on_mutation_fields" field.
+func (m *DirectiveExampleMutation) SetOnMutationFields(s string) {
+	m.on_mutation_fields = &s
+}
+
+// OnMutationFields returns the value of the "on_mutation_fields" field in the mutation.
+func (m *DirectiveExampleMutation) OnMutationFields() (r string, exists bool) {
+	v := m.on_mutation_fields
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnMutationFields returns the old "on_mutation_fields" field's value of the DirectiveExample entity.
+// If the DirectiveExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DirectiveExampleMutation) OldOnMutationFields(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnMutationFields is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnMutationFields requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnMutationFields: %w", err)
+	}
+	return oldValue.OnMutationFields, nil
+}
+
+// ClearOnMutationFields clears the value of the "on_mutation_fields" field.
+func (m *DirectiveExampleMutation) ClearOnMutationFields() {
+	m.on_mutation_fields = nil
+	m.clearedFields[directiveexample.FieldOnMutationFields] = struct{}{}
+}
+
+// OnMutationFieldsCleared returns if the "on_mutation_fields" field was cleared in this mutation.
+func (m *DirectiveExampleMutation) OnMutationFieldsCleared() bool {
+	_, ok := m.clearedFields[directiveexample.FieldOnMutationFields]
+	return ok
+}
+
+// ResetOnMutationFields resets all changes to the "on_mutation_fields" field.
+func (m *DirectiveExampleMutation) ResetOnMutationFields() {
+	m.on_mutation_fields = nil
+	delete(m.clearedFields, directiveexample.FieldOnMutationFields)
+}
+
+// SetOnMutationCreate sets the "on_mutation_create" field.
+func (m *DirectiveExampleMutation) SetOnMutationCreate(s string) {
+	m.on_mutation_create = &s
+}
+
+// OnMutationCreate returns the value of the "on_mutation_create" field in the mutation.
+func (m *DirectiveExampleMutation) OnMutationCreate() (r string, exists bool) {
+	v := m.on_mutation_create
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnMutationCreate returns the old "on_mutation_create" field's value of the DirectiveExample entity.
+// If the DirectiveExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DirectiveExampleMutation) OldOnMutationCreate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnMutationCreate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnMutationCreate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnMutationCreate: %w", err)
+	}
+	return oldValue.OnMutationCreate, nil
+}
+
+// ClearOnMutationCreate clears the value of the "on_mutation_create" field.
+func (m *DirectiveExampleMutation) ClearOnMutationCreate() {
+	m.on_mutation_create = nil
+	m.clearedFields[directiveexample.FieldOnMutationCreate] = struct{}{}
+}
+
+// OnMutationCreateCleared returns if the "on_mutation_create" field was cleared in this mutation.
+func (m *DirectiveExampleMutation) OnMutationCreateCleared() bool {
+	_, ok := m.clearedFields[directiveexample.FieldOnMutationCreate]
+	return ok
+}
+
+// ResetOnMutationCreate resets all changes to the "on_mutation_create" field.
+func (m *DirectiveExampleMutation) ResetOnMutationCreate() {
+	m.on_mutation_create = nil
+	delete(m.clearedFields, directiveexample.FieldOnMutationCreate)
+}
+
+// SetOnMutationUpdate sets the "on_mutation_update" field.
+func (m *DirectiveExampleMutation) SetOnMutationUpdate(s string) {
+	m.on_mutation_update = &s
+}
+
+// OnMutationUpdate returns the value of the "on_mutation_update" field in the mutation.
+func (m *DirectiveExampleMutation) OnMutationUpdate() (r string, exists bool) {
+	v := m.on_mutation_update
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnMutationUpdate returns the old "on_mutation_update" field's value of the DirectiveExample entity.
+// If the DirectiveExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DirectiveExampleMutation) OldOnMutationUpdate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnMutationUpdate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnMutationUpdate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnMutationUpdate: %w", err)
+	}
+	return oldValue.OnMutationUpdate, nil
+}
+
+// ClearOnMutationUpdate clears the value of the "on_mutation_update" field.
+func (m *DirectiveExampleMutation) ClearOnMutationUpdate() {
+	m.on_mutation_update = nil
+	m.clearedFields[directiveexample.FieldOnMutationUpdate] = struct{}{}
+}
+
+// OnMutationUpdateCleared returns if the "on_mutation_update" field was cleared in this mutation.
+func (m *DirectiveExampleMutation) OnMutationUpdateCleared() bool {
+	_, ok := m.clearedFields[directiveexample.FieldOnMutationUpdate]
+	return ok
+}
+
+// ResetOnMutationUpdate resets all changes to the "on_mutation_update" field.
+func (m *DirectiveExampleMutation) ResetOnMutationUpdate() {
+	m.on_mutation_update = nil
+	delete(m.clearedFields, directiveexample.FieldOnMutationUpdate)
+}
+
+// SetOnAllFields sets the "on_all_fields" field.
+func (m *DirectiveExampleMutation) SetOnAllFields(s string) {
+	m.on_all_fields = &s
+}
+
+// OnAllFields returns the value of the "on_all_fields" field in the mutation.
+func (m *DirectiveExampleMutation) OnAllFields() (r string, exists bool) {
+	v := m.on_all_fields
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnAllFields returns the old "on_all_fields" field's value of the DirectiveExample entity.
+// If the DirectiveExample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DirectiveExampleMutation) OldOnAllFields(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnAllFields is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnAllFields requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnAllFields: %w", err)
+	}
+	return oldValue.OnAllFields, nil
+}
+
+// ClearOnAllFields clears the value of the "on_all_fields" field.
+func (m *DirectiveExampleMutation) ClearOnAllFields() {
+	m.on_all_fields = nil
+	m.clearedFields[directiveexample.FieldOnAllFields] = struct{}{}
+}
+
+// OnAllFieldsCleared returns if the "on_all_fields" field was cleared in this mutation.
+func (m *DirectiveExampleMutation) OnAllFieldsCleared() bool {
+	_, ok := m.clearedFields[directiveexample.FieldOnAllFields]
+	return ok
+}
+
+// ResetOnAllFields resets all changes to the "on_all_fields" field.
+func (m *DirectiveExampleMutation) ResetOnAllFields() {
+	m.on_all_fields = nil
+	delete(m.clearedFields, directiveexample.FieldOnAllFields)
+}
+
+// Where appends a list predicates to the DirectiveExampleMutation builder.
+func (m *DirectiveExampleMutation) Where(ps ...predicate.DirectiveExample) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DirectiveExampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DirectiveExampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DirectiveExample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DirectiveExampleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DirectiveExampleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DirectiveExample).
+func (m *DirectiveExampleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DirectiveExampleMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.on_type_field != nil {
+		fields = append(fields, directiveexample.FieldOnTypeField)
+	}
+	if m.on_mutation_fields != nil {
+		fields = append(fields, directiveexample.FieldOnMutationFields)
+	}
+	if m.on_mutation_create != nil {
+		fields = append(fields, directiveexample.FieldOnMutationCreate)
+	}
+	if m.on_mutation_update != nil {
+		fields = append(fields, directiveexample.FieldOnMutationUpdate)
+	}
+	if m.on_all_fields != nil {
+		fields = append(fields, directiveexample.FieldOnAllFields)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DirectiveExampleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case directiveexample.FieldOnTypeField:
+		return m.OnTypeField()
+	case directiveexample.FieldOnMutationFields:
+		return m.OnMutationFields()
+	case directiveexample.FieldOnMutationCreate:
+		return m.OnMutationCreate()
+	case directiveexample.FieldOnMutationUpdate:
+		return m.OnMutationUpdate()
+	case directiveexample.FieldOnAllFields:
+		return m.OnAllFields()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DirectiveExampleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case directiveexample.FieldOnTypeField:
+		return m.OldOnTypeField(ctx)
+	case directiveexample.FieldOnMutationFields:
+		return m.OldOnMutationFields(ctx)
+	case directiveexample.FieldOnMutationCreate:
+		return m.OldOnMutationCreate(ctx)
+	case directiveexample.FieldOnMutationUpdate:
+		return m.OldOnMutationUpdate(ctx)
+	case directiveexample.FieldOnAllFields:
+		return m.OldOnAllFields(ctx)
+	}
+	return nil, fmt.Errorf("unknown DirectiveExample field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DirectiveExampleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case directiveexample.FieldOnTypeField:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnTypeField(v)
+		return nil
+	case directiveexample.FieldOnMutationFields:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnMutationFields(v)
+		return nil
+	case directiveexample.FieldOnMutationCreate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnMutationCreate(v)
+		return nil
+	case directiveexample.FieldOnMutationUpdate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnMutationUpdate(v)
+		return nil
+	case directiveexample.FieldOnAllFields:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnAllFields(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DirectiveExample field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DirectiveExampleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DirectiveExampleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DirectiveExampleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DirectiveExample numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DirectiveExampleMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(directiveexample.FieldOnTypeField) {
+		fields = append(fields, directiveexample.FieldOnTypeField)
+	}
+	if m.FieldCleared(directiveexample.FieldOnMutationFields) {
+		fields = append(fields, directiveexample.FieldOnMutationFields)
+	}
+	if m.FieldCleared(directiveexample.FieldOnMutationCreate) {
+		fields = append(fields, directiveexample.FieldOnMutationCreate)
+	}
+	if m.FieldCleared(directiveexample.FieldOnMutationUpdate) {
+		fields = append(fields, directiveexample.FieldOnMutationUpdate)
+	}
+	if m.FieldCleared(directiveexample.FieldOnAllFields) {
+		fields = append(fields, directiveexample.FieldOnAllFields)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DirectiveExampleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DirectiveExampleMutation) ClearField(name string) error {
+	switch name {
+	case directiveexample.FieldOnTypeField:
+		m.ClearOnTypeField()
+		return nil
+	case directiveexample.FieldOnMutationFields:
+		m.ClearOnMutationFields()
+		return nil
+	case directiveexample.FieldOnMutationCreate:
+		m.ClearOnMutationCreate()
+		return nil
+	case directiveexample.FieldOnMutationUpdate:
+		m.ClearOnMutationUpdate()
+		return nil
+	case directiveexample.FieldOnAllFields:
+		m.ClearOnAllFields()
+		return nil
+	}
+	return fmt.Errorf("unknown DirectiveExample nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DirectiveExampleMutation) ResetField(name string) error {
+	switch name {
+	case directiveexample.FieldOnTypeField:
+		m.ResetOnTypeField()
+		return nil
+	case directiveexample.FieldOnMutationFields:
+		m.ResetOnMutationFields()
+		return nil
+	case directiveexample.FieldOnMutationCreate:
+		m.ResetOnMutationCreate()
+		return nil
+	case directiveexample.FieldOnMutationUpdate:
+		m.ResetOnMutationUpdate()
+		return nil
+	case directiveexample.FieldOnAllFields:
+		m.ResetOnAllFields()
+		return nil
+	}
+	return fmt.Errorf("unknown DirectiveExample field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DirectiveExampleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DirectiveExampleMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DirectiveExampleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DirectiveExampleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DirectiveExampleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DirectiveExampleMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DirectiveExampleMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DirectiveExample unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DirectiveExampleMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DirectiveExample edge %s", name)
 }
 
 // FriendshipMutation represents an operation that mutates the Friendship nodes in the graph.

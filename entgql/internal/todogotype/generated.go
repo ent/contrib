@@ -62,6 +62,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	FieldDirective func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
 	HasPermissions func(ctx context.Context, obj any, next graphql.Resolver, permissions []string) (res any, err error)
 }
 
@@ -108,6 +109,15 @@ type ComplexityRoot struct {
 
 	Custom struct {
 		Info func(childComplexity int) int
+	}
+
+	DirectiveExample struct {
+		ID               func(childComplexity int) int
+		OnAllFields      func(childComplexity int) int
+		OnMutationCreate func(childComplexity int) int
+		OnMutationFields func(childComplexity int) int
+		OnMutationUpdate func(childComplexity int) int
+		OnTypeField      func(childComplexity int) int
 	}
 
 	Friendship struct {
@@ -192,16 +202,17 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		BillProducts   func(childComplexity int) int
-		Categories     func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) int
-		Groups         func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.GroupWhereInput) int
-		Node           func(childComplexity int, id string) int
-		Nodes          func(childComplexity int, ids []string) int
-		OneToMany      func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *OneToManyOrder, where *OneToManyWhereInput) int
-		Ping           func(childComplexity int) int
-		Todos          func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
-		TodosWithJoins func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
-		Users          func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
+		BillProducts      func(childComplexity int) int
+		Categories        func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) int
+		DirectiveExamples func(childComplexity int) int
+		Groups            func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.GroupWhereInput) int
+		Node              func(childComplexity int, id string) int
+		Nodes             func(childComplexity int, ids []string) int
+		OneToMany         func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *OneToManyOrder, where *OneToManyWhereInput) int
+		Ping              func(childComplexity int) int
+		Todos             func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
+		TodosWithJoins    func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
+		Users             func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 	}
 
 	Todo struct {
@@ -275,6 +286,7 @@ type QueryResolver interface {
 	Nodes(ctx context.Context, ids []string) ([]ent.Noder, error)
 	BillProducts(ctx context.Context) ([]*ent.BillProduct, error)
 	Categories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error)
+	DirectiveExamples(ctx context.Context) ([]*DirectiveExample, error)
 	Groups(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error)
 	OneToMany(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *OneToManyOrder, where *OneToManyWhereInput) (*OneToManyConnection, error)
 	Todos(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
@@ -518,6 +530,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Custom.Info(childComplexity), true
+
+	case "DirectiveExample.id":
+		if e.complexity.DirectiveExample.ID == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.ID(childComplexity), true
+
+	case "DirectiveExample.onAllFields":
+		if e.complexity.DirectiveExample.OnAllFields == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.OnAllFields(childComplexity), true
+
+	case "DirectiveExample.onMutationCreate":
+		if e.complexity.DirectiveExample.OnMutationCreate == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.OnMutationCreate(childComplexity), true
+
+	case "DirectiveExample.onMutationFields":
+		if e.complexity.DirectiveExample.OnMutationFields == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.OnMutationFields(childComplexity), true
+
+	case "DirectiveExample.onMutationUpdate":
+		if e.complexity.DirectiveExample.OnMutationUpdate == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.OnMutationUpdate(childComplexity), true
+
+	case "DirectiveExample.onTypeField":
+		if e.complexity.DirectiveExample.OnTypeField == nil {
+			break
+		}
+
+		return e.complexity.DirectiveExample.OnTypeField(childComplexity), true
 
 	case "Friendship.createdAt":
 		if e.complexity.Friendship.CreatedAt == nil {
@@ -861,6 +915,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Categories(childComplexity, args["after"].(*entgql.Cursor[string]), args["first"].(*int), args["before"].(*entgql.Cursor[string]), args["last"].(*int), args["orderBy"].([]*ent.CategoryOrder), args["where"].(*ent.CategoryWhereInput)), true
+
+	case "Query.directiveExamples":
+		if e.complexity.Query.DirectiveExamples == nil {
+			break
+		}
+
+		return e.complexity.Query.DirectiveExamples(childComplexity), true
 
 	case "Query.groups":
 		if e.complexity.Query.Groups == nil {
@@ -1211,8 +1272,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCategoryTypesInput,
 		ec.unmarshalInputCategoryWhereInput,
 		ec.unmarshalInputCreateCategoryInput,
+		ec.unmarshalInputCreateDirectiveExampleInput,
 		ec.unmarshalInputCreateTodoInput,
 		ec.unmarshalInputCreateUserInput,
+		ec.unmarshalInputDirectiveExampleWhereInput,
 		ec.unmarshalInputFriendshipWhereInput,
 		ec.unmarshalInputGroupWhereInput,
 		ec.unmarshalInputOneToManyOrder,
@@ -1222,6 +1285,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputTodoOrder,
 		ec.unmarshalInputTodoWhereInput,
 		ec.unmarshalInputUpdateCategoryInput,
+		ec.unmarshalInputUpdateDirectiveExampleInput,
 		ec.unmarshalInputUpdateFriendshipInput,
 		ec.unmarshalInputUpdateTodoInput,
 		ec.unmarshalInputUpdateUserInput,
@@ -1325,6 +1389,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../todo/todo.graphql", Input: `directive @hasPermissions(permissions: [String!]!) on OBJECT | FIELD_DEFINITION
+directive @fieldDirective on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 type CategoryConfig {
   maxMembers: Int
@@ -1406,7 +1471,8 @@ extend input CreateCategoryInput {
 
 interface NamedNode {
   name: String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../todo/ent.graphql", Input: `directive @goField(forceResolver: Boolean, name: String, omittable: Boolean) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!], forceGenerate: Boolean) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 type BillProduct implements Node {
@@ -1719,6 +1785,17 @@ input CreateCategoryInput {
   subCategoryIDs: [ID!]
 }
 """
+CreateDirectiveExampleInput is used for create DirectiveExample object.
+Input was generated by ent.
+"""
+input CreateDirectiveExampleInput {
+  onTypeField: String
+  onMutationFields: String @fieldDirective
+  onMutationCreate: String @fieldDirective
+  onMutationUpdate: String
+  onAllFields: String @fieldDirective
+}
+"""
 CreateTodoInput is used for create Todo object.
 Input was generated by ent.
 """
@@ -1751,6 +1828,124 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type DirectiveExample implements Node {
+  id: ID!
+  onTypeField: String @fieldDirective
+  onMutationFields: String
+  onMutationCreate: String
+  onMutationUpdate: String
+  onAllFields: String @fieldDirective
+}
+"""
+DirectiveExampleWhereInput is used for filtering DirectiveExample objects.
+Input was generated by ent.
+"""
+input DirectiveExampleWhereInput {
+  not: DirectiveExampleWhereInput
+  and: [DirectiveExampleWhereInput!]
+  or: [DirectiveExampleWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  on_type_field field predicates
+  """
+  onTypeField: String
+  onTypeFieldNEQ: String
+  onTypeFieldIn: [String!]
+  onTypeFieldNotIn: [String!]
+  onTypeFieldGT: String
+  onTypeFieldGTE: String
+  onTypeFieldLT: String
+  onTypeFieldLTE: String
+  onTypeFieldContains: String
+  onTypeFieldHasPrefix: String
+  onTypeFieldHasSuffix: String
+  onTypeFieldIsNil: Boolean
+  onTypeFieldNotNil: Boolean
+  onTypeFieldEqualFold: String
+  onTypeFieldContainsFold: String
+  """
+  on_mutation_fields field predicates
+  """
+  onMutationFields: String
+  onMutationFieldsNEQ: String
+  onMutationFieldsIn: [String!]
+  onMutationFieldsNotIn: [String!]
+  onMutationFieldsGT: String
+  onMutationFieldsGTE: String
+  onMutationFieldsLT: String
+  onMutationFieldsLTE: String
+  onMutationFieldsContains: String
+  onMutationFieldsHasPrefix: String
+  onMutationFieldsHasSuffix: String
+  onMutationFieldsIsNil: Boolean
+  onMutationFieldsNotNil: Boolean
+  onMutationFieldsEqualFold: String
+  onMutationFieldsContainsFold: String
+  """
+  on_mutation_create field predicates
+  """
+  onMutationCreate: String
+  onMutationCreateNEQ: String
+  onMutationCreateIn: [String!]
+  onMutationCreateNotIn: [String!]
+  onMutationCreateGT: String
+  onMutationCreateGTE: String
+  onMutationCreateLT: String
+  onMutationCreateLTE: String
+  onMutationCreateContains: String
+  onMutationCreateHasPrefix: String
+  onMutationCreateHasSuffix: String
+  onMutationCreateIsNil: Boolean
+  onMutationCreateNotNil: Boolean
+  onMutationCreateEqualFold: String
+  onMutationCreateContainsFold: String
+  """
+  on_mutation_update field predicates
+  """
+  onMutationUpdate: String
+  onMutationUpdateNEQ: String
+  onMutationUpdateIn: [String!]
+  onMutationUpdateNotIn: [String!]
+  onMutationUpdateGT: String
+  onMutationUpdateGTE: String
+  onMutationUpdateLT: String
+  onMutationUpdateLTE: String
+  onMutationUpdateContains: String
+  onMutationUpdateHasPrefix: String
+  onMutationUpdateHasSuffix: String
+  onMutationUpdateIsNil: Boolean
+  onMutationUpdateNotNil: Boolean
+  onMutationUpdateEqualFold: String
+  onMutationUpdateContainsFold: String
+  """
+  on_all_fields field predicates
+  """
+  onAllFields: String
+  onAllFieldsNEQ: String
+  onAllFieldsIn: [String!]
+  onAllFieldsNotIn: [String!]
+  onAllFieldsGT: String
+  onAllFieldsGTE: String
+  onAllFieldsLT: String
+  onAllFieldsLTE: String
+  onAllFieldsContains: String
+  onAllFieldsHasPrefix: String
+  onAllFieldsHasSuffix: String
+  onAllFieldsIsNil: Boolean
+  onAllFieldsNotNil: Boolean
+  onAllFieldsEqualFold: String
+  onAllFieldsContainsFold: String
+}
 type Friendship implements Node {
   id: ID!
   createdAt: Time!
@@ -2245,6 +2440,7 @@ type Query {
     """
     where: CategoryWhereInput
   ): CategoryConnection!
+  directiveExamples: [DirectiveExample!]!
   groups(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -2610,6 +2806,22 @@ input UpdateCategoryInput {
   addSubCategoryIDs: [ID!]
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean
+}
+"""
+UpdateDirectiveExampleInput is used for update DirectiveExample object.
+Input was generated by ent.
+"""
+input UpdateDirectiveExampleInput {
+  onTypeField: String
+  clearOnTypeField: Boolean
+  onMutationFields: String @fieldDirective
+  clearOnMutationFields: Boolean @fieldDirective
+  onMutationCreate: String
+  clearOnMutationCreate: Boolean
+  onMutationUpdate: String @fieldDirective
+  clearOnMutationUpdate: Boolean @fieldDirective
+  onAllFields: String @fieldDirective
+  clearOnAllFields: Boolean @fieldDirective
 }
 """
 UpdateFriendshipInput is used for update Friendship object.
@@ -6202,6 +6414,299 @@ func (ec *executionContext) fieldContext_Custom_info(_ context.Context, field gr
 	return fc, nil
 }
 
+func (ec *executionContext) _DirectiveExample_id(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DirectiveExample_onTypeField(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_onTypeField(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.OnTypeField, nil
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.FieldDirective == nil {
+				var zeroVal *string
+				return zeroVal, errors.New("directive fieldDirective is not implemented")
+			}
+			return ec.directives.FieldDirective(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_onTypeField(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DirectiveExample_onMutationFields(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_onMutationFields(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnMutationFields, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_onMutationFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DirectiveExample_onMutationCreate(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_onMutationCreate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnMutationCreate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_onMutationCreate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DirectiveExample_onMutationUpdate(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_onMutationUpdate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OnMutationUpdate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_onMutationUpdate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DirectiveExample_onAllFields(ctx context.Context, field graphql.CollectedField, obj *DirectiveExample) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DirectiveExample_onAllFields(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.OnAllFields, nil
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.FieldDirective == nil {
+				var zeroVal *string
+				return zeroVal, errors.New("directive fieldDirective is not implemented")
+			}
+			return ec.directives.FieldDirective(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DirectiveExample_onAllFields(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DirectiveExample",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Friendship_id(ctx context.Context, field graphql.CollectedField, obj *ent.Friendship) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Friendship_id(ctx, field)
 	if err != nil {
@@ -8594,6 +9099,64 @@ func (ec *executionContext) fieldContext_Query_categories(ctx context.Context, f
 	if fc.Args, err = ec.field_Query_categories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_directiveExamples(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_directiveExamples(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DirectiveExamples(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*DirectiveExample)
+	fc.Result = res
+	return ec.marshalNDirectiveExample2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_directiveExamples(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DirectiveExample_id(ctx, field)
+			case "onTypeField":
+				return ec.fieldContext_DirectiveExample_onTypeField(ctx, field)
+			case "onMutationFields":
+				return ec.fieldContext_DirectiveExample_onMutationFields(ctx, field)
+			case "onMutationCreate":
+				return ec.fieldContext_DirectiveExample_onMutationCreate(ctx, field)
+			case "onMutationUpdate":
+				return ec.fieldContext_DirectiveExample_onMutationUpdate(ctx, field)
+			case "onAllFields":
+				return ec.fieldContext_DirectiveExample_onAllFields(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DirectiveExample", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -13514,6 +14077,112 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateDirectiveExampleInput(ctx context.Context, obj any) (CreateDirectiveExampleInput, error) {
+	var it CreateDirectiveExampleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"onTypeField", "onMutationFields", "onMutationCreate", "onMutationUpdate", "onAllFields"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "onTypeField":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeField"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeField = data
+		case "onMutationFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnMutationFields = data
+			} else if tmp == nil {
+				it.OnMutationFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "onMutationCreate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreate"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnMutationCreate = data
+			} else if tmp == nil {
+				it.OnMutationCreate = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "onMutationUpdate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdate"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdate = data
+		case "onAllFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnAllFields = data
+			} else if tmp == nil {
+				it.OnAllFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, obj any) (ent.CreateTodoInput, error) {
 	var it ent.CreateTodoInput
 	asMap := map[string]any{}
@@ -13662,6 +14331,628 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.FriendIDs = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDirectiveExampleWhereInput(ctx context.Context, obj any) (DirectiveExampleWhereInput, error) {
+	var it DirectiveExampleWhereInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "onTypeField", "onTypeFieldNEQ", "onTypeFieldIn", "onTypeFieldNotIn", "onTypeFieldGT", "onTypeFieldGTE", "onTypeFieldLT", "onTypeFieldLTE", "onTypeFieldContains", "onTypeFieldHasPrefix", "onTypeFieldHasSuffix", "onTypeFieldIsNil", "onTypeFieldNotNil", "onTypeFieldEqualFold", "onTypeFieldContainsFold", "onMutationFields", "onMutationFieldsNEQ", "onMutationFieldsIn", "onMutationFieldsNotIn", "onMutationFieldsGT", "onMutationFieldsGTE", "onMutationFieldsLT", "onMutationFieldsLTE", "onMutationFieldsContains", "onMutationFieldsHasPrefix", "onMutationFieldsHasSuffix", "onMutationFieldsIsNil", "onMutationFieldsNotNil", "onMutationFieldsEqualFold", "onMutationFieldsContainsFold", "onMutationCreate", "onMutationCreateNEQ", "onMutationCreateIn", "onMutationCreateNotIn", "onMutationCreateGT", "onMutationCreateGTE", "onMutationCreateLT", "onMutationCreateLTE", "onMutationCreateContains", "onMutationCreateHasPrefix", "onMutationCreateHasSuffix", "onMutationCreateIsNil", "onMutationCreateNotNil", "onMutationCreateEqualFold", "onMutationCreateContainsFold", "onMutationUpdate", "onMutationUpdateNEQ", "onMutationUpdateIn", "onMutationUpdateNotIn", "onMutationUpdateGT", "onMutationUpdateGTE", "onMutationUpdateLT", "onMutationUpdateLTE", "onMutationUpdateContains", "onMutationUpdateHasPrefix", "onMutationUpdateHasSuffix", "onMutationUpdateIsNil", "onMutationUpdateNotNil", "onMutationUpdateEqualFold", "onMutationUpdateContainsFold", "onAllFields", "onAllFieldsNEQ", "onAllFieldsIn", "onAllFieldsNotIn", "onAllFieldsGT", "onAllFieldsGTE", "onAllFieldsLT", "onAllFieldsLTE", "onAllFieldsContains", "onAllFieldsHasPrefix", "onAllFieldsHasSuffix", "onAllFieldsIsNil", "onAllFieldsNotNil", "onAllFieldsEqualFold", "onAllFieldsContainsFold"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			data, err := ec.unmarshalODirectiveExampleWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			data, err := ec.unmarshalODirectiveExampleWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			data, err := ec.unmarshalODirectiveExampleWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "idNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDNeq = data
+		case "idIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDIn = data
+		case "idNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDNotIn = data
+		case "idGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDGt = data
+		case "idGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDGte = data
+		case "idLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDLt = data
+		case "idLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDLte = data
+		case "onTypeField":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeField"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeField = data
+		case "onTypeFieldNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldNeq = data
+		case "onTypeFieldIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldIn = data
+		case "onTypeFieldNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldNotIn = data
+		case "onTypeFieldGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldGt = data
+		case "onTypeFieldGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldGte = data
+		case "onTypeFieldLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldLt = data
+		case "onTypeFieldLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldLte = data
+		case "onTypeFieldContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldContains = data
+		case "onTypeFieldHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldHasPrefix = data
+		case "onTypeFieldHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldHasSuffix = data
+		case "onTypeFieldIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldIsNil = data
+		case "onTypeFieldNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldNotNil = data
+		case "onTypeFieldEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldEqualFold = data
+		case "onTypeFieldContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeFieldContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeFieldContainsFold = data
+		case "onMutationFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFields"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFields = data
+		case "onMutationFieldsNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsNeq = data
+		case "onMutationFieldsIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsIn = data
+		case "onMutationFieldsNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsNotIn = data
+		case "onMutationFieldsGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsGt = data
+		case "onMutationFieldsGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsGte = data
+		case "onMutationFieldsLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsLt = data
+		case "onMutationFieldsLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsLte = data
+		case "onMutationFieldsContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsContains = data
+		case "onMutationFieldsHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsHasPrefix = data
+		case "onMutationFieldsHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsHasSuffix = data
+		case "onMutationFieldsIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsIsNil = data
+		case "onMutationFieldsNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsNotNil = data
+		case "onMutationFieldsEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsEqualFold = data
+		case "onMutationFieldsContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFieldsContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationFieldsContainsFold = data
+		case "onMutationCreate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreate"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreate = data
+		case "onMutationCreateNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateNeq = data
+		case "onMutationCreateIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateIn = data
+		case "onMutationCreateNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateNotIn = data
+		case "onMutationCreateGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateGt = data
+		case "onMutationCreateGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateGte = data
+		case "onMutationCreateLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateLt = data
+		case "onMutationCreateLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateLte = data
+		case "onMutationCreateContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateContains = data
+		case "onMutationCreateHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateHasPrefix = data
+		case "onMutationCreateHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateHasSuffix = data
+		case "onMutationCreateIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateIsNil = data
+		case "onMutationCreateNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateNotNil = data
+		case "onMutationCreateEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateEqualFold = data
+		case "onMutationCreateContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreateContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreateContainsFold = data
+		case "onMutationUpdate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdate"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdate = data
+		case "onMutationUpdateNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateNeq = data
+		case "onMutationUpdateIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateIn = data
+		case "onMutationUpdateNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateNotIn = data
+		case "onMutationUpdateGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateGt = data
+		case "onMutationUpdateGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateGte = data
+		case "onMutationUpdateLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateLt = data
+		case "onMutationUpdateLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateLte = data
+		case "onMutationUpdateContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateContains = data
+		case "onMutationUpdateHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateHasPrefix = data
+		case "onMutationUpdateHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateHasSuffix = data
+		case "onMutationUpdateIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateIsNil = data
+		case "onMutationUpdateNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateNotNil = data
+		case "onMutationUpdateEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateEqualFold = data
+		case "onMutationUpdateContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdateContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationUpdateContainsFold = data
+		case "onAllFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFields"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFields = data
+		case "onAllFieldsNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsNeq = data
+		case "onAllFieldsIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsIn = data
+		case "onAllFieldsNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsNotIn = data
+		case "onAllFieldsGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsGt = data
+		case "onAllFieldsGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsGte = data
+		case "onAllFieldsLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsLt = data
+		case "onAllFieldsLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsLte = data
+		case "onAllFieldsContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsContains = data
+		case "onAllFieldsHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsHasPrefix = data
+		case "onAllFieldsHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsHasSuffix = data
+		case "onAllFieldsIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsIsNil = data
+		case "onAllFieldsNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsNotNil = data
+		case "onAllFieldsEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsEqualFold = data
+		case "onAllFieldsContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFieldsContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnAllFieldsContainsFold = data
 		}
 	}
 
@@ -15359,6 +16650,198 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateDirectiveExampleInput(ctx context.Context, obj any) (UpdateDirectiveExampleInput, error) {
+	var it UpdateDirectiveExampleInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"onTypeField", "clearOnTypeField", "onMutationFields", "clearOnMutationFields", "onMutationCreate", "clearOnMutationCreate", "onMutationUpdate", "clearOnMutationUpdate", "onAllFields", "clearOnAllFields"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "onTypeField":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onTypeField"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnTypeField = data
+		case "clearOnTypeField":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearOnTypeField"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearOnTypeField = data
+		case "onMutationFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnMutationFields = data
+			} else if tmp == nil {
+				it.OnMutationFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "clearOnMutationFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearOnMutationFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOBoolean2ᚖbool(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *bool
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*bool); ok {
+				it.ClearOnMutationFields = data
+			} else if tmp == nil {
+				it.ClearOnMutationFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "onMutationCreate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationCreate"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OnMutationCreate = data
+		case "clearOnMutationCreate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearOnMutationCreate"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearOnMutationCreate = data
+		case "onMutationUpdate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onMutationUpdate"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnMutationUpdate = data
+			} else if tmp == nil {
+				it.OnMutationUpdate = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "clearOnMutationUpdate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearOnMutationUpdate"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOBoolean2ᚖbool(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *bool
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*bool); ok {
+				it.ClearOnMutationUpdate = data
+			} else if tmp == nil {
+				it.ClearOnMutationUpdate = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "onAllFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onAllFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *string
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OnAllFields = data
+			} else if tmp == nil {
+				it.OnAllFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "clearOnAllFields":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearOnAllFields"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalOBoolean2ᚖbool(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.directives.FieldDirective == nil {
+					var zeroVal *bool
+					return zeroVal, errors.New("directive fieldDirective is not implemented")
+				}
+				return ec.directives.FieldDirective(ctx, obj, directive0)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(*bool); ok {
+				it.ClearOnAllFields = data
+			} else if tmp == nil {
+				it.ClearOnAllFields = nil
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateFriendshipInput(ctx context.Context, obj any) (UpdateFriendshipInput, error) {
 	var it UpdateFriendshipInput
 	asMap := map[string]any{}
@@ -16001,6 +17484,13 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Category(ctx, sel, obj)
+	case DirectiveExample:
+		return ec._DirectiveExample(ctx, sel, &obj)
+	case *DirectiveExample:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._DirectiveExample(ctx, sel, obj)
 	case *ent.Friendship:
 		if obj == nil {
 			return graphql.Null
@@ -16468,6 +17958,55 @@ func (ec *executionContext) _Custom(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var directiveExampleImplementors = []string{"DirectiveExample", "Node"}
+
+func (ec *executionContext) _DirectiveExample(ctx context.Context, sel ast.SelectionSet, obj *DirectiveExample) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, directiveExampleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DirectiveExample")
+		case "id":
+			out.Values[i] = ec._DirectiveExample_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "onTypeField":
+			out.Values[i] = ec._DirectiveExample_onTypeField(ctx, field, obj)
+		case "onMutationFields":
+			out.Values[i] = ec._DirectiveExample_onMutationFields(ctx, field, obj)
+		case "onMutationCreate":
+			out.Values[i] = ec._DirectiveExample_onMutationCreate(ctx, field, obj)
+		case "onMutationUpdate":
+			out.Values[i] = ec._DirectiveExample_onMutationUpdate(ctx, field, obj)
+		case "onAllFields":
+			out.Values[i] = ec._DirectiveExample_onAllFields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17344,6 +18883,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_categories(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "directiveExamples":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_directiveExamples(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -18690,6 +20251,65 @@ func (ec *executionContext) marshalNCustom2entgoᚗioᚋcontribᚋentgqlᚋinter
 	return ec._Custom(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNDirectiveExample2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleᚄ(ctx context.Context, sel ast.SelectionSet, v []*DirectiveExample) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDirectiveExample2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExample(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDirectiveExample2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExample(ctx context.Context, sel ast.SelectionSet, v *DirectiveExample) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DirectiveExample(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDirectiveExampleWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInput(ctx context.Context, v any) (*DirectiveExampleWhereInput, error) {
+	res, err := ec.unmarshalInputDirectiveExampleWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDuration2timeᚐDuration(ctx context.Context, v any) (time.Duration, error) {
 	res, err := durationgql.UnmarshalDuration(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19844,6 +21464,34 @@ func (ec *executionContext) marshalOCustom2ᚖentgoᚗioᚋcontribᚋentgqlᚋin
 		return graphql.Null
 	}
 	return ec._Custom(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODirectiveExampleWhereInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInputᚄ(ctx context.Context, v any) ([]*DirectiveExampleWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*DirectiveExampleWhereInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNDirectiveExampleWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalODirectiveExampleWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodogotypeᚐDirectiveExampleWhereInput(ctx context.Context, v any) (*DirectiveExampleWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDirectiveExampleWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalODuration2timeᚐDuration(ctx context.Context, v any) (time.Duration, error) {

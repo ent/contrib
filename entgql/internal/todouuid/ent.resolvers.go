@@ -59,6 +59,11 @@ func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[uui
 	panic(fmt.Errorf("not implemented"))
 }
 
+// DirectiveExamples is the resolver for the directiveExamples field.
+func (r *queryResolver) DirectiveExamples(ctx context.Context) ([]*DirectiveExample, error) {
+	panic(fmt.Errorf("not implemented: DirectiveExamples - directiveExamples"))
+}
+
 // Groups is the resolver for the groups field.
 func (r *queryResolver) Groups(ctx context.Context, after *entgql.Cursor[uuid.UUID], first *int, before *entgql.Cursor[uuid.UUID], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
 	return r.client.Group.Query().

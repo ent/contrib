@@ -586,6 +586,14 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 			if err != nil {
 				return nil, err
 			}
+			var dd []Directive
+			for _, d := range ant.Directives {
+				if (i.IsCreate && d.AddCreateMutationField) || (!i.IsCreate && d.AddUpdateMutationField) {
+					dd = append(dd, d)
+				}
+			}
+			fdd := e.buildDirectives(dd)
+
 			scalar := e.mapScalar(gqlType, f.Field, ant, inputObjectFilter)
 			if scalar == "" {
 				return nil, fmt.Errorf("%s is not supported as input for %s", f.Name, def.Name)
@@ -594,17 +602,20 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 				Name:        camel(f.Name),
 				Type:        namedType(scalar, f.Nullable),
 				Description: f.Comment(),
+				Directives:  fdd,
 			})
 			if f.AppendOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "append" + f.StructField(),
-					Type: namedType(scalar, true),
+					Name:       "append" + f.StructField(),
+					Type:       namedType(scalar, true),
+					Directives: fdd,
 				})
 			}
 			if f.ClearOp {
 				def.Fields = append(def.Fields, &ast.FieldDefinition{
-					Name: "clear" + f.StructField(),
-					Type: namedType("Boolean", true),
+					Name:       "clear" + f.StructField(),
+					Type:       namedType("Boolean", true),
+					Directives: fdd,
 				})
 			}
 		}
@@ -657,12 +668,18 @@ func (e *schemaGenerator) fieldDefinitions(gqlType string, f *gen.Field, ant *An
 	if err != nil {
 		return nil, err
 	}
+	var dd []Directive
+	for _, d := range ant.Directives {
+		if !d.SkipTypeField {
+			dd = append(dd, d)
+		}
+	}
 	for _, name := range mapping {
 		def := &ast.FieldDefinition{
 			Name:        name,
 			Type:        ft,
 			Description: f.Comment(),
-			Directives:  e.buildDirectives(ant.Directives),
+			Directives:  e.buildDirectives(dd),
 		}
 		// We check the field name with gqlgen's naming convention.
 		// To avoid unnecessary @goField directives
