@@ -23,6 +23,11 @@ message Field {
   optional string struct_tag = 7;
   optional string storage_key = 8;
   map<string, string> schema_type = 9;
+  optional Index index = 10;
+
+  message Index {
+    optional bool unique = 1;
+  }
 }
 
 message Edge {
