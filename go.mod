@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	entgo.io/ent v0.14.2-0.20250116103911-b91f8daf0e32
 	github.com/99designs/gqlgen v0.17.64
-	github.com/AlekSi/pointer v1.1.0
+	github.com/AlekSi/pointer v1.2.0
 	github.com/alecthomas/kong v1.7.0
 	github.com/go-openapi/inflect v0.21.0
 	github.com/go-viper/mapstructure/v2 v2.2.1
