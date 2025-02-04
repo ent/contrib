@@ -2,6 +2,7 @@
 
 {{- /*gotype: entgo.io/ent/entc/gen.Graph*/ -}}
 
+{{ $hasJson := $.FeatureEnabled "jsontags" }}
 {{ $pkg := base $.Config.Package }}
 {{- with extend $ "Package" $pkg }}
         {{ template "header" . }}
@@ -30,28 +31,30 @@ import (
     {{- end }}
     type {{ $input }} struct {
         {{- range $f := $fields }}
+            {{- $fieldNames := fieldNamesForField $f }}
             {{- if $f.ClearOp }}
-                {{ print "Clear" $f.StructField }} bool
+                {{ print "Clear" $f.StructField }} bool {{- if $hasJson }} `json:{{ $fieldNames.Clear }}`{{ end }}
             {{- end }}
-            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+            {{ $f.StructField }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Field }}`{{ end }}
             {{- if $f.AppendOp }}
-                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }}
+                {{ $f.MutationAppend }} {{ if $f.IsPointer }}*{{ end }}{{ $f.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Append }}`{{ end }}
             {{- end }}
         {{- end }}
         {{- range $e := $edges }}
+            {{- $fieldNames := fieldNamesForEdge $e }}
             {{- if and (not $n.IsCreate) $e.Optional }}
-                {{ $e.MutationClear }} bool
+                {{ $e.MutationClear }} bool {{- if $hasJson }} `json:{{ $fieldNames.Clear }}`{{ end }}
             {{- end }}
             {{- if $e.Unique }}
                 {{- $structField := print (pascal $e.Name) "ID" }}
-                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }}
+                {{ $structField }} {{ if or (not $n.IsCreate) $e.Optional }}*{{ end }}{{ $e.Type.ID.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Unique }}`{{ end }}
             {{- else }}
                 {{- if $n.IsCreate }}
                     {{- $structField := print (singular $e.Name | pascal) "IDs" }}
-                    {{ $structField }} []{{ $e.Type.ID.Type }}
+                    {{ $structField }} []{{ $e.Type.ID.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Create }}`{{ end }}
                 {{- else }}
-                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }}
-                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }}
+                    {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Add }}`{{ end }}
+                    {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }} {{- if $hasJson }} `json:{{ $fieldNames.Remove }}`{{ end }}
                 {{- end }}
             {{- end }}
         {{- end }}
