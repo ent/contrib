@@ -1,5 +1,6 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_get" }}
+    {{ $importPath := .G.File.GoImportPath }}
     {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
@@ -9,9 +10,11 @@
     )
     {{- template "field_to_ent" dict "Field" $idField "VarName" $idField.EntField.Name "Ident" (print "req.Get" $idField.PbStructField "()") }}
     switch req.GetView() {
-        case {{ $inputName }}_VIEW_UNSPECIFIED, {{ $inputName }}_BASIC:
+        case {{ $importPath.Ident ( print $inputName "_VIEW_UNSPECIFIED" ) | ident }}:
+            fallthrough
+        case {{ $importPath.Ident ( print $inputName "_BASIC" ) | ident }}:
             get, err = svc.client.{{ .G.EntType.Name }}.Get(ctx, {{ $varName }})
-        case {{ $inputName }}_WITH_EDGE_IDS:
+        case {{ $importPath.Ident ( print $inputName "_WITH_EDGE_IDS" ) | ident }}:
             get, err = svc.client.{{ .G.EntType.Name }}.Query().
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
             {{ range .G.FieldMap.Edges }}
