@@ -41,7 +41,7 @@ func (otmd *OneToManyDelete) Where(ps ...predicate.OneToMany) *OneToManyDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (otmd *OneToManyDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, OneToManyMutation](ctx, otmd.sqlExec, otmd.mutation, otmd.hooks)
+	return withHooks(ctx, otmd.sqlExec, otmd.mutation, otmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

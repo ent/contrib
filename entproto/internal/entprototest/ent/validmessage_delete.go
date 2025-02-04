@@ -27,7 +27,7 @@ func (vmd *ValidMessageDelete) Where(ps ...predicate.ValidMessage) *ValidMessage
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (vmd *ValidMessageDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, ValidMessageMutation](ctx, vmd.sqlExec, vmd.mutation, vmd.hooks)
+	return withHooks(ctx, vmd.sqlExec, vmd.mutation, vmd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

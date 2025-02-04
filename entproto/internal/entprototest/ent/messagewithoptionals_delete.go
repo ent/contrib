@@ -27,7 +27,7 @@ func (mwod *MessageWithOptionalsDelete) Where(ps ...predicate.MessageWithOptiona
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwod *MessageWithOptionalsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithOptionalsMutation](ctx, mwod.sqlExec, mwod.mutation, mwod.hooks)
+	return withHooks(ctx, mwod.sqlExec, mwod.mutation, mwod.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -52,6 +52,14 @@ const (
 	FieldType = "type"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldInt32s holds the string denoting the int32s field in the database.
+	FieldInt32s = "int32s"
+	// FieldInt64s holds the string denoting the int64s field in the database.
+	FieldInt64s = "int64s"
+	// FieldUint32s holds the string denoting the uint32s field in the database.
+	FieldUint32s = "uint32s"
+	// FieldUint64s holds the string denoting the uint64s field in the database.
+	FieldUint64s = "uint64s"
 	// FieldDeviceType holds the string denoting the device_type field in the database.
 	FieldDeviceType = "device_type"
 	// FieldOmitPrefix holds the string denoting the omit_prefix field in the database.
@@ -135,6 +143,10 @@ var Columns = []string{
 	FieldUnnecessary,
 	FieldType,
 	FieldLabels,
+	FieldInt32s,
+	FieldInt64s,
+	FieldUint32s,
+	FieldUint64s,
 	FieldDeviceType,
 	FieldOmitPrefix,
 	FieldMimeType,

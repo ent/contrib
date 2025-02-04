@@ -75,7 +75,7 @@ func (neu *NilExampleUpdate) Mutation() *NilExampleMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (neu *NilExampleUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, NilExampleMutation](ctx, neu.sqlSave, neu.mutation, neu.hooks)
+	return withHooks(ctx, neu.sqlSave, neu.mutation, neu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,7 +201,7 @@ func (neuo *NilExampleUpdateOne) Select(field string, fields ...string) *NilExam
 
 // Save executes the query and returns the updated NilExample entity.
 func (neuo *NilExampleUpdateOne) Save(ctx context.Context) (*NilExample, error) {
-	return withHooks[*NilExample, NilExampleMutation](ctx, neuo.sqlSave, neuo.mutation, neuo.hooks)
+	return withHooks(ctx, neuo.sqlSave, neuo.mutation, neuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

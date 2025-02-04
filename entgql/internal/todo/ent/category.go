@@ -39,11 +39,15 @@ type Category struct {
 	Status category.Status `json:"status,omitempty"`
 	// Config holds the value of the "config" field.
 	Config *schematype.CategoryConfig `json:"config,omitempty"`
+	// Types holds the value of the "types" field.
+	Types *schematype.CategoryTypes `json:"types,omitempty"`
 	// Duration holds the value of the "duration" field.
 	Duration time.Duration `json:"duration,omitempty"`
 	// Count holds the value of the "count" field.
 	Count uint64 `json:"count,omitempty"`
 	// Strings holds the value of the "strings" field.
+	//
+	// Deprecated: use `string` instead
 	Strings []string `json:"strings,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
@@ -90,7 +94,7 @@ func (*Category) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case category.FieldStrings:
+		case category.FieldTypes, category.FieldStrings:
 			values[i] = new([]byte)
 		case category.FieldConfig:
 			values[i] = new(schematype.CategoryConfig)
@@ -136,6 +140,14 @@ func (c *Category) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field config", values[i])
 			} else if value != nil {
 				c.Config = value
+			}
+		case category.FieldTypes:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field types", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Types); err != nil {
+					return fmt.Errorf("unmarshal field types: %w", err)
+				}
 			}
 		case category.FieldDuration:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -211,6 +223,9 @@ func (c *Category) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("config=")
 	builder.WriteString(fmt.Sprintf("%v", c.Config))
+	builder.WriteString(", ")
+	builder.WriteString("types=")
+	builder.WriteString(fmt.Sprintf("%v", c.Types))
 	builder.WriteString(", ")
 	builder.WriteString("duration=")
 	builder.WriteString(fmt.Sprintf("%v", c.Duration))

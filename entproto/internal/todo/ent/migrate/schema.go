@@ -160,6 +160,10 @@ var (
 		{Name: "unnecessary", Type: field.TypeString, Nullable: true},
 		{Name: "type", Type: field.TypeString, Nullable: true},
 		{Name: "labels", Type: field.TypeJSON, Nullable: true},
+		{Name: "int32s", Type: field.TypeJSON, Nullable: true},
+		{Name: "int64s", Type: field.TypeJSON, Nullable: true},
+		{Name: "uint32s", Type: field.TypeJSON, Nullable: true},
+		{Name: "uint64s", Type: field.TypeJSON, Nullable: true},
 		{Name: "device_type", Type: field.TypeEnum, Enums: []string{"GLOWY9000", "SPEEDY300"}, Default: "GLOWY9000"},
 		{Name: "omit_prefix", Type: field.TypeEnum, Enums: []string{"foo", "bar"}},
 		{Name: "mime_type", Type: field.TypeEnum, Enums: []string{"image/png", "image/xml+svg"}},
@@ -173,7 +177,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_group",
-				Columns:    []*schema.Column{UsersColumns[23]},
+				Columns:    []*schema.Column{UsersColumns[27]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

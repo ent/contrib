@@ -22,6 +22,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithenum"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithfieldone"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
@@ -91,7 +92,7 @@ var (
 	columnCheck sql.ColumnCheck
 )
 
-// columnChecker checks if the column exists in the given table.
+// checkColumn checks if the column exists in the given table.
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
@@ -108,6 +109,7 @@ func checkColumn(table, column string) error {
 			messagewithenum.Table:          messagewithenum.ValidColumn,
 			messagewithfieldone.Table:      messagewithfieldone.ValidColumn,
 			messagewithid.Table:            messagewithid.ValidColumn,
+			messagewithints.Table:          messagewithints.ValidColumn,
 			messagewithoptionals.Table:     messagewithoptionals.ValidColumn,
 			messagewithpackagename.Table:   messagewithpackagename.ValidColumn,
 			messagewithstrings.Table:       messagewithstrings.ValidColumn,

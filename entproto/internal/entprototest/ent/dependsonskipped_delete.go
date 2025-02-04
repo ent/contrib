@@ -27,7 +27,7 @@ func (dosd *DependsOnSkippedDelete) Where(ps ...predicate.DependsOnSkipped) *Dep
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (dosd *DependsOnSkippedDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DependsOnSkippedMutation](ctx, dosd.sqlExec, dosd.mutation, dosd.hooks)
+	return withHooks(ctx, dosd.sqlExec, dosd.mutation, dosd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

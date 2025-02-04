@@ -119,6 +119,26 @@ func (User) Fields() []ent.Field {
 			Annotations(
 				entproto.Field(24),
 			),
+		field.JSON("int32s", []int32{}).
+			Optional().
+			Annotations(
+				entproto.Field(25),
+			),
+		field.JSON("int64s", []int64{}).
+			Optional().
+			Annotations(
+				entproto.Field(26),
+			),
+		field.JSON("uint32s", []uint32{}).
+			Optional().
+			Annotations(
+				entproto.Field(27),
+			),
+		field.JSON("uint64s", []uint64{}).
+			Optional().
+			Annotations(
+				entproto.Field(28),
+			),
 		field.Enum("device_type").
 			Values("GLOWY9000", "SPEEDY300").
 			Default("GLOWY9000").

@@ -76,7 +76,7 @@ func (ac *AttachmentCreate) Mutation() *AttachmentMutation {
 // Save creates the Attachment in the database.
 func (ac *AttachmentCreate) Save(ctx context.Context) (*Attachment, error) {
 	ac.defaults()
-	return withHooks[*Attachment, AttachmentMutation](ctx, ac.sqlSave, ac.mutation, ac.hooks)
+	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -185,11 +185,15 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 // AttachmentCreateBulk is the builder for creating many Attachment entities in bulk.
 type AttachmentCreateBulk struct {
 	config
+	err      error
 	builders []*AttachmentCreate
 }
 
 // Save creates the Attachment entities in the database.
 func (acb *AttachmentCreateBulk) Save(ctx context.Context) ([]*Attachment, error) {
+	if acb.err != nil {
+		return nil, acb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(acb.builders))
 	nodes := make([]*Attachment, len(acb.builders))
 	mutators := make([]Mutator, len(acb.builders))

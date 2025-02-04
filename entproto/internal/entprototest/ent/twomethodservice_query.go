@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/twomethodservice"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (tmsq *TwoMethodServiceQuery) Order(o ...twomethodservice.OrderOption) *Two
 // First returns the first TwoMethodService entity from the query.
 // Returns a *NotFoundError when no TwoMethodService was found.
 func (tmsq *TwoMethodServiceQuery) First(ctx context.Context) (*TwoMethodService, error) {
-	nodes, err := tmsq.Limit(1).All(setContextOp(ctx, tmsq.ctx, "First"))
+	nodes, err := tmsq.Limit(1).All(setContextOp(ctx, tmsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (tmsq *TwoMethodServiceQuery) FirstX(ctx context.Context) *TwoMethodService
 // Returns a *NotFoundError when no TwoMethodService ID was found.
 func (tmsq *TwoMethodServiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tmsq.Limit(1).IDs(setContextOp(ctx, tmsq.ctx, "FirstID")); err != nil {
+	if ids, err = tmsq.Limit(1).IDs(setContextOp(ctx, tmsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (tmsq *TwoMethodServiceQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one TwoMethodService entity is found.
 // Returns a *NotFoundError when no TwoMethodService entities are found.
 func (tmsq *TwoMethodServiceQuery) Only(ctx context.Context) (*TwoMethodService, error) {
-	nodes, err := tmsq.Limit(2).All(setContextOp(ctx, tmsq.ctx, "Only"))
+	nodes, err := tmsq.Limit(2).All(setContextOp(ctx, tmsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (tmsq *TwoMethodServiceQuery) OnlyX(ctx context.Context) *TwoMethodService 
 // Returns a *NotFoundError when no entities are found.
 func (tmsq *TwoMethodServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tmsq.Limit(2).IDs(setContextOp(ctx, tmsq.ctx, "OnlyID")); err != nil {
+	if ids, err = tmsq.Limit(2).IDs(setContextOp(ctx, tmsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (tmsq *TwoMethodServiceQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of TwoMethodServices.
 func (tmsq *TwoMethodServiceQuery) All(ctx context.Context) ([]*TwoMethodService, error) {
-	ctx = setContextOp(ctx, tmsq.ctx, "All")
+	ctx = setContextOp(ctx, tmsq.ctx, ent.OpQueryAll)
 	if err := tmsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (tmsq *TwoMethodServiceQuery) IDs(ctx context.Context) (ids []int, err erro
 	if tmsq.ctx.Unique == nil && tmsq.path != nil {
 		tmsq.Unique(true)
 	}
-	ctx = setContextOp(ctx, tmsq.ctx, "IDs")
+	ctx = setContextOp(ctx, tmsq.ctx, ent.OpQueryIDs)
 	if err = tmsq.Select(twomethodservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (tmsq *TwoMethodServiceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (tmsq *TwoMethodServiceQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, tmsq.ctx, "Count")
+	ctx = setContextOp(ctx, tmsq.ctx, ent.OpQueryCount)
 	if err := tmsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (tmsq *TwoMethodServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tmsq *TwoMethodServiceQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, tmsq.ctx, "Exist")
+	ctx = setContextOp(ctx, tmsq.ctx, ent.OpQueryExist)
 	switch _, err := tmsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -427,7 +428,7 @@ func (tmsgb *TwoMethodServiceGroupBy) Aggregate(fns ...AggregateFunc) *TwoMethod
 
 // Scan applies the selector query and scans the result into the given value.
 func (tmsgb *TwoMethodServiceGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tmsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, tmsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := tmsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -475,7 +476,7 @@ func (tmss *TwoMethodServiceSelect) Aggregate(fns ...AggregateFunc) *TwoMethodSe
 
 // Scan applies the selector query and scans the result into the given value.
 func (tmss *TwoMethodServiceSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tmss.ctx, "Select")
+	ctx = setContextOp(ctx, tmss.ctx, ent.OpQuerySelect)
 	if err := tmss.prepareQuery(ctx); err != nil {
 		return err
 	}

@@ -53,11 +53,14 @@ func (Category) Fields() []ent.Field {
 			).
 			Annotations(
 				entgql.Type("CategoryStatus"),
+				entgql.OrderField("STATUS"),
 			),
 		field.Other("config", &schematype.CategoryConfig{}).
 			SchemaType(map[string]string{
 				dialect.SQLite: "json",
 			}).
+			Optional(),
+		field.JSON("types", &schematype.CategoryTypes{}).
 			Optional(),
 		field.Int64("duration").
 			GoType(time.Duration(0)).
@@ -73,7 +76,8 @@ func (Category) Fields() []ent.Field {
 				entgql.Type("Uint64"),
 			),
 		field.Strings("strings").
-			Optional(),
+			Optional().
+			Deprecated("use `string` instead"),
 	}
 }
 

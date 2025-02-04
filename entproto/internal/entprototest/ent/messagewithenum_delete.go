@@ -27,7 +27,7 @@ func (mwed *MessageWithEnumDelete) Where(ps ...predicate.MessageWithEnum) *Messa
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (mwed *MessageWithEnumDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, MessageWithEnumMutation](ctx, mwed.sqlExec, mwed.mutation, mwed.hooks)
+	return withHooks(ctx, mwed.sqlExec, mwed.mutation, mwed.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

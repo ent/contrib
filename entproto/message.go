@@ -19,7 +19,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
 const MessageAnnotation = "ProtoMessage"

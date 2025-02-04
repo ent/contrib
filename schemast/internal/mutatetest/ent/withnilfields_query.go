@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/predicate"
 	"entgo.io/contrib/schemast/internal/mutatetest/ent/withnilfields"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (wnfq *WithNilFieldsQuery) Order(o ...withnilfields.OrderOption) *WithNilFi
 // First returns the first WithNilFields entity from the query.
 // Returns a *NotFoundError when no WithNilFields was found.
 func (wnfq *WithNilFieldsQuery) First(ctx context.Context) (*WithNilFields, error) {
-	nodes, err := wnfq.Limit(1).All(setContextOp(ctx, wnfq.ctx, "First"))
+	nodes, err := wnfq.Limit(1).All(setContextOp(ctx, wnfq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (wnfq *WithNilFieldsQuery) FirstX(ctx context.Context) *WithNilFields {
 // Returns a *NotFoundError when no WithNilFields ID was found.
 func (wnfq *WithNilFieldsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wnfq.Limit(1).IDs(setContextOp(ctx, wnfq.ctx, "FirstID")); err != nil {
+	if ids, err = wnfq.Limit(1).IDs(setContextOp(ctx, wnfq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (wnfq *WithNilFieldsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one WithNilFields entity is found.
 // Returns a *NotFoundError when no WithNilFields entities are found.
 func (wnfq *WithNilFieldsQuery) Only(ctx context.Context) (*WithNilFields, error) {
-	nodes, err := wnfq.Limit(2).All(setContextOp(ctx, wnfq.ctx, "Only"))
+	nodes, err := wnfq.Limit(2).All(setContextOp(ctx, wnfq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (wnfq *WithNilFieldsQuery) OnlyX(ctx context.Context) *WithNilFields {
 // Returns a *NotFoundError when no entities are found.
 func (wnfq *WithNilFieldsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wnfq.Limit(2).IDs(setContextOp(ctx, wnfq.ctx, "OnlyID")); err != nil {
+	if ids, err = wnfq.Limit(2).IDs(setContextOp(ctx, wnfq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (wnfq *WithNilFieldsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WithNilFieldsSlice.
 func (wnfq *WithNilFieldsQuery) All(ctx context.Context) ([]*WithNilFields, error) {
-	ctx = setContextOp(ctx, wnfq.ctx, "All")
+	ctx = setContextOp(ctx, wnfq.ctx, ent.OpQueryAll)
 	if err := wnfq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (wnfq *WithNilFieldsQuery) IDs(ctx context.Context) (ids []int, err error) 
 	if wnfq.ctx.Unique == nil && wnfq.path != nil {
 		wnfq.Unique(true)
 	}
-	ctx = setContextOp(ctx, wnfq.ctx, "IDs")
+	ctx = setContextOp(ctx, wnfq.ctx, ent.OpQueryIDs)
 	if err = wnfq.Select(withnilfields.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (wnfq *WithNilFieldsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wnfq *WithNilFieldsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, wnfq.ctx, "Count")
+	ctx = setContextOp(ctx, wnfq.ctx, ent.OpQueryCount)
 	if err := wnfq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (wnfq *WithNilFieldsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wnfq *WithNilFieldsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, wnfq.ctx, "Exist")
+	ctx = setContextOp(ctx, wnfq.ctx, ent.OpQueryExist)
 	switch _, err := wnfq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -427,7 +428,7 @@ func (wnfgb *WithNilFieldsGroupBy) Aggregate(fns ...AggregateFunc) *WithNilField
 
 // Scan applies the selector query and scans the result into the given value.
 func (wnfgb *WithNilFieldsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, wnfgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, wnfgb.build.ctx, ent.OpQueryGroupBy)
 	if err := wnfgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -475,7 +476,7 @@ func (wnfs *WithNilFieldsSelect) Aggregate(fns ...AggregateFunc) *WithNilFieldsS
 
 // Scan applies the selector query and scans the result into the given value.
 func (wnfs *WithNilFieldsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, wnfs.ctx, "Select")
+	ctx = setContextOp(ctx, wnfs.ctx, ent.OpQuerySelect)
 	if err := wnfs.prepareQuery(ctx); err != nil {
 		return err
 	}

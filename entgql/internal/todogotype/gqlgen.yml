@@ -9,6 +9,7 @@ schema:
 
 resolver:
   layout: follow-schema
+  preserve_resolver: false
   dir: .
 
 autobind:
@@ -17,6 +18,8 @@ autobind:
   - entgo.io/contrib/entgql/internal/todogotype/ent/todo
   - entgo.io/contrib/entgql/internal/todo/ent/schema/customstruct
 
+# Disable the generated getters for all models and interfaces.
+omit_getters: true
 models:
   ID:
     model:

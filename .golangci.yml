@@ -1,5 +1,5 @@
 run:
-  go: '1.19'
+  go: '1.23'
   timeout: 10m
 
 linters-settings:
@@ -25,13 +25,11 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - deadcode
-    - depguard
     - dogsled
     - dupl
     - errcheck
     - gocritic
-    # - gofmt; Enable back when upgrading CI to Go 1.20.
+    - gofmt
     - goheader
     - gosec
     - gosimple
@@ -39,12 +37,10 @@ linters:
     - ineffassign
     - misspell
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
 
 issues:

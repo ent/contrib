@@ -31,6 +31,7 @@ type CreateCategoryInput struct {
 	Text           string
 	Status         category.Status
 	Config         *schematype.CategoryConfig
+	Types          *schematype.CategoryTypes
 	Duration       *time.Duration
 	Count          *uint64
 	Strings        []string
@@ -44,6 +45,9 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetStatus(i.Status)
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if v := i.Duration; v != nil {
 		m.SetDuration(*v)
@@ -74,6 +78,8 @@ type UpdateCategoryInput struct {
 	Status               *category.Status
 	ClearConfig          bool
 	Config               *schematype.CategoryConfig
+	ClearTypes           bool
+	Types                *schematype.CategoryTypes
 	ClearDuration        bool
 	Duration             *time.Duration
 	ClearCount           bool
@@ -102,6 +108,12 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.Config; v != nil {
 		m.SetConfig(v)
+	}
+	if i.ClearTypes {
+		m.ClearTypes()
+	}
+	if v := i.Types; v != nil {
+		m.SetTypes(v)
 	}
 	if i.ClearDuration {
 		m.ClearDuration()
@@ -162,6 +174,7 @@ type CreateTodoInput struct {
 	Priority   *int
 	Text       string
 	Init       map[string]interface{}
+	Value      *int
 	ParentID   *pulid.ID
 	ChildIDs   []pulid.ID
 	CategoryID *pulid.ID
@@ -177,6 +190,9 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 	m.SetText(i.Text)
 	if v := i.Init; v != nil {
 		m.SetInit(v)
+	}
+	if v := i.Value; v != nil {
+		m.SetValue(*v)
 	}
 	if v := i.ParentID; v != nil {
 		m.SetParentID(*v)
@@ -205,6 +221,7 @@ type UpdateTodoInput struct {
 	Text           *string
 	ClearInit      bool
 	Init           map[string]interface{}
+	Value          *int
 	ClearParent    bool
 	ParentID       *pulid.ID
 	ClearChildren  bool
@@ -230,6 +247,9 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.Init; v != nil {
 		m.SetInit(v)
+	}
+	if v := i.Value; v != nil {
+		m.SetValue(*v)
 	}
 	if i.ClearParent {
 		m.ClearParent()

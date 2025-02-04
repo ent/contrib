@@ -27,7 +27,7 @@ func (omsd *OneMethodServiceDelete) Where(ps ...predicate.OneMethodService) *One
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (omsd *OneMethodServiceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, OneMethodServiceMutation](ctx, omsd.sqlExec, omsd.mutation, omsd.hooks)
+	return withHooks(ctx, omsd.sqlExec, omsd.mutation, omsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

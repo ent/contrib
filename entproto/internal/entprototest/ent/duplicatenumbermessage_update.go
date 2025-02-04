@@ -33,9 +33,25 @@ func (dnmu *DuplicateNumberMessageUpdate) SetHello(s string) *DuplicateNumberMes
 	return dnmu
 }
 
+// SetNillableHello sets the "hello" field if the given value is not nil.
+func (dnmu *DuplicateNumberMessageUpdate) SetNillableHello(s *string) *DuplicateNumberMessageUpdate {
+	if s != nil {
+		dnmu.SetHello(*s)
+	}
+	return dnmu
+}
+
 // SetWorld sets the "world" field.
 func (dnmu *DuplicateNumberMessageUpdate) SetWorld(s string) *DuplicateNumberMessageUpdate {
 	dnmu.mutation.SetWorld(s)
+	return dnmu
+}
+
+// SetNillableWorld sets the "world" field if the given value is not nil.
+func (dnmu *DuplicateNumberMessageUpdate) SetNillableWorld(s *string) *DuplicateNumberMessageUpdate {
+	if s != nil {
+		dnmu.SetWorld(*s)
+	}
 	return dnmu
 }
 
@@ -46,7 +62,7 @@ func (dnmu *DuplicateNumberMessageUpdate) Mutation() *DuplicateNumberMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (dnmu *DuplicateNumberMessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, DuplicateNumberMessageMutation](ctx, dnmu.sqlSave, dnmu.mutation, dnmu.hooks)
+	return withHooks(ctx, dnmu.sqlSave, dnmu.mutation, dnmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -112,9 +128,25 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) SetHello(s string) *DuplicateNumbe
 	return dnmuo
 }
 
+// SetNillableHello sets the "hello" field if the given value is not nil.
+func (dnmuo *DuplicateNumberMessageUpdateOne) SetNillableHello(s *string) *DuplicateNumberMessageUpdateOne {
+	if s != nil {
+		dnmuo.SetHello(*s)
+	}
+	return dnmuo
+}
+
 // SetWorld sets the "world" field.
 func (dnmuo *DuplicateNumberMessageUpdateOne) SetWorld(s string) *DuplicateNumberMessageUpdateOne {
 	dnmuo.mutation.SetWorld(s)
+	return dnmuo
+}
+
+// SetNillableWorld sets the "world" field if the given value is not nil.
+func (dnmuo *DuplicateNumberMessageUpdateOne) SetNillableWorld(s *string) *DuplicateNumberMessageUpdateOne {
+	if s != nil {
+		dnmuo.SetWorld(*s)
+	}
 	return dnmuo
 }
 
@@ -138,7 +170,7 @@ func (dnmuo *DuplicateNumberMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated DuplicateNumberMessage entity.
 func (dnmuo *DuplicateNumberMessageUpdateOne) Save(ctx context.Context) (*DuplicateNumberMessage, error) {
-	return withHooks[*DuplicateNumberMessage, DuplicateNumberMessageMutation](ctx, dnmuo.sqlSave, dnmuo.mutation, dnmuo.hooks)
+	return withHooks(ctx, dnmuo.sqlSave, dnmuo.mutation, dnmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

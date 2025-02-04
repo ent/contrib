@@ -44,7 +44,7 @@ func TestGenerate(t *testing.T) {
 func TestGenerateOptionSkipGenFile(t *testing.T) {
 	tgt := t.TempDir()
 
-	entprotoExt,err := entproto.NewExtension(entproto.SkipGenFile())
+	entprotoExt, err := entproto.NewExtension(entproto.SkipGenFile())
 	require.NoError(t, err)
 
 	err = entc.Generate(

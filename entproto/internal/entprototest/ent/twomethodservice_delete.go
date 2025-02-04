@@ -27,7 +27,7 @@ func (tmsd *TwoMethodServiceDelete) Where(ps ...predicate.TwoMethodService) *Two
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (tmsd *TwoMethodServiceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, TwoMethodServiceMutation](ctx, tmsd.sqlExec, tmsd.mutation, tmsd.hooks)
+	return withHooks(ctx, tmsd.sqlExec, tmsd.mutation, tmsd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

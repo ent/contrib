@@ -541,6 +541,7 @@ type CategoryMutation struct {
 	text                  *string
 	status                *category.Status
 	_config               **schematype.CategoryConfig
+	types                 **schematype.CategoryTypes
 	duration              *time.Duration
 	addduration           *time.Duration
 	count                 *uint64
@@ -782,6 +783,55 @@ func (m *CategoryMutation) ConfigCleared() bool {
 func (m *CategoryMutation) ResetConfig() {
 	m._config = nil
 	delete(m.clearedFields, category.FieldConfig)
+}
+
+// SetTypes sets the "types" field.
+func (m *CategoryMutation) SetTypes(st *schematype.CategoryTypes) {
+	m.types = &st
+}
+
+// Types returns the value of the "types" field in the mutation.
+func (m *CategoryMutation) Types() (r *schematype.CategoryTypes, exists bool) {
+	v := m.types
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTypes returns the old "types" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldTypes(ctx context.Context) (v *schematype.CategoryTypes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTypes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTypes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTypes: %w", err)
+	}
+	return oldValue.Types, nil
+}
+
+// ClearTypes clears the value of the "types" field.
+func (m *CategoryMutation) ClearTypes() {
+	m.types = nil
+	m.clearedFields[category.FieldTypes] = struct{}{}
+}
+
+// TypesCleared returns if the "types" field was cleared in this mutation.
+func (m *CategoryMutation) TypesCleared() bool {
+	_, ok := m.clearedFields[category.FieldTypes]
+	return ok
+}
+
+// ResetTypes resets all changes to the "types" field.
+func (m *CategoryMutation) ResetTypes() {
+	m.types = nil
+	delete(m.clearedFields, category.FieldTypes)
 }
 
 // SetDuration sets the "duration" field.
@@ -1131,7 +1181,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.text != nil {
 		fields = append(fields, category.FieldText)
 	}
@@ -1140,6 +1190,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m._config != nil {
 		fields = append(fields, category.FieldConfig)
+	}
+	if m.types != nil {
+		fields = append(fields, category.FieldTypes)
 	}
 	if m.duration != nil {
 		fields = append(fields, category.FieldDuration)
@@ -1164,6 +1217,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case category.FieldConfig:
 		return m.Config()
+	case category.FieldTypes:
+		return m.Types()
 	case category.FieldDuration:
 		return m.Duration()
 	case category.FieldCount:
@@ -1185,6 +1240,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldStatus(ctx)
 	case category.FieldConfig:
 		return m.OldConfig(ctx)
+	case category.FieldTypes:
+		return m.OldTypes(ctx)
 	case category.FieldDuration:
 		return m.OldDuration(ctx)
 	case category.FieldCount:
@@ -1220,6 +1277,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetConfig(v)
+		return nil
+	case category.FieldTypes:
+		v, ok := value.(*schematype.CategoryTypes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTypes(v)
 		return nil
 	case category.FieldDuration:
 		v, ok := value.(time.Duration)
@@ -1302,6 +1366,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	if m.FieldCleared(category.FieldConfig) {
 		fields = append(fields, category.FieldConfig)
 	}
+	if m.FieldCleared(category.FieldTypes) {
+		fields = append(fields, category.FieldTypes)
+	}
 	if m.FieldCleared(category.FieldDuration) {
 		fields = append(fields, category.FieldDuration)
 	}
@@ -1328,6 +1395,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 	case category.FieldConfig:
 		m.ClearConfig()
 		return nil
+	case category.FieldTypes:
+		m.ClearTypes()
+		return nil
 	case category.FieldDuration:
 		m.ClearDuration()
 		return nil
@@ -1353,6 +1423,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldConfig:
 		m.ResetConfig()
+		return nil
+	case category.FieldTypes:
+		m.ResetTypes()
 		return nil
 	case category.FieldDuration:
 		m.ResetDuration()
@@ -1703,6 +1776,7 @@ func (m *FriendshipMutation) ResetFriendID() {
 // ClearUser clears the "user" edge to the User entity.
 func (m *FriendshipMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[friendship.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -1729,6 +1803,7 @@ func (m *FriendshipMutation) ResetUser() {
 // ClearFriend clears the "friend" edge to the User entity.
 func (m *FriendshipMutation) ClearFriend() {
 	m.clearedfriend = true
+	m.clearedFields[friendship.FieldFriendID] = struct{}{}
 }
 
 // FriendCleared reports if the "friend" edge to the User entity was cleared.
@@ -2685,6 +2760,7 @@ func (m *OneToManyMutation) ResetParentID() {
 // ClearParent clears the "parent" edge to the OneToMany entity.
 func (m *OneToManyMutation) ClearParent() {
 	m.clearedparent = true
+	m.clearedFields[onetomany.FieldParentID] = struct{}{}
 }
 
 // ParentCleared reports if the "parent" edge to the OneToMany entity was cleared.
@@ -3421,6 +3497,8 @@ type TodoMutation struct {
 	appendcustom    []customstruct.Custom
 	customp         *[]*customstruct.Custom
 	appendcustomp   []*customstruct.Custom
+	value           *int
+	addvalue        *int
 	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
@@ -3975,6 +4053,62 @@ func (m *TodoMutation) ResetCustomp() {
 	delete(m.clearedFields, todo.FieldCustomp)
 }
 
+// SetValue sets the "value" field.
+func (m *TodoMutation) SetValue(i int) {
+	m.value = &i
+	m.addvalue = nil
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *TodoMutation) Value() (r int, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldValue(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// AddValue adds i to the "value" field.
+func (m *TodoMutation) AddValue(i int) {
+	if m.addvalue != nil {
+		*m.addvalue += i
+	} else {
+		m.addvalue = &i
+	}
+}
+
+// AddedValue returns the value that was added to the "value" field in this mutation.
+func (m *TodoMutation) AddedValue() (r int, exists bool) {
+	v := m.addvalue
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *TodoMutation) ResetValue() {
+	m.value = nil
+	m.addvalue = nil
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by id.
 func (m *TodoMutation) SetParentID(id int) {
 	m.parent = &id
@@ -4071,6 +4205,7 @@ func (m *TodoMutation) ResetChildren() {
 // ClearCategory clears the "category" edge to the Category entity.
 func (m *TodoMutation) ClearCategory() {
 	m.clearedcategory = true
+	m.clearedFields[todo.FieldCategoryID] = struct{}{}
 }
 
 // CategoryCleared reports if the "category" edge to the Category entity was cleared.
@@ -4167,7 +4302,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -4195,6 +4330,9 @@ func (m *TodoMutation) Fields() []string {
 	if m.customp != nil {
 		fields = append(fields, todo.FieldCustomp)
 	}
+	if m.value != nil {
+		fields = append(fields, todo.FieldValue)
+	}
 	return fields
 }
 
@@ -4221,6 +4359,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Custom()
 	case todo.FieldCustomp:
 		return m.Customp()
+	case todo.FieldValue:
+		return m.Value()
 	}
 	return nil, false
 }
@@ -4248,6 +4388,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCustom(ctx)
 	case todo.FieldCustomp:
 		return m.OldCustomp(ctx)
+	case todo.FieldValue:
+		return m.OldValue(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -4320,6 +4462,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomp(v)
 		return nil
+	case todo.FieldValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
 }
@@ -4331,6 +4480,9 @@ func (m *TodoMutation) AddedFields() []string {
 	if m.addpriority != nil {
 		fields = append(fields, todo.FieldPriority)
 	}
+	if m.addvalue != nil {
+		fields = append(fields, todo.FieldValue)
+	}
 	return fields
 }
 
@@ -4341,6 +4493,8 @@ func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case todo.FieldPriority:
 		return m.AddedPriority()
+	case todo.FieldValue:
+		return m.AddedValue()
 	}
 	return nil, false
 }
@@ -4356,6 +4510,13 @@ func (m *TodoMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPriority(v)
+		return nil
+	case todo.FieldValue:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddValue(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Todo numeric field %s", name)
@@ -4443,6 +4604,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldCustomp:
 		m.ResetCustomp()
+		return nil
+	case todo.FieldValue:
+		m.ResetValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)

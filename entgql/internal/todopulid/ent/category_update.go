@@ -52,9 +52,25 @@ func (cu *CategoryUpdate) SetText(s string) *CategoryUpdate {
 	return cu
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableText(s *string) *CategoryUpdate {
+	if s != nil {
+		cu.SetText(*s)
+	}
+	return cu
+}
+
 // SetStatus sets the "status" field.
 func (cu *CategoryUpdate) SetStatus(c category.Status) *CategoryUpdate {
 	cu.mutation.SetStatus(c)
+	return cu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableStatus(c *category.Status) *CategoryUpdate {
+	if c != nil {
+		cu.SetStatus(*c)
+	}
 	return cu
 }
 
@@ -67,6 +83,18 @@ func (cu *CategoryUpdate) SetConfig(sc *schematype.CategoryConfig) *CategoryUpda
 // ClearConfig clears the value of the "config" field.
 func (cu *CategoryUpdate) ClearConfig() *CategoryUpdate {
 	cu.mutation.ClearConfig()
+	return cu
+}
+
+// SetTypes sets the "types" field.
+func (cu *CategoryUpdate) SetTypes(st *schematype.CategoryTypes) *CategoryUpdate {
+	cu.mutation.SetTypes(st)
+	return cu
+}
+
+// ClearTypes clears the value of the "types" field.
+func (cu *CategoryUpdate) ClearTypes() *CategoryUpdate {
+	cu.mutation.ClearTypes()
 	return cu
 }
 
@@ -221,7 +249,7 @@ func (cu *CategoryUpdate) RemoveSubCategories(c ...*Category) *CategoryUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *CategoryUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, CategoryMutation](ctx, cu.sqlSave, cu.mutation, cu.hooks)
+	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -284,6 +312,12 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.ConfigCleared() {
 		_spec.ClearField(category.FieldConfig, field.TypeOther)
+	}
+	if value, ok := cu.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+	}
+	if cu.mutation.TypesCleared() {
+		_spec.ClearField(category.FieldTypes, field.TypeJSON)
 	}
 	if value, ok := cu.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)
@@ -430,9 +464,25 @@ func (cuo *CategoryUpdateOne) SetText(s string) *CategoryUpdateOne {
 	return cuo
 }
 
+// SetNillableText sets the "text" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableText(s *string) *CategoryUpdateOne {
+	if s != nil {
+		cuo.SetText(*s)
+	}
+	return cuo
+}
+
 // SetStatus sets the "status" field.
 func (cuo *CategoryUpdateOne) SetStatus(c category.Status) *CategoryUpdateOne {
 	cuo.mutation.SetStatus(c)
+	return cuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableStatus(c *category.Status) *CategoryUpdateOne {
+	if c != nil {
+		cuo.SetStatus(*c)
+	}
 	return cuo
 }
 
@@ -445,6 +495,18 @@ func (cuo *CategoryUpdateOne) SetConfig(sc *schematype.CategoryConfig) *Category
 // ClearConfig clears the value of the "config" field.
 func (cuo *CategoryUpdateOne) ClearConfig() *CategoryUpdateOne {
 	cuo.mutation.ClearConfig()
+	return cuo
+}
+
+// SetTypes sets the "types" field.
+func (cuo *CategoryUpdateOne) SetTypes(st *schematype.CategoryTypes) *CategoryUpdateOne {
+	cuo.mutation.SetTypes(st)
+	return cuo
+}
+
+// ClearTypes clears the value of the "types" field.
+func (cuo *CategoryUpdateOne) ClearTypes() *CategoryUpdateOne {
+	cuo.mutation.ClearTypes()
 	return cuo
 }
 
@@ -612,7 +674,7 @@ func (cuo *CategoryUpdateOne) Select(field string, fields ...string) *CategoryUp
 
 // Save executes the query and returns the updated Category entity.
 func (cuo *CategoryUpdateOne) Save(ctx context.Context) (*Category, error) {
-	return withHooks[*Category, CategoryMutation](ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -692,6 +754,12 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 	}
 	if cuo.mutation.ConfigCleared() {
 		_spec.ClearField(category.FieldConfig, field.TypeOther)
+	}
+	if value, ok := cuo.mutation.Types(); ok {
+		_spec.SetField(category.FieldTypes, field.TypeJSON, value)
+	}
+	if cuo.mutation.TypesCleared() {
+		_spec.ClearField(category.FieldTypes, field.TypeJSON)
 	}
 	if value, ok := cuo.mutation.Duration(); ok {
 		_spec.SetField(category.FieldDuration, field.TypeInt64, value)

@@ -11,6 +11,7 @@
 
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "mutation_create_input" "mutation_update_input") }}
 import (
+    "entgo.io/contrib/entgql"
     {{- range $n := $gqlNodes }}
         {{- template "import/types" $n }}
         "{{ $.Config.Package }}/{{ $n.Package }}"
@@ -52,6 +53,12 @@ import (
                     {{ $e.MutationAdd }} []{{ $e.Type.ID.Type }}
                     {{ $e.MutationRemove }} []{{ $e.Type.ID.Type }}
                 {{- end }}
+            {{- end }}
+        {{- end }}
+
+        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/fields/*"  }}
+            {{- range $tmpl := $tmpls }}
+                {{- xtemplate $tmpl $n }}
             {{- end }}
         {{- end }}
     }
@@ -107,6 +114,12 @@ import (
                         m.{{ $e.MutationRemove }}(v...)
                     }
                 {{- end }}
+            {{- end }}
+        {{- end }}
+
+        {{- with $tmpls := matchTemplate "helper/gql_mutation_input/mutate/*"  }}
+            {{- range $tmpl := $tmpls }}
+                {{- xtemplate $tmpl $n }}
             {{- end }}
         {{- end }}
     }

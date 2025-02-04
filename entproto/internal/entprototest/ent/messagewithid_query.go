@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithid"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (mwiq *MessageWithIDQuery) Order(o ...messagewithid.OrderOption) *MessageWi
 // First returns the first MessageWithID entity from the query.
 // Returns a *NotFoundError when no MessageWithID was found.
 func (mwiq *MessageWithIDQuery) First(ctx context.Context) (*MessageWithID, error) {
-	nodes, err := mwiq.Limit(1).All(setContextOp(ctx, mwiq.ctx, "First"))
+	nodes, err := mwiq.Limit(1).All(setContextOp(ctx, mwiq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (mwiq *MessageWithIDQuery) FirstX(ctx context.Context) *MessageWithID {
 // Returns a *NotFoundError when no MessageWithID ID was found.
 func (mwiq *MessageWithIDQuery) FirstID(ctx context.Context) (id int32, err error) {
 	var ids []int32
-	if ids, err = mwiq.Limit(1).IDs(setContextOp(ctx, mwiq.ctx, "FirstID")); err != nil {
+	if ids, err = mwiq.Limit(1).IDs(setContextOp(ctx, mwiq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (mwiq *MessageWithIDQuery) FirstIDX(ctx context.Context) int32 {
 // Returns a *NotSingularError when more than one MessageWithID entity is found.
 // Returns a *NotFoundError when no MessageWithID entities are found.
 func (mwiq *MessageWithIDQuery) Only(ctx context.Context) (*MessageWithID, error) {
-	nodes, err := mwiq.Limit(2).All(setContextOp(ctx, mwiq.ctx, "Only"))
+	nodes, err := mwiq.Limit(2).All(setContextOp(ctx, mwiq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (mwiq *MessageWithIDQuery) OnlyX(ctx context.Context) *MessageWithID {
 // Returns a *NotFoundError when no entities are found.
 func (mwiq *MessageWithIDQuery) OnlyID(ctx context.Context) (id int32, err error) {
 	var ids []int32
-	if ids, err = mwiq.Limit(2).IDs(setContextOp(ctx, mwiq.ctx, "OnlyID")); err != nil {
+	if ids, err = mwiq.Limit(2).IDs(setContextOp(ctx, mwiq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (mwiq *MessageWithIDQuery) OnlyIDX(ctx context.Context) int32 {
 
 // All executes the query and returns a list of MessageWithIDs.
 func (mwiq *MessageWithIDQuery) All(ctx context.Context) ([]*MessageWithID, error) {
-	ctx = setContextOp(ctx, mwiq.ctx, "All")
+	ctx = setContextOp(ctx, mwiq.ctx, ent.OpQueryAll)
 	if err := mwiq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (mwiq *MessageWithIDQuery) IDs(ctx context.Context) (ids []int32, err error
 	if mwiq.ctx.Unique == nil && mwiq.path != nil {
 		mwiq.Unique(true)
 	}
-	ctx = setContextOp(ctx, mwiq.ctx, "IDs")
+	ctx = setContextOp(ctx, mwiq.ctx, ent.OpQueryIDs)
 	if err = mwiq.Select(messagewithid.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (mwiq *MessageWithIDQuery) IDsX(ctx context.Context) []int32 {
 
 // Count returns the count of the given query.
 func (mwiq *MessageWithIDQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mwiq.ctx, "Count")
+	ctx = setContextOp(ctx, mwiq.ctx, ent.OpQueryCount)
 	if err := mwiq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (mwiq *MessageWithIDQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwiq *MessageWithIDQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mwiq.ctx, "Exist")
+	ctx = setContextOp(ctx, mwiq.ctx, ent.OpQueryExist)
 	switch _, err := mwiq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -427,7 +428,7 @@ func (mwigb *MessageWithIDGroupBy) Aggregate(fns ...AggregateFunc) *MessageWithI
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwigb *MessageWithIDGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwigb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, mwigb.build.ctx, ent.OpQueryGroupBy)
 	if err := mwigb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -475,7 +476,7 @@ func (mwis *MessageWithIDSelect) Aggregate(fns ...AggregateFunc) *MessageWithIDS
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwis *MessageWithIDSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwis.ctx, "Select")
+	ctx = setContextOp(ctx, mwis.ctx, ent.OpQuerySelect)
 	if err := mwis.prepareQuery(ctx); err != nil {
 		return err
 	}

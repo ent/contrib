@@ -58,7 +58,7 @@ func (pc *PortalCreate) Mutation() *PortalMutation {
 
 // Save creates the Portal in the database.
 func (pc *PortalCreate) Save(ctx context.Context) (*Portal, error) {
-	return withHooks[*Portal, PortalMutation](ctx, pc.sqlSave, pc.mutation, pc.hooks)
+	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -148,11 +148,15 @@ func (pc *PortalCreate) createSpec() (*Portal, *sqlgraph.CreateSpec) {
 // PortalCreateBulk is the builder for creating many Portal entities in bulk.
 type PortalCreateBulk struct {
 	config
+	err      error
 	builders []*PortalCreate
 }
 
 // Save creates the Portal entities in the database.
 func (pcb *PortalCreateBulk) Save(ctx context.Context) ([]*Portal, error) {
+	if pcb.err != nil {
+		return nil, pcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
 	nodes := make([]*Portal, len(pcb.builders))
 	mutators := make([]Mutator, len(pcb.builders))

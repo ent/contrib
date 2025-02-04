@@ -1,4 +1,4 @@
-FROM golang:1.19.0
+FROM golang:1.23.4
 RUN apt update && apt install unzip
 RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip && \
  unzip -o protoc-3.19.4-linux-x86_64.zip -d ./proto && \

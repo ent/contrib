@@ -65,6 +65,8 @@ func TestUserService_Create(t *testing.T) {
 		Labels:         []string{"member", "production"},
 		OmitPrefix:     User_BAR,
 		MimeType:       User_MIME_TYPE_IMAGE_XML_SVG,
+		Int32S:         []int32{1, 2, 3},
+		Int64S:         []int64{1, 2, 3},
 	}
 	created, err := svc.Create(ctx, &CreateUserRequest{
 		User: inputUser,
@@ -82,6 +84,8 @@ func TestUserService_Create(t *testing.T) {
 	require.EqualValues(t, inputUser.HeightInCm, fromDB.HeightInCm)
 	require.EqualValues(t, inputUser.AccountBalance, fromDB.AccountBalance)
 	require.EqualValues(t, inputUser.Labels, fromDB.Labels)
+	require.EqualValues(t, inputUser.Int64S, fromDB.Int64s)
+	require.EqualValues(t, inputUser.Int32S, fromDB.Int32s)
 	require.EqualValues(t, inputUser.MimeType.String(), strings.ToUpper("MIME_TYPE_"+regexp.MustCompile("[^a-zA-Z0-9_]+").ReplaceAllString(string(fromDB.MimeType), "_")))
 
 	// preexisting user

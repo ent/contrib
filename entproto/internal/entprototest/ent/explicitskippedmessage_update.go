@@ -34,7 +34,7 @@ func (esmu *ExplicitSkippedMessageUpdate) Mutation() *ExplicitSkippedMessageMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (esmu *ExplicitSkippedMessageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ExplicitSkippedMessageMutation](ctx, esmu.sqlSave, esmu.mutation, esmu.hooks)
+	return withHooks(ctx, esmu.sqlSave, esmu.mutation, esmu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (esmuo *ExplicitSkippedMessageUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated ExplicitSkippedMessage entity.
 func (esmuo *ExplicitSkippedMessageUpdateOne) Save(ctx context.Context) (*ExplicitSkippedMessage, error) {
-	return withHooks[*ExplicitSkippedMessage, ExplicitSkippedMessageMutation](ctx, esmuo.sqlSave, esmuo.mutation, esmuo.hooks)
+	return withHooks(ctx, esmuo.sqlSave, esmuo.mutation, esmuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

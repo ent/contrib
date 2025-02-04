@@ -94,7 +94,7 @@ func (otmc *OneToManyCreate) Mutation() *OneToManyMutation {
 
 // Save creates the OneToMany in the database.
 func (otmc *OneToManyCreate) Save(ctx context.Context) (*OneToMany, error) {
-	return withHooks[*OneToMany, OneToManyMutation](ctx, otmc.sqlSave, otmc.mutation, otmc.hooks)
+	return withHooks(ctx, otmc.sqlSave, otmc.mutation, otmc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -202,11 +202,15 @@ func (otmc *OneToManyCreate) createSpec() (*OneToMany, *sqlgraph.CreateSpec) {
 // OneToManyCreateBulk is the builder for creating many OneToMany entities in bulk.
 type OneToManyCreateBulk struct {
 	config
+	err      error
 	builders []*OneToManyCreate
 }
 
 // Save creates the OneToMany entities in the database.
 func (otmcb *OneToManyCreateBulk) Save(ctx context.Context) ([]*OneToMany, error) {
+	if otmcb.err != nil {
+		return nil, otmcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(otmcb.builders))
 	nodes := make([]*OneToMany, len(otmcb.builders))
 	mutators := make([]Mutator, len(otmcb.builders))

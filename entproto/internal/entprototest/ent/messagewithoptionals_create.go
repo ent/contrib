@@ -131,7 +131,7 @@ func (mwoc *MessageWithOptionalsCreate) Mutation() *MessageWithOptionalsMutation
 
 // Save creates the MessageWithOptionals in the database.
 func (mwoc *MessageWithOptionalsCreate) Save(ctx context.Context) (*MessageWithOptionals, error) {
-	return withHooks[*MessageWithOptionals, MessageWithOptionalsMutation](ctx, mwoc.sqlSave, mwoc.mutation, mwoc.hooks)
+	return withHooks(ctx, mwoc.sqlSave, mwoc.mutation, mwoc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -222,11 +222,15 @@ func (mwoc *MessageWithOptionalsCreate) createSpec() (*MessageWithOptionals, *sq
 // MessageWithOptionalsCreateBulk is the builder for creating many MessageWithOptionals entities in bulk.
 type MessageWithOptionalsCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithOptionalsCreate
 }
 
 // Save creates the MessageWithOptionals entities in the database.
 func (mwocb *MessageWithOptionalsCreateBulk) Save(ctx context.Context) ([]*MessageWithOptionals, error) {
+	if mwocb.err != nil {
+		return nil, mwocb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwocb.builders))
 	nodes := make([]*MessageWithOptionals, len(mwocb.builders))
 	mutators := make([]Mutator, len(mwocb.builders))

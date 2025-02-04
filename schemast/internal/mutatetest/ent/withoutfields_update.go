@@ -34,7 +34,7 @@ func (wfu *WithoutFieldsUpdate) Mutation() *WithoutFieldsMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wfu *WithoutFieldsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WithoutFieldsMutation](ctx, wfu.sqlSave, wfu.mutation, wfu.hooks)
+	return withHooks(ctx, wfu.sqlSave, wfu.mutation, wfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -108,7 +108,7 @@ func (wfuo *WithoutFieldsUpdateOne) Select(field string, fields ...string) *With
 
 // Save executes the query and returns the updated WithoutFields entity.
 func (wfuo *WithoutFieldsUpdateOne) Save(ctx context.Context) (*WithoutFields, error) {
-	return withHooks[*WithoutFields, WithoutFieldsMutation](ctx, wfuo.sqlSave, wfuo.mutation, wfuo.hooks)
+	return withHooks(ctx, wfuo.sqlSave, wfuo.mutation, wfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

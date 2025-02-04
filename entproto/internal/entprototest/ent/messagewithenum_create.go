@@ -53,7 +53,7 @@ func (mwec *MessageWithEnumCreate) Mutation() *MessageWithEnumMutation {
 // Save creates the MessageWithEnum in the database.
 func (mwec *MessageWithEnumCreate) Save(ctx context.Context) (*MessageWithEnum, error) {
 	mwec.defaults()
-	return withHooks[*MessageWithEnum, MessageWithEnumMutation](ctx, mwec.sqlSave, mwec.mutation, mwec.hooks)
+	return withHooks(ctx, mwec.sqlSave, mwec.mutation, mwec.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -156,11 +156,15 @@ func (mwec *MessageWithEnumCreate) createSpec() (*MessageWithEnum, *sqlgraph.Cre
 // MessageWithEnumCreateBulk is the builder for creating many MessageWithEnum entities in bulk.
 type MessageWithEnumCreateBulk struct {
 	config
+	err      error
 	builders []*MessageWithEnumCreate
 }
 
 // Save creates the MessageWithEnum entities in the database.
 func (mwecb *MessageWithEnumCreateBulk) Save(ctx context.Context) ([]*MessageWithEnum, error) {
+	if mwecb.err != nil {
+		return nil, mwecb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(mwecb.builders))
 	nodes := make([]*MessageWithEnum, len(mwecb.builders))
 	mutators := make([]Mutator, len(mwecb.builders))

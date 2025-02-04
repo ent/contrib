@@ -60,7 +60,7 @@ func (wmfu *WithModifiedFieldUpdate) ClearOwner() *WithModifiedFieldUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wmfu *WithModifiedFieldUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WithModifiedFieldMutation](ctx, wmfu.sqlSave, wmfu.mutation, wmfu.hooks)
+	return withHooks(ctx, wmfu.sqlSave, wmfu.mutation, wmfu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -188,7 +188,7 @@ func (wmfuo *WithModifiedFieldUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated WithModifiedField entity.
 func (wmfuo *WithModifiedFieldUpdateOne) Save(ctx context.Context) (*WithModifiedField, error) {
-	return withHooks[*WithModifiedField, WithModifiedFieldMutation](ctx, wmfuo.sqlSave, wmfuo.mutation, wmfuo.hooks)
+	return withHooks(ctx, wmfuo.sqlSave, wmfuo.mutation, wmfuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

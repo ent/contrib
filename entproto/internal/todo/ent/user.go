@@ -62,6 +62,14 @@ type User struct {
 	Type string `json:"type,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels []string `json:"labels,omitempty"`
+	// Int32s holds the value of the "int32s" field.
+	Int32s []int32 `json:"int32s,omitempty"`
+	// Int64s holds the value of the "int64s" field.
+	Int64s []int64 `json:"int64s,omitempty"`
+	// Uint32s holds the value of the "uint32s" field.
+	Uint32s []uint32 `json:"uint32s,omitempty"`
+	// Uint64s holds the value of the "uint64s" field.
+	Uint64s []uint64 `json:"uint64s,omitempty"`
 	// DeviceType holds the value of the "device_type" field.
 	DeviceType user.DeviceType `json:"device_type,omitempty"`
 	// OmitPrefix holds the value of the "omit_prefix" field.
@@ -95,12 +103,10 @@ type UserEdges struct {
 // GroupOrErr returns the Group value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) GroupOrErr() (*Group, error) {
-	if e.loadedTypes[0] {
-		if e.Group == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: group.Label}
-		}
+	if e.Group != nil {
 		return e.Group, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: group.Label}
 	}
 	return nil, &NotLoadedError{edge: "group"}
 }
@@ -108,12 +114,10 @@ func (e UserEdges) GroupOrErr() (*Group, error) {
 // AttachmentOrErr returns the Attachment value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) AttachmentOrErr() (*Attachment, error) {
-	if e.loadedTypes[1] {
-		if e.Attachment == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: attachment.Label}
-		}
+	if e.Attachment != nil {
 		return e.Attachment, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: attachment.Label}
 	}
 	return nil, &NotLoadedError{edge: "attachment"}
 }
@@ -130,12 +134,10 @@ func (e UserEdges) Received1OrErr() ([]*Attachment, error) {
 // PetOrErr returns the Pet value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) PetOrErr() (*Pet, error) {
-	if e.loadedTypes[3] {
-		if e.Pet == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: pet.Label}
-		}
+	if e.Pet != nil {
 		return e.Pet, nil
+	} else if e.loadedTypes[3] {
+		return nil, &NotFoundError{label: pet.Label}
 	}
 	return nil, &NotLoadedError{edge: "pet"}
 }
@@ -143,12 +145,10 @@ func (e UserEdges) PetOrErr() (*Pet, error) {
 // SkipEdgeOrErr returns the SkipEdge value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UserEdges) SkipEdgeOrErr() (*SkipEdgeExample, error) {
-	if e.loadedTypes[4] {
-		if e.SkipEdge == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: skipedgeexample.Label}
-		}
+	if e.SkipEdge != nil {
 		return e.SkipEdge, nil
+	} else if e.loadedTypes[4] {
+		return nil, &NotFoundError{label: skipedgeexample.Label}
 	}
 	return nil, &NotLoadedError{edge: "skip_edge"}
 }
@@ -158,7 +158,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldLabels:
+		case user.FieldLabels, user.FieldInt32s, user.FieldInt64s, user.FieldUint32s, user.FieldUint64s:
 			values[i] = new([]byte)
 		case user.FieldBigInt:
 			values[i] = new(schema.BigInt)
@@ -313,6 +313,38 @@ func (u *User) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field labels: %w", err)
 				}
 			}
+		case user.FieldInt32s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field int32s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Int32s); err != nil {
+					return fmt.Errorf("unmarshal field int32s: %w", err)
+				}
+			}
+		case user.FieldInt64s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field int64s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Int64s); err != nil {
+					return fmt.Errorf("unmarshal field int64s: %w", err)
+				}
+			}
+		case user.FieldUint32s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field uint32s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Uint32s); err != nil {
+					return fmt.Errorf("unmarshal field uint32s: %w", err)
+				}
+			}
+		case user.FieldUint64s:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field uint64s", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.Uint64s); err != nil {
+					return fmt.Errorf("unmarshal field uint64s: %w", err)
+				}
+			}
 		case user.FieldDeviceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field device_type", values[i])
@@ -455,6 +487,18 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("labels=")
 	builder.WriteString(fmt.Sprintf("%v", u.Labels))
+	builder.WriteString(", ")
+	builder.WriteString("int32s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Int32s))
+	builder.WriteString(", ")
+	builder.WriteString("int64s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Int64s))
+	builder.WriteString(", ")
+	builder.WriteString("uint32s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Uint32s))
+	builder.WriteString(", ")
+	builder.WriteString("uint64s=")
+	builder.WriteString(fmt.Sprintf("%v", u.Uint64s))
 	builder.WriteString(", ")
 	builder.WriteString("device_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.DeviceType))

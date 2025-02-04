@@ -14,6 +14,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 
 import (
+	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
@@ -32,13 +33,13 @@ func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfie
 	if fc == nil {
 		return {{ $receiver }}, nil
 	}
-	if err := {{ $receiver }}.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := {{ $receiver }}.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
 	return {{ $receiver }}, nil
 }
 
-func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	{{- $fields := filterFields $node.Fields (skipMode "type") }}
 	{{- $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
@@ -59,6 +60,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 			switch field.Name {
 				{{- range $i, $fc := $collects }}
 					{{- $e := $fc.Edge }}
+					{{- /* If the edge is unique, we inherit the cardinality of the parent. */}}
+					{{ $oneNode := "false" }}{{- if $e.Unique }}{{ $oneNode = "oneNode" }}{{ end }}
 					case {{ range $i, $value := $fc.Mapping }}{{ if $i }}, {{ end }}"{{ $value }}"{{ end }}:
 						var (
 							alias = field.Alias
@@ -112,23 +115,28 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, opCtx *gr
 							}
 							path = append(path, edgesField, nodeField)
 							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+								if err := query.collectField(ctx, {{ $oneNode }}, opCtx, *field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
 									return err
 								}
 							}
 							if limit := paginateLimit(args.first, args.last); limit > 0 {
-								{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
-								{{- if $e.M2M }}
-									{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
-									{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
-								{{- end }}
-								modify := limitRows({{ $fk }}, limit, pager.orderExpr(query))
-								query.modifiers = append(query.modifiers, modify)
+								{{- /* Limit per row is not required, as there is only node returned by the top query. */}}
+								if oneNode {
+									pager.applyOrder(query.Limit(limit))
+								} else {
+									{{- $fk := print $node.Package "." $fc.Edge.ColumnConstant }}
+									{{- if $e.M2M }}
+										{{- $i := 0 }}{{ if $e.IsInverse }}{{ $i = 1 }}{{ end }}
+										{{- $fk = print $node.Package "." $e.PKConstant "[" $i "]" }}
+									{{- end }}
+									modify := entgql.LimitPerRow({{ $fk }}, limit, pager.orderExpr(query))
+									query.modifiers = append(query.modifiers, modify)
+								}
 							} else {
 								query = pager.applyOrder(query)
 							}
 						{{- else }}
-							if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+							if err := query.collectField(ctx, {{ $oneNode }}, opCtx, field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
 								return err
 							}
 						{{- end }}
@@ -291,7 +299,7 @@ func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]a
 func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
-		if !ok {
+		if !ok || v == nil {
 			continue
 		}
 		i, err := graphql.UnmarshalInt(v)
@@ -316,29 +324,6 @@ func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map
 	}
 
 	return args
-}
-
-func limitRows(partitionBy string, limit int, orderBy ...sql.Querier) func(s *sql.Selector) {
-	return func(s *sql.Selector) {
-		d := sql.Dialect(s.Dialect())
-		s.SetDistinct(false)
-		with := d.With("src_query").
-			As(s.Clone()).
-			With("limited_query").
-			As(
-				d.Select("*").
-					AppendSelectExprAs(
-						sql.RowNumber().PartitionBy(partitionBy).OrderExpr(orderBy...),
-						"row_number",
-					).
-					From(d.Table("src_query")),
-			)
-		t := d.Table("limited_query").As(s.TableName())
-		*s = *d.Select(s.UnqualifiedColumns()...).
-			From(t).
-			Where(sql.LTE(t.C("row_number"), limit)).
-			Prefix(with)
-	}
 }
 
 // mayAddCondition appends another type condition to the satisfies list

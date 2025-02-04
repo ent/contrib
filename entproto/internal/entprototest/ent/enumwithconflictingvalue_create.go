@@ -32,7 +32,7 @@ func (ewcvc *EnumWithConflictingValueCreate) Mutation() *EnumWithConflictingValu
 
 // Save creates the EnumWithConflictingValue in the database.
 func (ewcvc *EnumWithConflictingValueCreate) Save(ctx context.Context) (*EnumWithConflictingValue, error) {
-	return withHooks[*EnumWithConflictingValue, EnumWithConflictingValueMutation](ctx, ewcvc.sqlSave, ewcvc.mutation, ewcvc.hooks)
+	return withHooks(ctx, ewcvc.sqlSave, ewcvc.mutation, ewcvc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -103,11 +103,15 @@ func (ewcvc *EnumWithConflictingValueCreate) createSpec() (*EnumWithConflictingV
 // EnumWithConflictingValueCreateBulk is the builder for creating many EnumWithConflictingValue entities in bulk.
 type EnumWithConflictingValueCreateBulk struct {
 	config
+	err      error
 	builders []*EnumWithConflictingValueCreate
 }
 
 // Save creates the EnumWithConflictingValue entities in the database.
 func (ewcvcb *EnumWithConflictingValueCreateBulk) Save(ctx context.Context) ([]*EnumWithConflictingValue, error) {
+	if ewcvcb.err != nil {
+		return nil, ewcvcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ewcvcb.builders))
 	nodes := make([]*EnumWithConflictingValue, len(ewcvcb.builders))
 	mutators := make([]Mutator, len(ewcvcb.builders))

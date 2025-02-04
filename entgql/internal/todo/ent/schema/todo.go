@@ -86,6 +86,8 @@ func (Todo) Fields() []ent.Field {
 				entgql.Skip(entgql.SkipMutationUpdateInput),
 			).
 			Optional(),
+		field.Int("value").
+			Default(0),
 	}
 }
 
@@ -125,5 +127,6 @@ func (Todo) Annotations() []schema.Annotation {
 		entgql.RelayConnection(),
 		entgql.QueryField().Description("This is the todo item"),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+		entgql.MultiOrder(),
 	}
 }

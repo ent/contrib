@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (mwpnq *MessageWithPackageNameQuery) Order(o ...messagewithpackagename.Orde
 // First returns the first MessageWithPackageName entity from the query.
 // Returns a *NotFoundError when no MessageWithPackageName was found.
 func (mwpnq *MessageWithPackageNameQuery) First(ctx context.Context) (*MessageWithPackageName, error) {
-	nodes, err := mwpnq.Limit(1).All(setContextOp(ctx, mwpnq.ctx, "First"))
+	nodes, err := mwpnq.Limit(1).All(setContextOp(ctx, mwpnq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (mwpnq *MessageWithPackageNameQuery) FirstX(ctx context.Context) *MessageWi
 // Returns a *NotFoundError when no MessageWithPackageName ID was found.
 func (mwpnq *MessageWithPackageNameQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwpnq.Limit(1).IDs(setContextOp(ctx, mwpnq.ctx, "FirstID")); err != nil {
+	if ids, err = mwpnq.Limit(1).IDs(setContextOp(ctx, mwpnq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (mwpnq *MessageWithPackageNameQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one MessageWithPackageName entity is found.
 // Returns a *NotFoundError when no MessageWithPackageName entities are found.
 func (mwpnq *MessageWithPackageNameQuery) Only(ctx context.Context) (*MessageWithPackageName, error) {
-	nodes, err := mwpnq.Limit(2).All(setContextOp(ctx, mwpnq.ctx, "Only"))
+	nodes, err := mwpnq.Limit(2).All(setContextOp(ctx, mwpnq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (mwpnq *MessageWithPackageNameQuery) OnlyX(ctx context.Context) *MessageWit
 // Returns a *NotFoundError when no entities are found.
 func (mwpnq *MessageWithPackageNameQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mwpnq.Limit(2).IDs(setContextOp(ctx, mwpnq.ctx, "OnlyID")); err != nil {
+	if ids, err = mwpnq.Limit(2).IDs(setContextOp(ctx, mwpnq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (mwpnq *MessageWithPackageNameQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of MessageWithPackageNames.
 func (mwpnq *MessageWithPackageNameQuery) All(ctx context.Context) ([]*MessageWithPackageName, error) {
-	ctx = setContextOp(ctx, mwpnq.ctx, "All")
+	ctx = setContextOp(ctx, mwpnq.ctx, ent.OpQueryAll)
 	if err := mwpnq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (mwpnq *MessageWithPackageNameQuery) IDs(ctx context.Context) (ids []int, e
 	if mwpnq.ctx.Unique == nil && mwpnq.path != nil {
 		mwpnq.Unique(true)
 	}
-	ctx = setContextOp(ctx, mwpnq.ctx, "IDs")
+	ctx = setContextOp(ctx, mwpnq.ctx, ent.OpQueryIDs)
 	if err = mwpnq.Select(messagewithpackagename.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (mwpnq *MessageWithPackageNameQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (mwpnq *MessageWithPackageNameQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mwpnq.ctx, "Count")
+	ctx = setContextOp(ctx, mwpnq.ctx, ent.OpQueryCount)
 	if err := mwpnq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (mwpnq *MessageWithPackageNameQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (mwpnq *MessageWithPackageNameQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mwpnq.ctx, "Exist")
+	ctx = setContextOp(ctx, mwpnq.ctx, ent.OpQueryExist)
 	switch _, err := mwpnq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -449,7 +450,7 @@ func (mwpngb *MessageWithPackageNameGroupBy) Aggregate(fns ...AggregateFunc) *Me
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwpngb *MessageWithPackageNameGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwpngb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, mwpngb.build.ctx, ent.OpQueryGroupBy)
 	if err := mwpngb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -497,7 +498,7 @@ func (mwpns *MessageWithPackageNameSelect) Aggregate(fns ...AggregateFunc) *Mess
 
 // Scan applies the selector query and scans the result into the given value.
 func (mwpns *MessageWithPackageNameSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mwpns.ctx, "Select")
+	ctx = setContextOp(ctx, mwpns.ctx, ent.OpQuerySelect)
 	if err := mwpns.prepareQuery(ctx); err != nil {
 		return err
 	}
