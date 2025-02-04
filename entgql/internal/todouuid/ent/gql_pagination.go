@@ -298,6 +298,10 @@ func (bp *BillProductQuery) Paginate(
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -595,6 +599,10 @@ func (c *CategoryQuery) Paginate(
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -969,6 +977,10 @@ func (f *FriendshipQuery) Paginate(
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
 			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
+			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
 		}
@@ -1253,6 +1265,10 @@ func (gr *GroupQuery) Paginate(
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -1551,6 +1567,10 @@ func (t *TodoQuery) Paginate(
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
@@ -1981,6 +2001,10 @@ func (u *UserQuery) Paginate(
 			c.ctx.Fields = nil
 			if conn.TotalCount, err = c.Count(ctx); err != nil {
 				return nil, err
+			}
+			if conn.TotalCount == 0 {
+				conn.build(nil, pager, after, first, before, last)
+				return conn, nil
 			}
 			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
 			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
