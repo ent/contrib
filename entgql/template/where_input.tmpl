@@ -204,8 +204,6 @@ import (
             }
         {{- end }}
         switch len(predicates) {
-        case 0:
-            return nil, {{ $err }}
         case 1:
             return predicates[0], nil
         default:
