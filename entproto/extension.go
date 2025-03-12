@@ -58,6 +58,7 @@ type Extension struct {
 	entc.DefaultExtension
 	protoDir    string
 	skipGenFile bool
+	goPkg       string
 }
 
 // WithProtoDir sets the directory where the generated .proto files will be written.
@@ -71,6 +72,14 @@ func WithProtoDir(dir string) ExtensionOption {
 func SkipGenFile() ExtensionOption {
 	return func(e *Extension) {
 		e.skipGenFile = true
+	}
+}
+
+// WithGoPkg sets the Go package to be used in the generated .proto files.
+// By default, the Go package is derived from the last part of the proto package.
+func WithGoPkg(pkg string) ExtensionOption {
+	return func(e *Extension) {
+		e.goPkg = pkg
 	}
 }
 
@@ -165,7 +174,7 @@ func (e *Extension) generate(g *gen.Graph) error {
 					return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 				}
 				toSchema := filepath.Join(toBase, "schema")
-				contents := protocGenerateGo(fd, toSchema)
+				contents := e.protocGenerateGo(fd, toSchema)
 				if err := os.WriteFile(genGoPath, []byte(contents), 0600); err != nil {
 					return fmt.Errorf("entproto: failed generating generate.go file for %q: %w", protoFilePath, err)
 				}
@@ -184,7 +193,7 @@ func fileExists(fpath string) bool {
 	return true
 }
 
-func protocGenerateGo(fd *desc.FileDescriptor, toSchemaDir string) string {
+func (e *Extension) protocGenerateGo(fd *desc.FileDescriptor, toSchemaDir string) string {
 	levelsUp := len(strings.Split(fd.GetPackage(), "."))
 	toProtoBase := ""
 	for i := 0; i < levelsUp; i++ {
@@ -202,6 +211,12 @@ func protocGenerateGo(fd *desc.FileDescriptor, toSchemaDir string) string {
 		fd.GetName(),
 	}
 	goGen := fmt.Sprintf("//go:generate %s", strings.Join(protocCmd, " "))
-	goPkgName := extractLastFqnPart(fd.GetPackage())
+	
+	// Use the provided Go package name if set, otherwise derive from the protobuf package
+	goPkgName := e.goPkg
+	if goPkgName == "" {
+		goPkgName = extractLastFqnPart(fd.GetPackage())
+	}
+	
 	return fmt.Sprintf("package %s\n%s\n", goPkgName, goGen)
 }
