@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -71,8 +72,8 @@ type (
 func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 	ex := &Extension{config: &Config{
 		DefaultPolicy:   PolicyExpose,
-		MinItemsPerPage: one,
-		MaxItemsPerPage: maxu8,
+		MinItemsPerPage: 1,
+		MaxItemsPerPage: math.MaxUint8,
 	}}
 	for _, opt := range opts {
 		if err := opt(ex); err != nil {
@@ -223,7 +224,7 @@ func (c Config) Name() string {
 }
 
 // Decode from ent.
-func (c *Config) Decode(o interface{}) error {
+func (c *Config) Decode(o any) error {
 	buf, err := json.Marshal(o)
 	if err != nil {
 		return err
