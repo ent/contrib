@@ -284,41 +284,41 @@ var (
 
 func init() {
 	BillProductsTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(0),
+		IncrementStart: func(i int) *int { return &i }(0),
 	}
 	CategoriesTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(4294967296),
+		IncrementStart: func(i int) *int { return &i }(4294967296),
 	}
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
 	FriendshipsTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(8589934592),
+		IncrementStart: func(i int) *int { return &i }(8589934592),
 	}
 	GroupsTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(12884901888),
+		IncrementStart: func(i int) *int { return &i }(12884901888),
 	}
 	OneToManiesTable.ForeignKeys[0].RefTable = OneToManiesTable
 	OneToManiesTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(17179869184),
+		IncrementStart: func(i int) *int { return &i }(17179869184),
 	}
 	ProjectsTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(21474836480),
+		IncrementStart: func(i int) *int { return &i }(21474836480),
 	}
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
 	TodosTable.ForeignKeys[2].RefTable = TodosTable
 	TodosTable.ForeignKeys[3].RefTable = VerySecretsTable
 	TodosTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(25769803776),
+		IncrementStart: func(i int) *int { return &i }(25769803776),
 	}
 	UsersTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(30064771072),
+		IncrementStart: func(i int) *int { return &i }(30064771072),
 	}
 	VerySecretsTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(34359738368),
+		IncrementStart: func(i int) *int { return &i }(34359738368),
 	}
 	WorkspacesTable.Annotation = &entsql.Annotation{
-		IncrementStart: func(i int64) *int64 { return &i }(38654705664),
+		IncrementStart: func(i int) *int { return &i }(38654705664),
 	}
 	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
