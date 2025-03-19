@@ -21,12 +21,9 @@ import (
 	{{- end }}
 )
 
-{{ range $node := $gqlNodes }}
-{{ $names := nodePaginationNames $node }}
-{{ $name := $names.Node }}
-
-{{ $receiver := $node.Receiver }}
-{{ $query := $node.QueryName }}
+{{ range $node := $gqlNodes -}}
+{{- $query := $node.QueryName -}}
+{{- $receiver := $node.QueryReceiver -}}
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func ({{ $receiver }} *{{ $query }}) CollectFields(ctx context.Context, satisfies ...string) (*{{ $query }}, error) {
 	fc := graphql.GetFieldContext(ctx)
@@ -185,13 +182,14 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 	return nil
 }
 
-{{ $order := $names.Order }}
-{{ $multiOrder := $node.Annotations.EntGQL.MultiOrder }}
-{{ $orderField := $names.OrderField }}
-{{ $filter := print "With" $name "Filter" }}
-{{ $paginateArg := print (camel $name) "PaginateArgs" }}
-{{ $newPaginateArg := print "new" $name "PaginateArgs" }}
-
+{{ $names := nodePaginationNames $node -}}
+{{- $name := $names.Node -}}
+{{- $filter := print "With" $name "Filter" -}}
+{{- $paginateArg := print (camel $name) "PaginateArgs" -}}
+{{- $newPaginateArg := print "new" $name "PaginateArgs" -}}
+{{- $order := $names.Order -}}
+{{- $multiOrder := $node.Annotations.EntGQL.MultiOrder -}}
+{{- $orderField := $names.OrderField -}}
 type {{ $paginateArg }} struct {
 	first, last *int
 	after, before *Cursor
@@ -409,7 +407,7 @@ Cond:
 {{- end }}
 {{- define "dialect/sql/query/spec/internal_modify" }}
 	{{- if and ($.FeatureEnabled "sql/lock" | not) ($.FeatureEnabled "sql/modifier" | not) }}
-		{{- $receiver := pascal $.Scope.Builder | receiver }}
+		{{- $receiver := $.Scope.Receiver }}
 		if len({{ $receiver }}.modifiers) > 0 {
 			_spec.Modifiers = {{ $receiver }}.modifiers
 		}
@@ -421,8 +419,7 @@ Cond:
 	loadTotal []func(context.Context, []*{{ $.Name }}) error
 {{- end }}
 {{ define "dialect/sql/query/all/nodes/namedges_load_total" }}
-	{{- $builder := pascal $.Scope.Builder }}
-	{{- $receiver := receiver $builder }}
+	{{- $receiver := $.Scope.Receiver }}
 	for i := range {{ $receiver }}.loadTotal {
 		if err := {{ $receiver }}.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
