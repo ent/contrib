@@ -400,7 +400,8 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
                     "type": "array",
@@ -409,7 +410,8 @@
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -564,7 +566,8 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kuro"
                   },
                   "nicknames": {
                     "type": "array",
@@ -573,7 +576,8 @@
                     }
                   },
                   "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                   },
                   "categories": {
                     "type": "array",
@@ -1159,7 +1163,8 @@
             "type": "integer"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Kuro"
           },
           "nicknames": {
             "type": "array",
@@ -1168,7 +1173,8 @@
             }
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           },
           "categories": {
             "type": "array",
