@@ -213,7 +213,7 @@ func (ex *Extension) generate(next gen.Generator) gen.Generator {
 			_, err = ex.out.Write(b)
 			return err
 		}
-		return os.WriteFile(filepath.Join(g.Target, "openapi.json"), b, 0644)
+		return os.WriteFile(filepath.Join(g.Target, "openapi.json"), b, 0o644)
 	})
 }
 
@@ -234,7 +234,7 @@ func (c *Config) Decode(o interface{}) error {
 // GetConfig loads the entoas.Config from the given *gen.Config object.
 func GetConfig(cfg *gen.Config) (*Config, error) {
 	c := &Config{}
-	if cfg == nil && cfg.Annotations == nil && cfg.Annotations[c.Name()] == nil {
+	if cfg != nil && cfg.Annotations != nil && cfg.Annotations[c.Name()] == nil {
 		return nil, errors.New("entoas extension configuration not found")
 	}
 	return c, c.Decode(cfg.Annotations[c.Name()])
