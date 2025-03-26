@@ -1,8 +1,11 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.serviceGenerator*/ -}}
 {{ define "to_proto_func" }}
+    {{- $importPath := .File.GoImportPath -}}
+    {{- $pbTypeName := $importPath.Ident .EntType.Name | ident -}}
+
     // toProto{{ .EntType.Name }} transforms the ent type to the pb type
-    func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ .EntType.Name }}, error) {
-        v := &{{ .EntType.Name }}{}
+    func toProto{{ .EntType.Name }}(e *{{ .EntPackage.Ident .EntType.Name | ident }}) (*{{ $pbTypeName }}, error) {
+        v := &{{ $pbTypeName }}{}
         {{- range .FieldMap.Fields }}
             {{- $varName := .EntField.BuilderField -}}
             {{- $f := print "e." .EntField.StructField -}}
@@ -17,20 +20,21 @@
             {{- end }}
         {{- end }}
         {{- range .FieldMap.Edges }}
+            {{ $edgeTypeName := $importPath.Ident .EntEdge.Type.Name | ident }}
             {{- $varName := camel .EntEdge.Type.ID.StructField -}}
             {{- $id := print "edg." .EntEdge.Type.ID.StructField -}}
             {{- $name := .EntEdge.StructField -}}
             {{- if .EntEdge.Unique }}
                 if edg := e.Edges.{{ $name }}; edg != nil {
                     {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
-                    v.{{ .PbStructField }} = &{{ .EntEdge.Type.Name }}{
+                    v.{{ .PbStructField }} = &{{ $edgeTypeName }}{
                         {{ .EdgeIDPbStructField }}: {{ $varName }},
                     }
                 }
             {{- else }}
                 for _, edg := range e.Edges.{{ $name }} {
                     {{- template "field_to_proto" dict "Field" . "VarName" $varName "Ident" $id }}
-                    v.{{ .PbStructField }} = append(v.{{ .PbStructField }}, &{{ .EntEdge.Type.Name }}{
+                    v.{{ .PbStructField }} = append(v.{{ .PbStructField }}, &{{ $edgeTypeName }}{
                         {{ .EdgeIDPbStructField }}: {{ $varName }},
                     })
                 }
@@ -41,9 +45,12 @@
 {{ end }}
 
 {{ define "to_proto_list_func" }}
+    {{- $importPath := .File.GoImportPath -}}
+    {{- $pbTypeName := $importPath.Ident .EntType.Name | ident -}}
+
     // toProto{{ .EntType.Name }}List transforms a list of ent type to a list of pb type
-    func toProto{{ .EntType.Name }}List(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ .EntType.Name }}, error) {
-        var pbList []*{{ .EntType.Name }}
+    func toProto{{ .EntType.Name }}List(e []*{{ .EntPackage.Ident .EntType.Name | ident }}) ([]*{{ $pbTypeName }}, error) {
+        var pbList []*{{ $pbTypeName }}
         for _, entEntity := range e {
             pbEntity, err := toProto{{ .EntType.Name }}(entEntity)
             if err != nil {
