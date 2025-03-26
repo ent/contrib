@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package testdata;
+
+import "options/ent/opts.proto";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "ent/testdata";
+
+message Timestamp {
+  option (ent.schema).gen = true;
+  string name = 1;
+  google.protobuf.Timestamp created_at = 2;
+}
