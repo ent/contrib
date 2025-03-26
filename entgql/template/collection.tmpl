@@ -41,9 +41,11 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 	{{- $fields := filterFields $node.Fields (skipMode "type") }}
 	{{- $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
 	{{- if or $collects $fields }}
-		{{- if $fields }}
+		{{- if or $collects $fields }}
 		var (
+		    {{- if $fields }}
 			unknownSeen bool
+            {{- end }}
 			fieldSeen = make(map[string]struct{}, len({{ $node.Package }}.Columns))
 			selectedFields =
 			{{- if $node.HasOneFieldID -}}
