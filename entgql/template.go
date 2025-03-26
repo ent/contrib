@@ -96,6 +96,8 @@ var (
 		"skipMode":            skipModeFromString,
 	}
 
+	PaginationNameOverrides = map[string]string{}
+
 	//go:embed template/*
 	_templates embed.FS
 
@@ -703,6 +705,17 @@ func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 }
 
 func paginationNames(node string) *PaginationNames {
+	override, exists := PaginationNameOverrides[node]
+	if exists {
+		return &PaginationNames{
+			Connection: fmt.Sprintf("%sConnection", override),
+			Edge:       fmt.Sprintf("%sEdge", override),
+			Node:       node,
+			Order:      fmt.Sprintf("%sOrder", override),
+			OrderField: fmt.Sprintf("%sOrderField", override),
+			WhereInput: fmt.Sprintf("%sWhereInput", override),
+		}
+	}
 	return &PaginationNames{
 		Connection: fmt.Sprintf("%sConnection", node),
 		Edge:       fmt.Sprintf("%sEdge", node),
