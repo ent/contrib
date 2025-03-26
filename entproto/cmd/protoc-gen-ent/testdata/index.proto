@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package testdata;
+
+import "options/ent/opts.proto";
+
+option go_package = "ent/testdata";
+
+message Index {
+  option (ent.schema).gen = true;
+  string index = 1 [(ent.field) = {index: {}}];
+  string unique_index = 2 [(ent.field) = {index: {unique: true}}];
+}
