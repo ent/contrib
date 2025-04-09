@@ -79,6 +79,7 @@ func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], fi
 	return r.client.User.Query().
 		Paginate(ctx, after, first, before, last,
 			ent.WithUserFilter(where.Filter),
+			ent.WithUserOrder(orderBy),
 		)
 }
 
