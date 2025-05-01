@@ -3950,11 +3950,14 @@ func (ec *executionContext) _Category_config(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*schematype.CategoryConfig)
 	fc.Result = res
-	return ec.marshalOCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
+	return ec.marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3995,11 +3998,14 @@ func (ec *executionContext) _Category_types(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*schematype.CategoryTypes)
 	fc.Result = res
-	return ec.marshalOCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx, field.Selections, res)
+	return ec.marshalNCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_types(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4040,11 +4046,14 @@ func (ec *executionContext) _Category_duration(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Duration)
 	fc.Result = res
-	return ec.marshalODuration2timeᚐDuration(ctx, field.Selections, res)
+	return ec.marshalNDuration2timeᚐDuration(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_duration(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4081,11 +4090,14 @@ func (ec *executionContext) _Category_count(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(uint64)
 	fc.Result = res
-	return ec.marshalOUint642uint64(ctx, field.Selections, res)
+	return ec.marshalNUint642uint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4122,11 +4134,14 @@ func (ec *executionContext) _Category_strings(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_strings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6128,11 +6143,14 @@ func (ec *executionContext) _OneToMany_field2(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OneToMany_field2(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7816,11 +7834,14 @@ func (ec *executionContext) _Todo_categoryID(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOID2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_categoryID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7857,11 +7878,14 @@ func (ec *executionContext) _Todo_category_id(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOID2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_category_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7898,11 +7922,14 @@ func (ec *executionContext) _Todo_categoryX(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOID2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_categoryX(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7939,11 +7966,14 @@ func (ec *executionContext) _Todo_init(ctx context.Context, field graphql.Collec
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_init(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7980,11 +8010,14 @@ func (ec *executionContext) _Todo_custom(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]customstruct.Custom)
 	fc.Result = res
-	return ec.marshalOCustom2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustomᚄ(ctx, field.Selections, res)
+	return ec.marshalNCustom2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustomᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_custom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8025,11 +8058,14 @@ func (ec *executionContext) _Todo_customp(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*customstruct.Custom)
 	fc.Result = res
-	return ec.marshalOCustom2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, field.Selections, res)
+	return ec.marshalNCustom2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_customp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8798,11 +8834,14 @@ func (ec *executionContext) _User_metadata(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(map[string]interface{})
 	fc.Result = res
-	return ec.marshalOMap2map(ctx, field.Selections, res)
+	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_metadata(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14757,14 +14796,29 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "config":
 			out.Values[i] = ec._Category_config(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "types":
 			out.Values[i] = ec._Category_types(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "duration":
 			out.Values[i] = ec._Category_duration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "count":
 			out.Values[i] = ec._Category_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "strings":
 			out.Values[i] = ec._Category_strings(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "todos":
 			field := field
 
@@ -15571,6 +15625,9 @@ func (ec *executionContext) _OneToMany(ctx context.Context, sel ast.SelectionSet
 			}
 		case "field2":
 			out.Values[i] = ec._OneToMany_field2(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "parent":
 			field := field
 
@@ -16219,16 +16276,34 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "categoryID":
 			out.Values[i] = ec._Todo_categoryID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "category_id":
 			out.Values[i] = ec._Todo_category_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "categoryX":
 			out.Values[i] = ec._Todo_categoryX(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "init":
 			out.Values[i] = ec._Todo_init(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "custom":
 			out.Values[i] = ec._Todo_custom(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "customp":
 			out.Values[i] = ec._Todo_customp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "value":
 			out.Values[i] = ec._Todo_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -16512,6 +16587,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "metadata":
 			out.Values[i] = ec._User_metadata(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "groups":
 			field := field
 
@@ -17153,6 +17231,16 @@ func (ec *executionContext) marshalNCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 	return ec._Category(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CategoryConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, v any) (*schematype.CategoryConfig, error) {
 	res, err := ec.unmarshalInputCategoryConfigInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -17203,6 +17291,16 @@ func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgql
 	return v
 }
 
+func (ec *executionContext) marshalNCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryTypes) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CategoryTypes(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCategoryWhereInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚐCategoryWhereInput(ctx context.Context, v any) (*ent.CategoryWhereInput, error) {
 	res, err := ec.unmarshalInputCategoryWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -17235,6 +17333,88 @@ func (ec *executionContext) marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCurso
 
 func (ec *executionContext) marshalNCustom2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx context.Context, sel ast.SelectionSet, v customstruct.Custom) graphql.Marshaler {
 	return ec._Custom(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCustom2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustomᚄ(ctx context.Context, sel ast.SelectionSet, v []customstruct.Custom) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCustom2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCustom2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx context.Context, sel ast.SelectionSet, v []*customstruct.Custom) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCustom2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNDuration2timeᚐDuration(ctx context.Context, v any) (time.Duration, error) {
@@ -18007,13 +18187,6 @@ func (ec *executionContext) marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋ
 	return ec._Category(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryConfig) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CategoryConfig(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx context.Context, v any) ([]*schematype.CategoryConfig, error) {
 	if v == nil {
 		return nil, nil
@@ -18187,13 +18360,6 @@ func (ec *executionContext) marshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋent
 	return v
 }
 
-func (ec *executionContext) marshalOCategoryTypes2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx context.Context, sel ast.SelectionSet, v *schematype.CategoryTypes) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CategoryTypes(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx context.Context, v any) (*schematype.CategoryTypes, error) {
 	if v == nil {
 		return nil, nil
@@ -18262,109 +18428,11 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCu
 	return v
 }
 
-func (ec *executionContext) marshalOCustom2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustomᚄ(ctx context.Context, sel ast.SelectionSet, v []customstruct.Custom) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNCustom2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalOCustom2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx context.Context, sel ast.SelectionSet, v []*customstruct.Custom) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOCustom2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) marshalOCustom2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚋschemaᚋcustomstructᚐCustom(ctx context.Context, sel ast.SelectionSet, v *customstruct.Custom) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Custom(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalODuration2timeᚐDuration(ctx context.Context, v any) (time.Duration, error) {
-	res, err := durationgql.UnmarshalDuration(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalODuration2timeᚐDuration(ctx context.Context, sel ast.SelectionSet, v time.Duration) graphql.Marshaler {
-	res := durationgql.MarshalDuration(v)
-	return res
 }
 
 func (ec *executionContext) unmarshalODuration2ᚕtimeᚐDurationᚄ(ctx context.Context, v any) ([]time.Duration, error) {
@@ -18579,16 +18647,6 @@ func (ec *executionContext) unmarshalOGroupWhereInput2ᚖentgoᚗioᚋcontribᚋ
 	}
 	res, err := ec.unmarshalInputGroupWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOID2int(ctx context.Context, v any) (int, error) {
-	res, err := graphql.UnmarshalIntID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalIntID(v)
-	return res
 }
 
 func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v any) ([]int, error) {
@@ -18914,16 +18972,6 @@ func (ec *executionContext) unmarshalOProjectWhereInput2ᚖentgoᚗioᚋcontrib�
 	}
 	res, err := ec.unmarshalInputProjectWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOString2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	return res
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
@@ -19259,16 +19307,6 @@ func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(
 		return graphql.Null
 	}
 	res := uuidgql.MarshalUUID(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOUint642uint64(ctx context.Context, v any) (uint64, error) {
-	res, err := graphql.UnmarshalUint64(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOUint642uint64(ctx context.Context, sel ast.SelectionSet, v uint64) graphql.Marshaler {
-	res := graphql.MarshalUint64(v)
 	return res
 }
 

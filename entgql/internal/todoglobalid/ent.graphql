@@ -73,11 +73,11 @@ type Category implements Node {
   id: ID!
   text: String!
   status: CategoryStatus!
-  config: CategoryConfig
-  types: CategoryTypes
-  duration: Duration
-  count: Uint64
-  strings: [String!] @deprecated(reason: "use `string` instead")
+  config: CategoryConfig!
+  types: CategoryTypes!
+  duration: Duration!
+  count: Uint64!
+  strings: [String!]! @deprecated(reason: "use `string` instead")
   todos(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -534,7 +534,7 @@ interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todoglobalid/en
 type OneToMany implements Node {
   id: ID!
   name: String!
-  field2: String
+  field2: String!
   parent: OneToMany
   children: [OneToMany!]
 }
@@ -969,12 +969,12 @@ type Todo implements Node {
   status: TodoStatus!
   priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
-  categoryID: ID
-  category_id: ID
-  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
-  init: Map
-  custom: [Custom!]
-  customp: [Custom]
+  categoryID: ID!
+  category_id: ID!
+  categoryX: ID! @goField(name: "CategoryID", forceResolver: false)
+  init: Map!
+  custom: [Custom!]!
+  customp: [Custom]!
   value: Int!
   parent: Todo
   children(
@@ -1254,7 +1254,7 @@ type User implements Node {
   name: String!
   username: UUID!
   requiredMetadata: Map!
-  metadata: Map
+  metadata: Map!
   groups(
     """
     Returns the elements in the list that come after the specified cursor.

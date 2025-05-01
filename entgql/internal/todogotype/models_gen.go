@@ -39,7 +39,7 @@ type CreateUserInput struct {
 type OneToMany struct {
 	ID       string       `json:"id"`
 	Name     string       `json:"name"`
-	Field2   *string      `json:"field2,omitempty"`
+	Field2   string       `json:"field2"`
 	Parent   *OneToMany   `json:"parent,omitempty"`
 	Children []*OneToMany `json:"children,omitempty"`
 }
