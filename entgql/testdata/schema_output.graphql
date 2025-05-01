@@ -8,11 +8,11 @@ type Category {
   id: ID!
   text: String!
   status: CategoryStatus!
-  config: CategoryConfig
-  types: CategoryTypes
-  duration: Duration
-  count: Uint64
-  strings: [String!]
+  config: CategoryConfig!
+  types: CategoryTypes!
+  duration: Duration!
+  count: Uint64!
+  strings: [String!]!
   todos: [Todo!]
   subCategories: [Category!]
 }
@@ -110,7 +110,7 @@ scalar Map
 type OneToMany {
   id: ID!
   name: String!
-  field2: String
+  field2: String!
   parent: OneToMany
   children: [OneToMany!]
 }
@@ -162,12 +162,12 @@ type Todo {
   status: TodoStatus!
   priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
-  categoryID: ID
-  category_id: ID
-  categoryX: ID @goField(name: "CategoryID", forceResolver: false)
-  init: Map
-  custom: [Custom!]
-  customp: [Custom]
+  categoryID: ID!
+  category_id: ID!
+  categoryX: ID! @goField(name: "CategoryID", forceResolver: false)
+  init: Map!
+  custom: [Custom!]!
+  customp: [Custom]!
   value: Int!
   parent: Todo
   children: [Todo!]
@@ -287,7 +287,7 @@ type User {
   name: String!
   username: UUID!
   requiredMetadata: Map!
-  metadata: Map
+  metadata: Map!
   """
   The groups of the user
   """
