@@ -714,7 +714,7 @@ func (e *schemaGenerator) fieldDefinitionOp(gqlType string, f *gen.Field, ant *A
 
 func (e *schemaGenerator) typeFromField(gqlType string, f *gen.Field, ant *Annotation) (*ast.Type, error) {
 	if scalar := e.mapScalar(gqlType, f, ant, nonInputObjectFilter); scalar != "" {
-		return namedType(scalar, f.Optional), nil
+		return namedType(scalar, f.Nillable), nil
 	}
 
 	switch t := f.Type.Type; {
