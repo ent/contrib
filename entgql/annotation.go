@@ -53,8 +53,12 @@ type (
 		MutationInputs []MutationConfig `json:"MutationInputs,omitempty"`
 		// UseEnumNames can be used on `Enum` fields that use the `NamedValues` function to specify values.
 		// when true, the graphql enums will use the Name instead of the value. This is useful when the value
-		// is something that is not a valid graphql enum.
+		// is something that is not a valid graphql enum. The value will be added to the description of the
+		// resulting enum in the graphql schema.
 		UseEnumNames bool `json:"UseEnumNames,omitempty"`
+		// DeprecatedEnumValues is a list of enum values that should be marked
+		// with the `@deprecated` directive.
+		DeprecatedEnumValues []string `json:"DeprecatedEnumValues,omitempty"`
 	}
 
 	// Directive to apply on the field/type.
@@ -435,6 +439,10 @@ func UseEnumNames() Annotation {
 	return Annotation{UseEnumNames: true}
 }
 
+func DeprecatedEnumValues(values ...string) Annotation {
+	return Annotation{DeprecatedEnumValues: values}
+}
+
 // Merge implements the schema.Merger interface.
 func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	var ant Annotation
@@ -492,6 +500,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if ant.UseEnumNames {
 		a.UseEnumNames = true
+	}
+	if len(ant.DeprecatedEnumValues) > 0 {
+		a.DeprecatedEnumValues = append(a.DeprecatedEnumValues, ant.DeprecatedEnumValues...)
 	}
 	return a
 }

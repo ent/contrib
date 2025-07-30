@@ -404,17 +404,29 @@ func (e *schemaGenerator) buildFieldEnum(f *gen.Field, gqlType, goType string) (
 	if err != nil {
 		return nil, err
 	}
-	var name string
-	for _, v := range f.Enums {
-		if ant.UseEnumNames {
-			name = strings.TrimPrefix(v.Name, f.StructField())
-		} else {
-			name = v.Value
+
+	var deprecatedEnumValues map[string]struct{}
+	if ant.DeprecatedEnumValues != nil {
+		deprecatedEnumValues = make(map[string]struct{}, len(ant.DeprecatedEnumValues))
+		for _, v := range ant.DeprecatedEnumValues {
+			deprecatedEnumValues[v] = struct{}{}
 		}
-		enumValues = append(enumValues, &ast.EnumValueDefinition{
-			Name: name,
-		})
 	}
+
+	for _, v := range f.Enums {
+		enumValue := &ast.EnumValueDefinition{}
+		if ant.UseEnumNames {
+			enumValue.Name = strings.TrimPrefix(v.Name, f.StructField())
+			enumValue.Description = v.Value
+		} else {
+			enumValue.Name = v.Value
+		}
+		if _, ok := deprecatedEnumValues[enumValue.Name]; ok {
+			enumValue.Directives = ast.DirectiveList{{Name: "deprecated"}}
+		}
+		enumValues = append(enumValues, enumValue)
+	}
+
 	return &ast.Definition{
 		Name:        gqlType,
 		Kind:        ast.Enum,
@@ -868,38 +880,38 @@ func entGoType(name, pkg string) string {
 }
 
 func builtinTypes() []*ast.Definition {
-	   return []*ast.Definition{
-			   {
-					   Name:        OrderDirectionEnum,
-					   Kind:        ast.Enum,
-					   Description: "Possible directions in which to order a list of items when provided an `orderBy` argument.",
-					   EnumValues: []*ast.EnumValueDefinition{
-							   {
-									   Name:        "ASC",
-									   Description: "Specifies an ascending order for a given `orderBy` argument.",
-							   },
-							   {
-									   Name:        "DESC",
-									   Description: "Specifies a descending order for a given `orderBy` argument.",
-							   },
-					   },
-			   },
-			   {
-					   Name:        NullsDirectionEnum,
-					   Kind:        ast.Enum,
-					   Description: "Possible directions in which to order null values when provided an `orderBy` argument.",
-					   EnumValues: []*ast.EnumValueDefinition{
-							   {
-									   Name:        "FIRST",
-									   Description: "Specifies that null values are ordered first when sorting with an `orderBy` argument.",
-							   },
-							   {
-									   Name:        "LAST",
-									   Description: "Specifies that null values are ordered last when sorting with an `orderBy` argument.",
-							   },
-					   },
-			   },
-	   }
+	return []*ast.Definition{
+		{
+			Name:        OrderDirectionEnum,
+			Kind:        ast.Enum,
+			Description: "Possible directions in which to order a list of items when provided an `orderBy` argument.",
+			EnumValues: []*ast.EnumValueDefinition{
+				{
+					Name:        "ASC",
+					Description: "Specifies an ascending order for a given `orderBy` argument.",
+				},
+				{
+					Name:        "DESC",
+					Description: "Specifies a descending order for a given `orderBy` argument.",
+				},
+			},
+		},
+		{
+			Name:        NullsDirectionEnum,
+			Kind:        ast.Enum,
+			Description: "Possible directions in which to order null values when provided an `orderBy` argument.",
+			EnumValues: []*ast.EnumValueDefinition{
+				{
+					Name:        "FIRST",
+					Description: "Specifies that null values are ordered first when sorting with an `orderBy` argument.",
+				},
+				{
+					Name:        "LAST",
+					Description: "Specifies that null values are ordered last when sorting with an `orderBy` argument.",
+				},
+			},
+		},
+	}
 }
 
 func relayBuiltinQueryFields() ast.FieldList {
