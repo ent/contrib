@@ -307,9 +307,10 @@ func (e *schemaGenerator) externalType(name string) bool {
 
 func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg string) (*ast.Definition, error) {
 	def := &ast.Definition{
-		Name:       gqlType,
-		Kind:       ast.Object,
-		Directives: e.buildDirectives(ant.Directives),
+		Name:        gqlType,
+		Kind:        ast.Object,
+		Description: ant.Description,
+		Directives:  e.buildDirectives(ant.Directives),
 	}
 	if t.Name != gqlType {
 		def.Directives = append(def.Directives, goModel(entGoType(t.Name, pkg)))
