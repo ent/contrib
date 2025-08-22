@@ -521,6 +521,13 @@ func ({{ $r }} *{{ $query }}) Paginate(
 							append(opts, sql.OrderSelectAs({{ $f.VarField }}))...,
 						)
 					},
+				{{- else if $f.IsNonUniqueEdgeFieldTerm }}
+					column: {{ $f.VarField }},
+					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
+						return {{ $node.Package}}.{{ $f.Edge.OrderTermsName }}(
+							sql.OrderByField({{ $f.Type.Package }}.{{ $f.Field.Constant }}, opts...),
+						)
+					},
 				{{- else if $f.IsEdgeCountTerm }}
 					column: {{ $f.VarField }},
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
@@ -535,6 +542,13 @@ func ({{ $r }} *{{ $query }}) Paginate(
 						return Cursor{
 							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 							Value: {{ $r }}.{{ $f.Field.StructField }},
+						}
+					{{- else if $f.IsNonUniqueEdgeFieldTerm }}
+						{{- /* Non-unique edge field terms use ValueName to get the field value */}}
+						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
+						return Cursor{
+							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+							Value: cv,
 						}
 					{{- else }}
 						{{- /* Unxpected non-selected field error can occur. */}}

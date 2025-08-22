@@ -403,12 +403,19 @@ func (o *OrderTerm) IsEdgeCountTerm() bool {
 	return o.Field == nil && o.Edge != nil && o.Count
 }
 
+// IsNonUniqueEdgeFieldTerm returns true if the order term is a non-unique edge field term.
+func (o *OrderTerm) IsNonUniqueEdgeFieldTerm() bool {
+	return o.Field != nil && o.Edge != nil && !o.Edge.Unique
+}
+
 // VarName returns the name of the variable holding the order term.
 func (o *OrderTerm) VarName() (string, error) {
 	switch prefix := paginationNames(o.Owner.Name).OrderField; {
 	case o.IsFieldTerm():
 		return prefix + o.Field.StructField(), nil
-	case o.IsEdgeFieldTerm():
+	case o.IsEdgeFieldTerm() && o.Edge.Unique:
+		return prefix + o.Edge.StructField() + o.Field.StructField(), nil
+	case o.IsNonUniqueEdgeFieldTerm():
 		return prefix + o.Edge.StructField() + o.Field.StructField(), nil
 	case o.IsEdgeCountTerm():
 		return prefix + o.Edge.StructField() + "Count", nil
@@ -424,6 +431,8 @@ func (o *OrderTerm) VarField() (string, error) {
 		return fmt.Sprintf("%s.%s", o.Type.Package(), o.Field.Constant()), nil
 	case o.IsEdgeFieldTerm(), o.IsEdgeCountTerm():
 		return strconv.Quote(strings.ToLower(o.GQL)), nil
+	case o.IsNonUniqueEdgeFieldTerm():
+		return fmt.Sprintf("%s.%s", o.Type.Package(), o.Field.Constant()), nil
 	default:
 		return "", fmt.Errorf("entgql: invalid order term %v", o)
 	}
@@ -488,9 +497,16 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 			return strings.HasPrefix(item, name+"_")
 		})) > 0:
 			for _, field := range ant.OrderField {
-				// Validate that the edge has a edge field ordering.
-				if _, err := e.OrderFieldName(); err != nil {
-					return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+				// For unique edges, validate that the edge has edge field ordering support.
+				// For non-unique edges, validate that the edge has ordering terms support.
+				if e.Unique {
+					if _, err := e.OrderFieldName(); err != nil {
+						return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+					}
+				} else {
+					if _, err := e.OrderTermsName(); err != nil {
+						return nil, fmt.Errorf("entgql: invalid order field %s defined on edge %s.%s: %w", ant.OrderField, n.Name, e.Name, err)
+					}
 				}
 				ef := strings.TrimPrefix(field, name+"_")
 				idx := slices.IndexFunc(e.Type.Fields, func(f *gen.Field) bool {
