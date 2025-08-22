@@ -513,19 +513,19 @@ func ({{ $r }} *{{ $query }}) Paginate(
 				{{- if $f.IsFieldTerm }}
 					column: {{ $node.Package }}.{{ $f.Field.Constant }},
 					toTerm: {{ $node.Package }}.{{ $f.Field.OrderName }},
+        {{- else if $f.IsNonUniqueEdgeFieldTerm }}
+					column: {{ $f.VarField }},
+					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
+						return {{ $node.Package}}.{{ $f.Edge.OrderTermsName }}(
+							sql.OrderByField({{ $f.Type.Package }}.{{ $f.Field.Constant }}, opts...),
+						)
+					},
 				{{- else if $f.IsEdgeFieldTerm }}
 					column: {{ $f.VarField }},
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
 						return {{ $node.Package}}.{{ $f.Edge.OrderFieldName }}(
 							{{ $f.Type.Package }}.{{ $f.Field.Constant }},
 							append(opts, sql.OrderSelectAs({{ $f.VarField }}))...,
-						)
-					},
-				{{- else if $f.IsNonUniqueEdgeFieldTerm }}
-					column: {{ $f.VarField }},
-					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
-						return {{ $node.Package}}.{{ $f.Edge.OrderTermsName }}(
-							sql.OrderByField({{ $f.Type.Package }}.{{ $f.Field.Constant }}, opts...),
 						)
 					},
 				{{- else if $f.IsEdgeCountTerm }}
