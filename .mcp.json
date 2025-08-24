@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "zen": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/BeehiveInnovations/zen-mcp-server.git",
+        "zen-mcp-server"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "DEFAULT_MODEL": "auto"
+      }
+    }
+  }
+}
