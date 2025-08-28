@@ -35,18 +35,18 @@ import (
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (bp *BillProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*BillProductQuery, error) {
+func (bpq *BillProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*BillProductQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return bp, nil
+		return bpq, nil
 	}
-	if err := bp.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := bpq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return bp, nil
+	return bpq, nil
 }
 
-func (bp *BillProductQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (bpq *BillProductQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -77,7 +77,7 @@ func (bp *BillProductQuery) collectField(ctx context.Context, oneNode bool, opCt
 		}
 	}
 	if !unknownSeen {
-		bp.Select(selectedFields...)
+		bpq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -112,18 +112,18 @@ func newBillProductPaginateArgs(rv map[string]any) *billproductPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (c *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
+func (cq *CategoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*CategoryQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return c, nil
+		return cq, nil
 	}
-	if err := c.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := cq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return cq, nil
 }
 
-func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -137,7 +137,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&TodoClient{config: c.config}).Query()
+				query = (&TodoClient{config: cq.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -155,7 +155,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
+					cq.loadTotal = append(cq.loadTotal, func(ctx context.Context, nodes []*Category) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -184,7 +184,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 						return nil
 					})
 				} else {
-					c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
+					cq.loadTotal = append(cq.loadTotal, func(_ context.Context, nodes []*Category) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Todos)
 							if nodes[i].Edges.totalCount[0] == nil {
@@ -218,7 +218,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 			} else {
 				query = pager.applyOrder(query)
 			}
-			c.WithNamedTodos(alias, func(wq *TodoQuery) {
+			cq.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
 
@@ -226,7 +226,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&CategoryClient{config: c.config}).Query()
+				query = (&CategoryClient{config: cq.config}).Query()
 			)
 			args := newCategoryPaginateArgs(fieldArgs(ctx, new(CategoryWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -244,7 +244,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					c.loadTotal = append(c.loadTotal, func(ctx context.Context, nodes []*Category) error {
+					cq.loadTotal = append(cq.loadTotal, func(ctx context.Context, nodes []*Category) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -277,7 +277,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 						return nil
 					})
 				} else {
-					c.loadTotal = append(c.loadTotal, func(_ context.Context, nodes []*Category) error {
+					cq.loadTotal = append(cq.loadTotal, func(_ context.Context, nodes []*Category) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.SubCategories)
 							if nodes[i].Edges.totalCount[1] == nil {
@@ -311,7 +311,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 			} else {
 				query = pager.applyOrder(query)
 			}
-			c.WithNamedSubCategories(alias, func(wq *CategoryQuery) {
+			cq.WithNamedSubCategories(alias, func(wq *CategoryQuery) {
 				*wq = *query
 			})
 		case "text":
@@ -356,7 +356,7 @@ func (c *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 		}
 	}
 	if !unknownSeen {
-		c.Select(selectedFields...)
+		cq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -419,18 +419,18 @@ func newCategoryPaginateArgs(rv map[string]any) *categoryPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (f *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
+func (fq *FriendshipQuery) CollectFields(ctx context.Context, satisfies ...string) (*FriendshipQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return f, nil
+		return fq, nil
 	}
-	if err := f.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := fq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return f, nil
+	return fq, nil
 }
 
-func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (fq *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -444,12 +444,12 @@ func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx 
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&UserClient{config: f.config}).Query()
+				query = (&UserClient{config: fq.config}).Query()
 			)
 			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
 				return err
 			}
-			f.withUser = query
+			fq.withUser = query
 			if _, ok := fieldSeen[friendship.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, friendship.FieldUserID)
 				fieldSeen[friendship.FieldUserID] = struct{}{}
@@ -459,12 +459,12 @@ func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx 
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&UserClient{config: f.config}).Query()
+				query = (&UserClient{config: fq.config}).Query()
 			)
 			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
 				return err
 			}
-			f.withFriend = query
+			fq.withFriend = query
 			if _, ok := fieldSeen[friendship.FieldFriendID]; !ok {
 				selectedFields = append(selectedFields, friendship.FieldFriendID)
 				fieldSeen[friendship.FieldFriendID] = struct{}{}
@@ -491,7 +491,7 @@ func (f *FriendshipQuery) collectField(ctx context.Context, oneNode bool, opCtx 
 		}
 	}
 	if !unknownSeen {
-		f.Select(selectedFields...)
+		fq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -526,18 +526,18 @@ func newFriendshipPaginateArgs(rv map[string]any) *friendshipPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (gr *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*GroupQuery, error) {
+func (gq *GroupQuery) CollectFields(ctx context.Context, satisfies ...string) (*GroupQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return gr, nil
+		return gq, nil
 	}
-	if err := gr.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := gq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return gr, nil
+	return gq, nil
 }
 
-func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (gq *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -551,7 +551,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&UserClient{config: gr.config}).Query()
+				query = (&UserClient{config: gq.config}).Query()
 			)
 			args := newUserPaginateArgs(fieldArgs(ctx, new(UserWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -569,7 +569,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					gr.loadTotal = append(gr.loadTotal, func(ctx context.Context, nodes []*Group) error {
+					gq.loadTotal = append(gq.loadTotal, func(ctx context.Context, nodes []*Group) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -602,7 +602,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 						return nil
 					})
 				} else {
-					gr.loadTotal = append(gr.loadTotal, func(_ context.Context, nodes []*Group) error {
+					gq.loadTotal = append(gq.loadTotal, func(_ context.Context, nodes []*Group) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Users)
 							if nodes[i].Edges.totalCount[0] == nil {
@@ -636,7 +636,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 			} else {
 				query = pager.applyOrder(query)
 			}
-			gr.WithNamedUsers(alias, func(wq *UserQuery) {
+			gq.WithNamedUsers(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
 		case "name":
@@ -651,7 +651,7 @@ func (gr *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 		}
 	}
 	if !unknownSeen {
-		gr.Select(selectedFields...)
+		gq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -686,18 +686,18 @@ func newGroupPaginateArgs(rv map[string]any) *groupPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (pe *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*PetQuery, error) {
+func (pq *PetQuery) CollectFields(ctx context.Context, satisfies ...string) (*PetQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return pe, nil
+		return pq, nil
 	}
-	if err := pe.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := pq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return pe, nil
+	return pq, nil
 }
 
-func (pe *PetQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (pq *PetQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -718,7 +718,7 @@ func (pe *PetQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 		}
 	}
 	if !unknownSeen {
-		pe.Select(selectedFields...)
+		pq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -753,18 +753,18 @@ func newPetPaginateArgs(rv map[string]any) *petPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (t *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
+func (tq *TodoQuery) CollectFields(ctx context.Context, satisfies ...string) (*TodoQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return t, nil
+		return tq, nil
 	}
-	if err := t.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := tq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return tq, nil
 }
 
-func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (tq *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -778,18 +778,18 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&TodoClient{config: t.config}).Query()
+				query = (&TodoClient{config: tq.config}).Query()
 			)
 			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 				return err
 			}
-			t.withParent = query
+			tq.withParent = query
 
 		case "children":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&TodoClient{config: t.config}).Query()
+				query = (&TodoClient{config: tq.config}).Query()
 			)
 			args := newTodoPaginateArgs(fieldArgs(ctx, new(TodoWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -807,7 +807,7 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					t.loadTotal = append(t.loadTotal, func(ctx context.Context, nodes []*Todo) error {
+					tq.loadTotal = append(tq.loadTotal, func(ctx context.Context, nodes []*Todo) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -836,7 +836,7 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						return nil
 					})
 				} else {
-					t.loadTotal = append(t.loadTotal, func(_ context.Context, nodes []*Todo) error {
+					tq.loadTotal = append(tq.loadTotal, func(_ context.Context, nodes []*Todo) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Children)
 							if nodes[i].Edges.totalCount[1] == nil {
@@ -870,7 +870,7 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			} else {
 				query = pager.applyOrder(query)
 			}
-			t.WithNamedChildren(alias, func(wq *TodoQuery) {
+			tq.WithNamedChildren(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
 
@@ -878,12 +878,12 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&CategoryClient{config: t.config}).Query()
+				query = (&CategoryClient{config: tq.config}).Query()
 			)
 			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, categoryImplementors)...); err != nil {
 				return err
 			}
-			t.withCategory = query
+			tq.withCategory = query
 			if _, ok := fieldSeen[todo.FieldCategoryID]; !ok {
 				selectedFields = append(selectedFields, todo.FieldCategoryID)
 				fieldSeen[todo.FieldCategoryID] = struct{}{}
@@ -940,7 +940,7 @@ func (t *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 		}
 	}
 	if !unknownSeen {
-		t.Select(selectedFields...)
+		tq.Select(selectedFields...)
 	}
 	return nil
 }
@@ -1003,18 +1003,18 @@ func newTodoPaginateArgs(rv map[string]any) *todoPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
-func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
+func (uq *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
-		return u, nil
+		return uq, nil
 	}
-	if err := u.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+	if err := uq.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
 		return nil, err
 	}
-	return u, nil
+	return uq, nil
 }
 
-func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+func (uq *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
 	var (
 		unknownSeen    bool
@@ -1028,7 +1028,7 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&GroupClient{config: u.config}).Query()
+				query = (&GroupClient{config: uq.config}).Query()
 			)
 			args := newGroupPaginateArgs(fieldArgs(ctx, new(GroupWhereInput), path...))
 			if err := validateFirstLast(args.first, args.last); err != nil {
@@ -1046,7 +1046,7 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
-					u.loadTotal = append(u.loadTotal, func(ctx context.Context, nodes []*User) error {
+					uq.loadTotal = append(uq.loadTotal, func(ctx context.Context, nodes []*User) error {
 						ids := make([]driver.Value, len(nodes))
 						for i := range nodes {
 							ids[i] = nodes[i].ID
@@ -1079,7 +1079,7 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 						return nil
 					})
 				} else {
-					u.loadTotal = append(u.loadTotal, func(_ context.Context, nodes []*User) error {
+					uq.loadTotal = append(uq.loadTotal, func(_ context.Context, nodes []*User) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.Groups)
 							if nodes[i].Edges.totalCount[0] == nil {
@@ -1113,7 +1113,7 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			} else {
 				query = pager.applyOrder(query)
 			}
-			u.WithNamedGroups(alias, func(wq *GroupQuery) {
+			uq.WithNamedGroups(alias, func(wq *GroupQuery) {
 				*wq = *query
 			})
 
@@ -1121,12 +1121,12 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&UserClient{config: u.config}).Query()
+				query = (&UserClient{config: uq.config}).Query()
 			)
 			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
 				return err
 			}
-			u.WithNamedFriends(alias, func(wq *UserQuery) {
+			uq.WithNamedFriends(alias, func(wq *UserQuery) {
 				*wq = *query
 			})
 
@@ -1134,12 +1134,12 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&FriendshipClient{config: u.config}).Query()
+				query = (&FriendshipClient{config: uq.config}).Query()
 			)
 			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, friendshipImplementors)...); err != nil {
 				return err
 			}
-			u.WithNamedFriendships(alias, func(wq *FriendshipQuery) {
+			uq.WithNamedFriendships(alias, func(wq *FriendshipQuery) {
 				*wq = *query
 			})
 		case "name":
@@ -1154,7 +1154,7 @@ func (u *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *graph
 		}
 	}
 	if !unknownSeen {
-		u.Select(selectedFields...)
+		uq.Select(selectedFields...)
 	}
 	return nil
 }

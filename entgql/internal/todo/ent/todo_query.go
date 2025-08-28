@@ -368,8 +368,9 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		withCategory: tq.withCategory.Clone(),
 		withSecret:   tq.withSecret.Clone(),
 		// clone intermediate query.
-		sql:  tq.sql.Clone(),
-		path: tq.path,
+		sql:       tq.sql.Clone(),
+		path:      tq.path,
+		modifiers: append([]func(*sql.Selector){}, tq.modifiers...),
 	}
 }
 

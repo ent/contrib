@@ -505,24 +505,22 @@ can use the provided [Dockerfile](Dockerfile) that mimics the CI environment.
 Build the image:
 
 ```shell
-cd entproto
-docker build --platform=linux/x86_64 -t entproto-dev .
-cd ..
+docker build --platform='linux/x86_64' -f entproto/Dockerfile -t entproto-dev:latest .
 ```
 
 Run the image (from the root `contrib/` directory), mounting your local source code
 into `/go/src` inside the container:
 
 ```shell
-docker run --platform=linux/x86_64 -it -v $(pwd):/go/src -w /go/src/entproto entproto-dev bash
+docker run --platform='linux/x86_64' -it -v $(pwd):/go/src -w /go/src/entproto entproto-dev bash
 ```
 
 From within the Docker image, compile and install your current `protoc-gen-entgrpc`
 binary, regenerate all code and run the tests.
 
 ```shell
-go install ./cmd/protoc-gen-entgrpc &&
-	go install ./cmd/protoc-gen-ent &&
+go install -buildvcs=false ./cmd/protoc-gen-entgrpc &&
+	go install -buildvcs=false  ./cmd/protoc-gen-ent &&
 	go generate ./... &&
 	go test ./...
 ```

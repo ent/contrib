@@ -317,8 +317,9 @@ func (otmq *OneToManyQuery) Clone() *OneToManyQuery {
 		withParent:   otmq.withParent.Clone(),
 		withChildren: otmq.withChildren.Clone(),
 		// clone intermediate query.
-		sql:  otmq.sql.Clone(),
-		path: otmq.path,
+		sql:       otmq.sql.Clone(),
+		path:      otmq.path,
+		modifiers: append([]func(*sql.Selector){}, otmq.modifiers...),
 	}
 }
 
