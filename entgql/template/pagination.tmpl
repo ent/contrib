@@ -513,6 +513,60 @@ func ({{ $r }} *{{ $query }}) Paginate(
 				{{- if $f.IsFieldTerm }}
 					column: {{ $node.Package }}.{{ $f.Field.Constant }},
 					toTerm: {{ $node.Package }}.{{ $f.Field.OrderName }},
+        {{- else if $f.IsNonUniqueEdgeFieldTerm }}
+					column: {{ $f.VarField }},
+					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
+						// For non-unique edges, create a custom ordering function
+						return func(s *sql.Selector) {
+							// Create table reference for the edge
+							joinT := sql.Table({{ $f.Type.Package }}.Table)
+							
+							// Get ordering options
+							termOpts := sql.NewOrderTermOptions(opts...)
+							direction := "ASC"
+							nullsDir := "NULLS LAST"
+							if termOpts.Desc {
+								direction = "DESC"
+							}
+							if termOpts.NullsFirst {
+								nullsDir = "NULLS FIRST"
+							}
+							
+							// Create the LEFT JOIN with subquery that uses aggregate
+							var aggregateFunc string
+							if termOpts.Desc {
+								aggregateFunc = "MAX"
+							} else {
+								aggregateFunc = "MIN"
+							}
+							
+							// Use a subquery for the join with proper aggregation
+							subquery := sql.Select({{ $node.Package }}.{{ $f.Edge.ColumnConstant }}).
+								AppendSelectExprAs(
+									sql.ExprFunc(func(b *sql.Builder) {
+										b.WriteString(aggregateFunc + "(").
+											Ident({{ $f.Type.Package }}.{{ $f.Field.Constant }}).
+											WriteString(")")
+									}),
+									{{ $f.VarField }},
+								).
+								From(joinT).
+								GroupBy({{ $node.Package }}.{{ $f.Edge.ColumnConstant }})
+							
+							// Add the JOIN
+							s.LeftJoin(subquery.As("t_" + {{ $f.VarField }})).On(
+								s.C({{ $node.Package }}.FieldID),
+								sql.Table("t_" + {{ $f.VarField }}).C({{ $node.Package }}.{{ $f.Edge.ColumnConstant }}),
+							)
+							
+							// Add ORDER BY clause
+							s.OrderExpr(sql.ExprFunc(func(b *sql.Builder) {
+								b.Ident("t_" + {{ $f.VarField }}).WriteString(".").Ident({{ $f.VarField }}).
+									Pad().WriteString(direction).
+									Pad().WriteString(nullsDir)
+							}))
+						}
+					},
 				{{- else if $f.IsEdgeFieldTerm }}
 					column: {{ $f.VarField }},
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
@@ -535,6 +589,13 @@ func ({{ $r }} *{{ $query }}) Paginate(
 						return Cursor{
 							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 							Value: {{ $r }}.{{ $f.Field.StructField }},
+						}
+					{{- else if $f.IsNonUniqueEdgeFieldTerm }}
+						{{- /* Non-unique edge field terms use ValueName to get the field value */}}
+						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
+						return Cursor{
+							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+							Value: cv,
 						}
 					{{- else }}
 						{{- /* Unxpected non-selected field error can occur. */}}
