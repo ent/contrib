@@ -632,10 +632,11 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 	}
 }
 
-func (p *PaginationNames) ConnectionField(name string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
+func (p *PaginationNames) ConnectionField(name, description string, hasOrderBy, multiOrder, hasWhereInput bool) *ast.FieldDefinition {
 	def := &ast.FieldDefinition{
-		Name: name,
-		Type: ast.NonNullNamedType(p.Connection, nil),
+		Name:        name,
+		Description: description,
+		Type:        ast.NonNullNamedType(p.Connection, nil),
 		Arguments: ast.ArgumentDefinitionList{
 			{
 				Name:        "after",
