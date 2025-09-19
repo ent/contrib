@@ -219,7 +219,7 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 					_, hasOrderBy := s.Types[names.Order]
 					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
 
-					def := names.ConnectionField(name, hasOrderBy, ant.MultiOrder, hasWhereInput)
+					def := names.ConnectionField(name, ant.Description, hasOrderBy, ant.MultiOrder, hasWhereInput)
 					def.Description = ant.QueryField.Description
 					def.Directives = e.buildDirectives(ant.QueryField.Directives)
 					queryFields = append(queryFields, def)
@@ -456,7 +456,7 @@ func (e *schemaGenerator) buildEdge(node *gen.Type, edge *gen.Edge, edgeAnt *Ann
 			}
 
 			fieldDef = paginationNames(gqlType).
-				ConnectionField(name, len(orderFields) > 0, ant.MultiOrder,
+				ConnectionField(name, edge.Comment(), len(orderFields) > 0, ant.MultiOrder,
 					e.genWhereInput && !edgeAnt.Skip.Is(SkipWhereInput) && !ant.Skip.Is(SkipWhereInput),
 				)
 		default:

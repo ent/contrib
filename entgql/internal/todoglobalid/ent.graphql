@@ -1255,6 +1255,9 @@ type User implements Node {
   username: UUID!
   requiredMetadata: Map!
   metadata: Map
+  """
+  The groups of the user
+  """
   groups(
     """
     Returns the elements in the list that come after the specified cursor.
