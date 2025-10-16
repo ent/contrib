@@ -29,6 +29,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithphpnamespace"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
@@ -79,6 +80,8 @@ type Client struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// MessageWithPhpNamespace is the client for interacting with the MessageWithPhpNamespace builders.
+	MessageWithPhpNamespace *MessageWithPhpNamespaceClient
 	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
 	MessageWithStrings *MessageWithStringsClient
 	// NoBackref is the client for interacting with the NoBackref builders.
@@ -122,6 +125,7 @@ func (c *Client) init() {
 	c.MessageWithInts = NewMessageWithIntsClient(c.config)
 	c.MessageWithOptionals = NewMessageWithOptionalsClient(c.config)
 	c.MessageWithPackageName = NewMessageWithPackageNameClient(c.config)
+	c.MessageWithPhpNamespace = NewMessageWithPhpNamespaceClient(c.config)
 	c.MessageWithStrings = NewMessageWithStringsClient(c.config)
 	c.NoBackref = NewNoBackrefClient(c.config)
 	c.OneMethodService = NewOneMethodServiceClient(c.config)
@@ -238,6 +242,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		MessageWithInts:          NewMessageWithIntsClient(cfg),
 		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
+		MessageWithPhpNamespace:  NewMessageWithPhpNamespaceClient(cfg),
 		MessageWithStrings:       NewMessageWithStringsClient(cfg),
 		NoBackref:                NewNoBackrefClient(cfg),
 		OneMethodService:         NewOneMethodServiceClient(cfg),
@@ -281,6 +286,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		MessageWithInts:          NewMessageWithIntsClient(cfg),
 		MessageWithOptionals:     NewMessageWithOptionalsClient(cfg),
 		MessageWithPackageName:   NewMessageWithPackageNameClient(cfg),
+		MessageWithPhpNamespace:  NewMessageWithPhpNamespaceClient(cfg),
 		MessageWithStrings:       NewMessageWithStringsClient(cfg),
 		NoBackref:                NewNoBackrefClient(cfg),
 		OneMethodService:         NewOneMethodServiceClient(cfg),
@@ -322,9 +328,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
 		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
 		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
-		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
-		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
-		c.TwoMethodService, c.User, c.ValidMessage,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithPhpNamespace,
+		c.MessageWithStrings, c.NoBackref, c.OneMethodService, c.Portal,
+		c.SkipEdgeExample, c.TwoMethodService, c.User, c.ValidMessage,
 	} {
 		n.Use(hooks...)
 	}
@@ -338,9 +344,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.DuplicateNumberMessage, c.EnumWithConflictingValue, c.ExplicitSkippedMessage,
 		c.Image, c.ImplicitSkippedMessage, c.InvalidFieldMessage, c.MessageWithEnum,
 		c.MessageWithFieldOne, c.MessageWithID, c.MessageWithInts,
-		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithStrings,
-		c.NoBackref, c.OneMethodService, c.Portal, c.SkipEdgeExample,
-		c.TwoMethodService, c.User, c.ValidMessage,
+		c.MessageWithOptionals, c.MessageWithPackageName, c.MessageWithPhpNamespace,
+		c.MessageWithStrings, c.NoBackref, c.OneMethodService, c.Portal,
+		c.SkipEdgeExample, c.TwoMethodService, c.User, c.ValidMessage,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -381,6 +387,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MessageWithOptionals.mutate(ctx, m)
 	case *MessageWithPackageNameMutation:
 		return c.MessageWithPackageName.mutate(ctx, m)
+	case *MessageWithPhpNamespaceMutation:
+		return c.MessageWithPhpNamespace.mutate(ctx, m)
 	case *MessageWithStringsMutation:
 		return c.MessageWithStrings.mutate(ctx, m)
 	case *NoBackrefMutation:
@@ -2610,6 +2618,139 @@ func (c *MessageWithPackageNameClient) mutate(ctx context.Context, m *MessageWit
 	}
 }
 
+// MessageWithPhpNamespaceClient is a client for the MessageWithPhpNamespace schema.
+type MessageWithPhpNamespaceClient struct {
+	config
+}
+
+// NewMessageWithPhpNamespaceClient returns a client for the MessageWithPhpNamespace from the given config.
+func NewMessageWithPhpNamespaceClient(c config) *MessageWithPhpNamespaceClient {
+	return &MessageWithPhpNamespaceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messagewithphpnamespace.Hooks(f(g(h())))`.
+func (c *MessageWithPhpNamespaceClient) Use(hooks ...Hook) {
+	c.hooks.MessageWithPhpNamespace = append(c.hooks.MessageWithPhpNamespace, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messagewithphpnamespace.Intercept(f(g(h())))`.
+func (c *MessageWithPhpNamespaceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MessageWithPhpNamespace = append(c.inters.MessageWithPhpNamespace, interceptors...)
+}
+
+// Create returns a builder for creating a MessageWithPhpNamespace entity.
+func (c *MessageWithPhpNamespaceClient) Create() *MessageWithPhpNamespaceCreate {
+	mutation := newMessageWithPhpNamespaceMutation(c.config, OpCreate)
+	return &MessageWithPhpNamespaceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MessageWithPhpNamespace entities.
+func (c *MessageWithPhpNamespaceClient) CreateBulk(builders ...*MessageWithPhpNamespaceCreate) *MessageWithPhpNamespaceCreateBulk {
+	return &MessageWithPhpNamespaceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessageWithPhpNamespaceClient) MapCreateBulk(slice any, setFunc func(*MessageWithPhpNamespaceCreate, int)) *MessageWithPhpNamespaceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessageWithPhpNamespaceCreateBulk{err: fmt.Errorf("calling to MessageWithPhpNamespaceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessageWithPhpNamespaceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessageWithPhpNamespaceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MessageWithPhpNamespace.
+func (c *MessageWithPhpNamespaceClient) Update() *MessageWithPhpNamespaceUpdate {
+	mutation := newMessageWithPhpNamespaceMutation(c.config, OpUpdate)
+	return &MessageWithPhpNamespaceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageWithPhpNamespaceClient) UpdateOne(mwpn *MessageWithPhpNamespace) *MessageWithPhpNamespaceUpdateOne {
+	mutation := newMessageWithPhpNamespaceMutation(c.config, OpUpdateOne, withMessageWithPhpNamespace(mwpn))
+	return &MessageWithPhpNamespaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageWithPhpNamespaceClient) UpdateOneID(id int) *MessageWithPhpNamespaceUpdateOne {
+	mutation := newMessageWithPhpNamespaceMutation(c.config, OpUpdateOne, withMessageWithPhpNamespaceID(id))
+	return &MessageWithPhpNamespaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MessageWithPhpNamespace.
+func (c *MessageWithPhpNamespaceClient) Delete() *MessageWithPhpNamespaceDelete {
+	mutation := newMessageWithPhpNamespaceMutation(c.config, OpDelete)
+	return &MessageWithPhpNamespaceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageWithPhpNamespaceClient) DeleteOne(mwpn *MessageWithPhpNamespace) *MessageWithPhpNamespaceDeleteOne {
+	return c.DeleteOneID(mwpn.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessageWithPhpNamespaceClient) DeleteOneID(id int) *MessageWithPhpNamespaceDeleteOne {
+	builder := c.Delete().Where(messagewithphpnamespace.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageWithPhpNamespaceDeleteOne{builder}
+}
+
+// Query returns a query builder for MessageWithPhpNamespace.
+func (c *MessageWithPhpNamespaceClient) Query() *MessageWithPhpNamespaceQuery {
+	return &MessageWithPhpNamespaceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessageWithPhpNamespace},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MessageWithPhpNamespace entity by its id.
+func (c *MessageWithPhpNamespaceClient) Get(ctx context.Context, id int) (*MessageWithPhpNamespace, error) {
+	return c.Query().Where(messagewithphpnamespace.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageWithPhpNamespaceClient) GetX(ctx context.Context, id int) *MessageWithPhpNamespace {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MessageWithPhpNamespaceClient) Hooks() []Hook {
+	return c.hooks.MessageWithPhpNamespace
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessageWithPhpNamespaceClient) Interceptors() []Interceptor {
+	return c.inters.MessageWithPhpNamespace
+}
+
+func (c *MessageWithPhpNamespaceClient) mutate(ctx context.Context, m *MessageWithPhpNamespaceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessageWithPhpNamespaceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessageWithPhpNamespaceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessageWithPhpNamespaceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessageWithPhpNamespaceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MessageWithPhpNamespace mutation op: %q", m.Op())
+	}
+}
+
 // MessageWithStringsClient is a client for the MessageWithStrings schema.
 type MessageWithStringsClient struct {
 	config
@@ -3777,15 +3918,17 @@ type (
 		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
 		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
 		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
-		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
-		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Hook
+		MessageWithPackageName, MessageWithPhpNamespace, MessageWithStrings, NoBackref,
+		OneMethodService, Portal, SkipEdgeExample, TwoMethodService, User,
+		ValidMessage []ent.Hook
 	}
 	inters struct {
 		AllMethodsService, BlogPost, Category, DependsOnSkipped, DuplicateNumberMessage,
 		EnumWithConflictingValue, ExplicitSkippedMessage, Image,
 		ImplicitSkippedMessage, InvalidFieldMessage, MessageWithEnum,
 		MessageWithFieldOne, MessageWithID, MessageWithInts, MessageWithOptionals,
-		MessageWithPackageName, MessageWithStrings, NoBackref, OneMethodService,
-		Portal, SkipEdgeExample, TwoMethodService, User, ValidMessage []ent.Interceptor
+		MessageWithPackageName, MessageWithPhpNamespace, MessageWithStrings, NoBackref,
+		OneMethodService, Portal, SkipEdgeExample, TwoMethodService, User,
+		ValidMessage []ent.Interceptor
 	}
 )

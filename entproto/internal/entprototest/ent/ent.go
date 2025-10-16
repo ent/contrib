@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithints"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithoptionals"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithpackagename"
+	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithphpnamespace"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/messagewithstrings"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/nobackref"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/onemethodservice"
@@ -112,6 +113,7 @@ func checkColumn(table, column string) error {
 			messagewithints.Table:          messagewithints.ValidColumn,
 			messagewithoptionals.Table:     messagewithoptionals.ValidColumn,
 			messagewithpackagename.Table:   messagewithpackagename.ValidColumn,
+			messagewithphpnamespace.Table:  messagewithphpnamespace.ValidColumn,
 			messagewithstrings.Table:       messagewithstrings.ValidColumn,
 			nobackref.Table:                nobackref.ValidColumn,
 			onemethodservice.Table:         onemethodservice.ValidColumn,

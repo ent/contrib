@@ -223,6 +223,17 @@ var (
 		Columns:    MessageWithPackageNamesColumns,
 		PrimaryKey: []*schema.Column{MessageWithPackageNamesColumns[0]},
 	}
+	// MessageWithPhpNamespacesColumns holds the columns for the "message_with_php_namespaces" table.
+	MessageWithPhpNamespacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// MessageWithPhpNamespacesTable holds the schema information for the "message_with_php_namespaces" table.
+	MessageWithPhpNamespacesTable = &schema.Table{
+		Name:       "message_with_php_namespaces",
+		Columns:    MessageWithPhpNamespacesColumns,
+		PrimaryKey: []*schema.Column{MessageWithPhpNamespacesColumns[0]},
+	}
 	// MessageWithStringsColumns holds the columns for the "message_with_strings" table.
 	MessageWithStringsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -384,6 +395,7 @@ var (
 		MessageWithIntsTable,
 		MessageWithOptionalsTable,
 		MessageWithPackageNamesTable,
+		MessageWithPhpNamespacesTable,
 		MessageWithStringsTable,
 		NoBackrefsTable,
 		OneMethodServicesTable,

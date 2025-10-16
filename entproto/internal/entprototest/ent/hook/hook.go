@@ -201,6 +201,18 @@ func (f MessageWithPackageNameFunc) Mutate(ctx context.Context, m ent.Mutation) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithPackageNameMutation", m)
 }
 
+// The MessageWithPhpNamespaceFunc type is an adapter to allow the use of ordinary
+// function as MessageWithPhpNamespace mutator.
+type MessageWithPhpNamespaceFunc func(context.Context, *ent.MessageWithPhpNamespaceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageWithPhpNamespaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageWithPhpNamespaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageWithPhpNamespaceMutation", m)
+}
+
 // The MessageWithStringsFunc type is an adapter to allow the use of ordinary
 // function as MessageWithStrings mutator.
 type MessageWithStringsFunc func(context.Context, *ent.MessageWithStringsMutation) (ent.Value, error)
