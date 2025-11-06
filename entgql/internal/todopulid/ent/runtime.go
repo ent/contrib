@@ -106,6 +106,10 @@ func init() {
 	todoDescText := todoMixinFields1[3].Descriptor()
 	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
+	// todoDescValue is the schema descriptor for value field.
+	todoDescValue := todoMixinFields1[8].Descriptor()
+	// todo.DefaultValue holds the default value on creation for the value field.
+	todo.DefaultValue = todoDescValue.Default.(int)
 	// todoDescID is the schema descriptor for id field.
 	todoDescID := todoMixinFields0[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.

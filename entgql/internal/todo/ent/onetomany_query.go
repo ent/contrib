@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -124,7 +125,7 @@ func (otmq *OneToManyQuery) QueryChildren() *OneToManyQuery {
 // First returns the first OneToMany entity from the query.
 // Returns a *NotFoundError when no OneToMany was found.
 func (otmq *OneToManyQuery) First(ctx context.Context) (*OneToMany, error) {
-	nodes, err := otmq.Limit(1).All(setContextOp(ctx, otmq.ctx, "First"))
+	nodes, err := otmq.Limit(1).All(setContextOp(ctx, otmq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (otmq *OneToManyQuery) FirstX(ctx context.Context) *OneToMany {
 // Returns a *NotFoundError when no OneToMany ID was found.
 func (otmq *OneToManyQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otmq.Limit(1).IDs(setContextOp(ctx, otmq.ctx, "FirstID")); err != nil {
+	if ids, err = otmq.Limit(1).IDs(setContextOp(ctx, otmq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -170,7 +171,7 @@ func (otmq *OneToManyQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one OneToMany entity is found.
 // Returns a *NotFoundError when no OneToMany entities are found.
 func (otmq *OneToManyQuery) Only(ctx context.Context) (*OneToMany, error) {
-	nodes, err := otmq.Limit(2).All(setContextOp(ctx, otmq.ctx, "Only"))
+	nodes, err := otmq.Limit(2).All(setContextOp(ctx, otmq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +199,7 @@ func (otmq *OneToManyQuery) OnlyX(ctx context.Context) *OneToMany {
 // Returns a *NotFoundError when no entities are found.
 func (otmq *OneToManyQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = otmq.Limit(2).IDs(setContextOp(ctx, otmq.ctx, "OnlyID")); err != nil {
+	if ids, err = otmq.Limit(2).IDs(setContextOp(ctx, otmq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -223,7 +224,7 @@ func (otmq *OneToManyQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of OneToManies.
 func (otmq *OneToManyQuery) All(ctx context.Context) ([]*OneToMany, error) {
-	ctx = setContextOp(ctx, otmq.ctx, "All")
+	ctx = setContextOp(ctx, otmq.ctx, ent.OpQueryAll)
 	if err := otmq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -245,7 +246,7 @@ func (otmq *OneToManyQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if otmq.ctx.Unique == nil && otmq.path != nil {
 		otmq.Unique(true)
 	}
-	ctx = setContextOp(ctx, otmq.ctx, "IDs")
+	ctx = setContextOp(ctx, otmq.ctx, ent.OpQueryIDs)
 	if err = otmq.Select(onetomany.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -263,7 +264,7 @@ func (otmq *OneToManyQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (otmq *OneToManyQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, otmq.ctx, "Count")
+	ctx = setContextOp(ctx, otmq.ctx, ent.OpQueryCount)
 	if err := otmq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -281,7 +282,7 @@ func (otmq *OneToManyQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (otmq *OneToManyQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, otmq.ctx, "Exist")
+	ctx = setContextOp(ctx, otmq.ctx, ent.OpQueryExist)
 	switch _, err := otmq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -316,8 +317,9 @@ func (otmq *OneToManyQuery) Clone() *OneToManyQuery {
 		withParent:   otmq.withParent.Clone(),
 		withChildren: otmq.withChildren.Clone(),
 		// clone intermediate query.
-		sql:  otmq.sql.Clone(),
-		path: otmq.path,
+		sql:       otmq.sql.Clone(),
+		path:      otmq.path,
+		modifiers: append([]func(*sql.Selector){}, otmq.modifiers...),
 	}
 }
 
@@ -659,7 +661,7 @@ func (otmgb *OneToManyGroupBy) Aggregate(fns ...AggregateFunc) *OneToManyGroupBy
 
 // Scan applies the selector query and scans the result into the given value.
 func (otmgb *OneToManyGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, otmgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, otmgb.build.ctx, ent.OpQueryGroupBy)
 	if err := otmgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -707,7 +709,7 @@ func (otms *OneToManySelect) Aggregate(fns ...AggregateFunc) *OneToManySelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (otms *OneToManySelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, otms.ctx, "Select")
+	ctx = setContextOp(ctx, otms.ctx, ent.OpQuerySelect)
 	if err := otms.prepareQuery(ctx); err != nil {
 		return err
 	}

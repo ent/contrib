@@ -10,6 +10,7 @@ import (
 	"entgo.io/contrib/entproto/internal/todo/ent/predicate"
 	"entgo.io/contrib/entproto/internal/todo/ent/skipedgeexample"
 	"entgo.io/contrib/entproto/internal/todo/ent/user"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -85,7 +86,7 @@ func (seeq *SkipEdgeExampleQuery) QueryUser() *UserQuery {
 // First returns the first SkipEdgeExample entity from the query.
 // Returns a *NotFoundError when no SkipEdgeExample was found.
 func (seeq *SkipEdgeExampleQuery) First(ctx context.Context) (*SkipEdgeExample, error) {
-	nodes, err := seeq.Limit(1).All(setContextOp(ctx, seeq.ctx, "First"))
+	nodes, err := seeq.Limit(1).All(setContextOp(ctx, seeq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (seeq *SkipEdgeExampleQuery) FirstX(ctx context.Context) *SkipEdgeExample {
 // Returns a *NotFoundError when no SkipEdgeExample ID was found.
 func (seeq *SkipEdgeExampleQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = seeq.Limit(1).IDs(setContextOp(ctx, seeq.ctx, "FirstID")); err != nil {
+	if ids, err = seeq.Limit(1).IDs(setContextOp(ctx, seeq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (seeq *SkipEdgeExampleQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one SkipEdgeExample entity is found.
 // Returns a *NotFoundError when no SkipEdgeExample entities are found.
 func (seeq *SkipEdgeExampleQuery) Only(ctx context.Context) (*SkipEdgeExample, error) {
-	nodes, err := seeq.Limit(2).All(setContextOp(ctx, seeq.ctx, "Only"))
+	nodes, err := seeq.Limit(2).All(setContextOp(ctx, seeq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (seeq *SkipEdgeExampleQuery) OnlyX(ctx context.Context) *SkipEdgeExample {
 // Returns a *NotFoundError when no entities are found.
 func (seeq *SkipEdgeExampleQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = seeq.Limit(2).IDs(setContextOp(ctx, seeq.ctx, "OnlyID")); err != nil {
+	if ids, err = seeq.Limit(2).IDs(setContextOp(ctx, seeq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (seeq *SkipEdgeExampleQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of SkipEdgeExamples.
 func (seeq *SkipEdgeExampleQuery) All(ctx context.Context) ([]*SkipEdgeExample, error) {
-	ctx = setContextOp(ctx, seeq.ctx, "All")
+	ctx = setContextOp(ctx, seeq.ctx, ent.OpQueryAll)
 	if err := seeq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (seeq *SkipEdgeExampleQuery) IDs(ctx context.Context) (ids []int, err error
 	if seeq.ctx.Unique == nil && seeq.path != nil {
 		seeq.Unique(true)
 	}
-	ctx = setContextOp(ctx, seeq.ctx, "IDs")
+	ctx = setContextOp(ctx, seeq.ctx, ent.OpQueryIDs)
 	if err = seeq.Select(skipedgeexample.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -224,7 +225,7 @@ func (seeq *SkipEdgeExampleQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (seeq *SkipEdgeExampleQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, seeq.ctx, "Count")
+	ctx = setContextOp(ctx, seeq.ctx, ent.OpQueryCount)
 	if err := seeq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -242,7 +243,7 @@ func (seeq *SkipEdgeExampleQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (seeq *SkipEdgeExampleQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, seeq.ctx, "Exist")
+	ctx = setContextOp(ctx, seeq.ctx, ent.OpQueryExist)
 	switch _, err := seeq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -514,7 +515,7 @@ func (seegb *SkipEdgeExampleGroupBy) Aggregate(fns ...AggregateFunc) *SkipEdgeEx
 
 // Scan applies the selector query and scans the result into the given value.
 func (seegb *SkipEdgeExampleGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, seegb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, seegb.build.ctx, ent.OpQueryGroupBy)
 	if err := seegb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -562,7 +563,7 @@ func (sees *SkipEdgeExampleSelect) Aggregate(fns ...AggregateFunc) *SkipEdgeExam
 
 // Scan applies the selector query and scans the result into the given value.
 func (sees *SkipEdgeExampleSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, sees.ctx, "Select")
+	ctx = setContextOp(ctx, sees.ctx, ent.OpQuerySelect)
 	if err := sees.prepareQuery(ctx); err != nil {
 		return err
 	}

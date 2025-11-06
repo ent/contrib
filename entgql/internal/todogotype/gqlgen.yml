@@ -9,6 +9,7 @@ schema:
 
 resolver:
   layout: follow-schema
+  preserve_resolver: false
   dir: .
 
 autobind:

@@ -60,6 +60,10 @@ var (
 					Name: "models",
 					Type: ast.ListType(ast.NonNullNamedType("String", nil), nil),
 				},
+				{
+					Name: "forceGenerate",
+					Type: ast.NamedType("Boolean", nil),
+				},
 			},
 			Locations: []ast.DirectiveLocation{
 				ast.LocationObject,
@@ -81,6 +85,10 @@ var (
 				{
 					Name: "name",
 					Type: ast.NamedType("String", nil),
+				},
+				{
+					Name: "omittable",
+					Type: ast.NamedType("Boolean", nil),
 				},
 			},
 			Locations: []ast.DirectiveLocation{
@@ -538,6 +546,13 @@ func (e *schemaGenerator) buildMutationInputs(t *gen.Type, ant *Annotation, gqlT
 	var defs []*ast.Definition
 
 	for _, i := range ant.MutationInputs {
+		if i.IsCreate && ant.Skip.Is(SkipMutationCreateInput) {
+			continue
+		}
+		if !i.IsCreate && ant.Skip.Is(SkipMutationUpdateInput) {
+			continue
+		}
+
 		desc := MutationDescriptor{Type: t, IsCreate: i.IsCreate}
 		name, err := desc.Input()
 		if err != nil {

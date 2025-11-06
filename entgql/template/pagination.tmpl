@@ -30,6 +30,7 @@ import (
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
+	"{{ $.Config.Package }}/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/contrib/entgql"
@@ -271,12 +272,12 @@ func (p *{{ $pager }}) applyFilter(query *{{ $query }}) (*{{ $query }}, error) {
 {{ $r := $node.Receiver }}
 func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
 	{{- if $multiOrder }}
-		cs := make([]any, 0, len(p.order))
-		for _, po := range p.order {
-			cs = append(cs, po.Field.toCursor({{ $r }}).Value)
+		cs_ := make([]any, 0, len(p.order))
+		for _, o_ := range p.order {
+			cs_ = append(cs_, o_.Field.toCursor({{ $r }}).Value)
 		}
 		{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
-		return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}, Value: cs}
+		return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}, Value: cs_}
 	{{- else }}
 		return p.order.Field.toCursor({{ $r }})
 	{{- end }}
@@ -483,7 +484,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					{{- if $f.IsFieldTerm }}
 						return {{ $r }}.{{ $f.Field.StructField }}, nil
 					{{- else }}
-						return {{ $r }}.Value({{ $f.VarField }})
+						return {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 					{{- end }}
 				},
 				{{- if $f.IsFieldTerm }}
@@ -514,7 +515,7 @@ func ({{ $r }} *{{ $query }}) Paginate(
 						}
 					{{- else }}
 						{{- /* Unxpected non-selected field error can occur. */}}
-						cv, _ := {{ $r }}.Value({{ $f.VarField }})
+						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 						return Cursor{
 							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 							Value: cv,
@@ -648,11 +649,12 @@ func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
 	if {{ $r }}, err = pager.applyCursors({{ $r }}, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		{{ $r }}.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := {{ $r }}.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := {{ $r }}.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}

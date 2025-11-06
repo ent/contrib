@@ -20,14 +20,21 @@ in the LICENSE file in the root directory of this source tree.
 {{ template "import" $ }}
 
 import (
-	"sync"
-	"sync/atomic"
+	{{- if $.Config.FeatureEnabled "sql/globalid" }}
+		"encoding/json"
+	{{- else if $idType.Numeric }}
+		"sync"
+		"sync/atomic"
+	{{- end }}
 
 	{{- range $n := $.Nodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 	{{- with $package := $idType.PkgPath }}
 		"{{ $package }}"
+	{{- end }}
+	{{- if $.Config.FeatureEnabled "sql/globalid" }}
+		"{{ $.Config.Package }}/internal"
 	{{- end }}
 
 	"entgo.io/ent/dialect/sql"
@@ -91,6 +98,23 @@ type nodeOptions struct {
 	nodeType func(context.Context, {{ $idType }}) (string, error)
 }
 
+{{- if $.Config.FeatureEnabled "sql/globalid"}}
+// Each node has a range of 1<<32 ids. Pre-computing a map of node starting
+// value to node type ensures node type resolution happens in O(1) complexity.
+var nodeTypes = func () map[int]string {
+	var is map[string]int
+	if err := json.Unmarshal([]byte(internal.IncrementStarts), &is); err != nil {
+		panic(err)
+	}
+	// Get a map of range starting value to node type.
+	m := make(map[int]string, len(is))
+	for k, v := range is {
+		m[v] = k // ent ensures there are no duplicate starting values
+	}
+	return m
+}()
+
+{{- end }}
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	nopts := &nodeOptions{}
 	for _, opt := range opts {
@@ -99,7 +123,15 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	if nopts.nodeType == nil {
 		nopts.nodeType = func(ctx context.Context, id {{ $idType }}) (string, error) {
 			{{- if $idType.Numeric }}
-				return c.tables.nodeType(ctx, c.driver, id)
+				{{- if $.Config.FeatureEnabled "sql/globalid"}}
+					t, ok := nodeTypes[int(id/(1<<32-1))<<32]
+					if !ok {
+						return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+					}
+					return t, nil
+				{{- else }}
+					return c.tables.nodeType(ctx, c.driver, id)
+				{{- end }}
 			{{- else }}
 				return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
 			{{- end }}
@@ -141,16 +173,13 @@ func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Nod
 			query := c.{{ $n.Name }}.Query().
 				Where({{ $n.Package }}.ID({{ if $unmarshalID }}u{{ end }}id))
 			{{- if hasTemplate "gql_collection" }}
-				query, err := query.CollectFields(ctx, {{ nodeImplementorsVar $n }}...)
-				if err != nil {
-					return nil, err
+				if fc := graphql.GetFieldContext(ctx); fc != nil {
+					if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, {{ nodeImplementorsVar $n }}...); err != nil {
+						return nil, err
+					}
 				}
 			{{- end }}
-			n, err := query.Only(ctx)
-			if err != nil {
-				return nil, err
-			}
-			return n, nil
+			return query.Only(ctx)
 	{{- end }}
 	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
@@ -261,7 +290,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 	return noders, nil
 }
 
-{{ if $idType.Numeric }}
+{{ if and (not ($.Config.FeatureEnabled "sql/globalid")) $idType.Numeric }}
 	type tables struct {
 		once  sync.Once
 		sem   *semaphore.Weighted
@@ -318,7 +347,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 
 {{ define "client/fields/additional" }}
 	{{- $idType := gqlIDType (filterNodes $.Nodes (skipMode "type")) $.IDType }}
-	{{- if $idType.Numeric }}
+	{{- if and (not ($.Config.FeatureEnabled "sql/globalid")) $idType.Numeric }}
 		// additional fields for node api
 		tables tables
 	{{- end }}

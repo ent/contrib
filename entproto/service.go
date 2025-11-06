@@ -20,7 +20,7 @@ import (
 
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
 )

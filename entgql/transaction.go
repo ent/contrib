@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"slices"
 	"sync"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -39,8 +40,35 @@ func (f TxOpenerFunc) OpenTx(ctx context.Context) (context.Context, driver.Tx, e
 	return f(ctx)
 }
 
-// Transactioner for graphql mutations.
-type Transactioner struct{ TxOpener }
+type (
+	// Transactioner for graphql mutations.
+	Transactioner struct {
+		TxOpener
+		SkipTxFunc
+	}
+	// SkipTxFunc allows skipping operations from
+	// running under a transaction.
+	SkipTxFunc func(*ast.OperationDefinition) bool
+)
+
+// SkipOperations skips the given operation names from running
+// under a transaction.
+func SkipOperations(names ...string) SkipTxFunc {
+	return func(op *ast.OperationDefinition) bool {
+		return slices.Contains(names, op.Name)
+	}
+}
+
+// SkipIfHasFields skips the operation has a mutation field
+// with the given names.
+func SkipIfHasFields(names ...string) SkipTxFunc {
+	return func(op *ast.OperationDefinition) bool {
+		return slices.ContainsFunc(op.SelectionSet, func(s ast.Selection) bool {
+			f, ok := s.(*ast.Field)
+			return ok && slices.Contains(names, f.Name)
+		})
+	}
+}
 
 var _ interface {
 	graphql.HandlerExtension
@@ -62,8 +90,8 @@ func (t Transactioner) Validate(graphql.ExecutableSchema) error {
 }
 
 // MutateOperationContext serializes field resolvers during mutations.
-func (Transactioner) MutateOperationContext(_ context.Context, oc *graphql.OperationContext) *gqlerror.Error {
-	if op := oc.Operation; op != nil && op.Operation == ast.Mutation {
+func (t Transactioner) MutateOperationContext(_ context.Context, oc *graphql.OperationContext) *gqlerror.Error {
+	if !t.skipTx(oc.Operation) {
 		previous := oc.ResolverMiddleware
 		var mu sync.Mutex
 		oc.ResolverMiddleware = func(ctx context.Context, next graphql.Resolver) (interface{}, error) {
@@ -77,7 +105,7 @@ func (Transactioner) MutateOperationContext(_ context.Context, oc *graphql.Opera
 
 // InterceptResponse runs graphql mutations under a transaction.
 func (t Transactioner) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	if op := graphql.GetOperationContext(ctx).Operation; op == nil || op.Operation != ast.Mutation {
+	if t.skipTx(graphql.GetOperationContext(ctx).Operation) {
 		return next(ctx)
 	}
 	txCtx, tx, err := t.OpenTx(ctx)
@@ -107,4 +135,8 @@ func (t Transactioner) InterceptResponse(ctx context.Context, next graphql.Respo
 		)
 	}
 	return rsp
+}
+
+func (t Transactioner) skipTx(op *ast.OperationDefinition) bool {
+	return op == nil || op.Operation != ast.Mutation || (t.SkipTxFunc != nil && t.SkipTxFunc(op))
 }

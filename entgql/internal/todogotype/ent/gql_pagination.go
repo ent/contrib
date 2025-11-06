@@ -308,11 +308,12 @@ func (bp *BillProductQuery) Paginate(
 	if bp, err = pager.applyCursors(bp, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		bp.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := bp.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := bp.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -473,11 +474,11 @@ func (p *categoryPager) applyFilter(query *CategoryQuery) (*CategoryQuery, error
 }
 
 func (p *categoryPager) toCursor(c *Category) Cursor {
-	cs := make([]any, 0, len(p.order))
-	for _, po := range p.order {
-		cs = append(cs, po.Field.toCursor(c).Value)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(c).Value)
 	}
-	return Cursor{ID: c.marshalID(), Value: cs}
+	return Cursor{ID: c.marshalID(), Value: cs_}
 }
 
 func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor) (*CategoryQuery, error) {
@@ -605,11 +606,12 @@ func (c *CategoryQuery) Paginate(
 	if c, err = pager.applyCursors(c, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		c.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := c.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := c.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -977,11 +979,12 @@ func (f *FriendshipQuery) Paginate(
 	if f, err = pager.applyCursors(f, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		f.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := f.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := f.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1225,11 +1228,12 @@ func (gr *GroupQuery) Paginate(
 	if gr, err = pager.applyCursors(gr, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		gr.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := gr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := gr.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1473,11 +1477,12 @@ func (pe *PetQuery) Paginate(
 	if pe, err = pager.applyCursors(pe, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		pe.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := pe.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := pe.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1638,11 +1643,11 @@ func (p *todoPager) applyFilter(query *TodoQuery) (*TodoQuery, error) {
 }
 
 func (p *todoPager) toCursor(t *Todo) Cursor {
-	cs := make([]any, 0, len(p.order))
-	for _, po := range p.order {
-		cs = append(cs, po.Field.toCursor(t).Value)
+	cs_ := make([]any, 0, len(p.order))
+	for _, o_ := range p.order {
+		cs_ = append(cs_, o_.Field.toCursor(t).Value)
 	}
-	return Cursor{ID: t.ID, Value: cs}
+	return Cursor{ID: t.ID, Value: cs_}
 }
 
 func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) (*TodoQuery, error) {
@@ -1686,7 +1691,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 			defaultOrdered = true
 		}
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 		default:
 			if len(query.ctx.Fields) > 0 {
 				query.ctx.AppendFieldOnce(o.Field.column)
@@ -1706,7 +1711,7 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	for _, o := range p.order {
 		switch o.Field.column {
-		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, CategoryOrderFieldCategoryText.column:
+		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 			direction := o.Direction
 			if p.reverse {
 				direction = direction.Reverse()
@@ -1770,11 +1775,12 @@ func (t *TodoQuery) Paginate(
 	if t, err = pager.applyCursors(t, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		t.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := t.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := t.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}
@@ -1847,7 +1853,7 @@ var (
 	// TodoOrderFieldParentStatus orders by PARENT_STATUS.
 	TodoOrderFieldParentStatus = &TodoOrderField{
 		Value: func(t *Todo) (ent.Value, error) {
-			return t.Value("parent_status")
+			return t.GetValue("parent_status")
 		},
 		column: "parent_status",
 		toTerm: func(opts ...sql.OrderTermOption) todo.OrderOption {
@@ -1857,7 +1863,7 @@ var (
 			)
 		},
 		toCursor: func(t *Todo) Cursor {
-			cv, _ := t.Value("parent_status")
+			cv, _ := t.GetValue("parent_status")
 			return Cursor{
 				ID:    t.ID,
 				Value: cv,
@@ -1867,7 +1873,7 @@ var (
 	// TodoOrderFieldChildrenCount orders by CHILDREN_COUNT.
 	TodoOrderFieldChildrenCount = &TodoOrderField{
 		Value: func(t *Todo) (ent.Value, error) {
-			return t.Value("children_count")
+			return t.GetValue("children_count")
 		},
 		column: "children_count",
 		toTerm: func(opts ...sql.OrderTermOption) todo.OrderOption {
@@ -1876,17 +1882,17 @@ var (
 			)
 		},
 		toCursor: func(t *Todo) Cursor {
-			cv, _ := t.Value("children_count")
+			cv, _ := t.GetValue("children_count")
 			return Cursor{
 				ID:    t.ID,
 				Value: cv,
 			}
 		},
 	}
-	// CategoryOrderFieldCategoryText orders by CATEGORY_TEXT.
-	CategoryOrderFieldCategoryText = &TodoOrderField{
+	// TodoOrderFieldCategoryText orders by CATEGORY_TEXT.
+	TodoOrderFieldCategoryText = &TodoOrderField{
 		Value: func(t *Todo) (ent.Value, error) {
-			return t.Value("category_text")
+			return t.GetValue("category_text")
 		},
 		column: "category_text",
 		toTerm: func(opts ...sql.OrderTermOption) todo.OrderOption {
@@ -1896,7 +1902,7 @@ var (
 			)
 		},
 		toCursor: func(t *Todo) Cursor {
-			cv, _ := t.Value("category_text")
+			cv, _ := t.GetValue("category_text")
 			return Cursor{
 				ID:    t.ID,
 				Value: cv,
@@ -1921,7 +1927,7 @@ func (f TodoOrderField) String() string {
 		str = "PARENT_STATUS"
 	case TodoOrderFieldChildrenCount.column:
 		str = "CHILDREN_COUNT"
-	case CategoryOrderFieldCategoryText.column:
+	case TodoOrderFieldCategoryText.column:
 		str = "CATEGORY_TEXT"
 	}
 	return str
@@ -1952,7 +1958,7 @@ func (f *TodoOrderField) UnmarshalGQL(v interface{}) error {
 	case "CHILDREN_COUNT":
 		*f = *TodoOrderFieldChildrenCount
 	case "CATEGORY_TEXT":
-		*f = *CategoryOrderFieldCategoryText
+		*f = *TodoOrderFieldCategoryText
 	default:
 		return fmt.Errorf("%s is not a valid TodoOrderField", str)
 	}
@@ -2199,11 +2205,12 @@ func (u *UserQuery) Paginate(
 	if u, err = pager.applyCursors(u, after, before); err != nil {
 		return nil, err
 	}
-	if limit := paginateLimit(first, last); limit != 0 {
+	limit := paginateLimit(first, last)
+	if limit != 0 {
 		u.Limit(limit)
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
-		if err := u.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+		if err := u.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
 			return nil, err
 		}
 	}

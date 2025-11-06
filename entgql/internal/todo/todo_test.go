@@ -628,7 +628,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("EmptyFilter", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(where:{}) {
 					totalCount
 				}
@@ -642,7 +642,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("Zero first", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(first: 0) {
 					totalCount
 				}
@@ -656,7 +656,7 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 	s.Run("Zero last", func() {
 		var (
 			rsp   response
-			query = `query() {
+			query = `query {
 				todos(last: 0) {
 					totalCount
 				}
@@ -1687,11 +1687,11 @@ func TestNestedConnection(t *testing.T) {
 		)
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFp0wAAAAcAAAAJ"),
+			client.Var("cursor", "gaFpzwAAAAcAAAAJ"),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFp0wAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, "gaFpzwAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -2254,6 +2254,168 @@ func (r *queryRecorder) Query(ctx context.Context, query string, args, v interfa
 	return r.Driver.Query(ctx, query, args, v)
 }
 
+func TestReduceQueryComplexity(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	var (
+		// language=GraphQL
+		query = `query Todo($id: ID!) {
+			node(id: $id) {
+				... on Todo {
+					text
+					children (first: 10) {
+						edges {
+							node {
+								text
+							}
+						}
+					}
+				}
+			}
+		}`
+		gqlc = client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+	)
+	t1 := ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SaveX(ctx)
+	rec.reset()
+	require.NoError(t, gqlc.Post(query, new(any), client.Var("id", t1.ID)))
+	require.Equal(t, []string{
+		// Node mapping (cached).
+		"SELECT `type` FROM `ent_types` ORDER BY `id` ASC",
+		// Top-level todo.
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` WHERE `todos`.`id` = ? LIMIT 2",
+		// Children todos (without CTE).
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?) ORDER BY `todos`.`id` LIMIT 11",
+	}, rec.queries)
+
+	// language=GraphQL
+	query = `query Todos($ids: [ID!]!) {
+		todos: nodes (ids: $ids) {
+			... on Todo {
+				text
+				children (first: 10) {
+					edges {
+						node {
+							text
+						}
+					}
+				}
+			}
+		}
+	}`
+	rec.reset()
+	require.NoError(t, gqlc.Post(query, new(any), client.Var("ids", []int{t1.ID})))
+	// A single ID is implemented by the `node` query.
+	require.Equal(t, []string{
+		// Top-level todo.
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` WHERE `todos`.`id` = ? LIMIT 2",
+		// Children todos (without CTE).
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?) ORDER BY `todos`.`id` LIMIT 11",
+	}, rec.queries)
+
+	rec.reset()
+	require.NoError(t, gqlc.Post(query, new(any), client.Var("ids", []int{t1.ID, t1.ID})))
+	require.Equal(t, []string{
+		// Top-level todo.
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		// Children todos (with CTE).
+		"WITH `src_query` AS (SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?)), `limited_query` AS (SELECT *, (ROW_NUMBER() OVER (PARTITION BY `todo_children` ORDER BY `id` ASC)) AS `row_number` FROM `src_query`) SELECT `id`, `text`, `project_todos`, `todo_children`, `todo_secret` FROM `limited_query` AS `todos` WHERE `todos`.`row_number` <= ?",
+	}, rec.queries)
+
+	// Propagate uniqueness to one-child edges.
+	// language=GraphQL
+	query = `query Todo($id: ID!) {
+			node(id: $id) {
+				... on Todo {
+					parent {
+						text
+						children (first: 5) {
+							edges {
+								node {
+									text
+								}
+							}
+						}
+					}
+					category {
+						text
+						todos (first: 10) {
+							edges {
+								node {
+									text
+								}
+							}
+						}
+					}
+				}
+			}
+		}`
+	ec.Todo.Create().SetText("t0").SetStatus(todo.StatusInProgress).AddChildren(t1).SaveX(ctx)
+	ec.Category.Create().AddTodos(t1).SetText("c0").SetStatus(category.StatusEnabled).SaveX(ctx)
+	rec.reset()
+	require.NoError(t, gqlc.Post(query, new(any), client.Var("id", t1.ID)))
+	require.Equal(t, []string{
+		// Top-level todo.
+		"SELECT `todos`.`id`, `todos`.`category_id`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`id` = ? LIMIT 2",
+		// Parent todo.
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` WHERE `todos`.`id` IN (?)",
+		// Parent children.
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?) ORDER BY `todos`.`id` LIMIT 6",
+		// Category.
+		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?)",
+		// Category todos.
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`category_id`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`category_id` IN (?) ORDER BY `todos`.`id` LIMIT 11",
+	}, rec.queries)
+
+	// Same as above, but with multiple IDs.
+	// language=GraphQL
+	query = `query Todo($id: ID!) {
+			nodes(ids: [$id, $id]) {
+				... on Todo {
+					parent {
+						text
+						children (first: 5) {
+							edges {
+								node {
+									text
+								}
+							}
+						}
+					}
+					category {
+						text
+						todos (first: 10) {
+							edges {
+								node {
+									text
+								}
+							}
+						}
+					}
+				}
+			}
+		}`
+	rec.reset()
+	require.NoError(t, gqlc.Post(query, new(any), client.Var("id", t1.ID)))
+	require.Equal(t, []string{
+		// Root nodes.
+		"SELECT `todos`.`id`, `todos`.`category_id`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		// Their parents (2 max).
+		"SELECT `todos`.`id`, `todos`.`text` FROM `todos` WHERE `todos`.`id` IN (?)",
+		// 5 children for each parent.
+		"WITH `src_query` AS (SELECT `todos`.`id`, `todos`.`text`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`todo_children` IN (?)), `limited_query` AS (SELECT *, (ROW_NUMBER() OVER (PARTITION BY `todo_children` ORDER BY `id` ASC)) AS `row_number` FROM `src_query`) SELECT `id`, `text`, `project_todos`, `todo_children`, `todo_secret` FROM `limited_query` AS `todos` WHERE `todos`.`row_number` <= ?",
+		// Category.
+		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?)",
+		// 10 todos for each category.
+		"WITH `src_query` AS (SELECT `todos`.`id`, `todos`.`text`, `todos`.`category_id`, `todos`.`project_todos`, `todos`.`todo_children`, `todos`.`todo_secret` FROM `todos` WHERE `todos`.`category_id` IN (?)), `limited_query` AS (SELECT *, (ROW_NUMBER() OVER (PARTITION BY `category_id` ORDER BY `id` ASC)) AS `row_number` FROM `src_query`) SELECT `id`, `text`, `category_id`, `project_todos`, `todo_children`, `todo_secret` FROM `limited_query` AS `todos` WHERE `todos`.`row_number` <= ?",
+	}, rec.queries)
+}
+
 func TestFieldSelection(t *testing.T) {
 	ctx := context.Background()
 	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
@@ -2420,7 +2582,7 @@ func TestFieldSelection(t *testing.T) {
 		"SELECT `todos`.`id`, `todos`.`created_at`, `todos`.`status`, " +
 			"`todos`.`priority`, `todos`.`text`, `todos`.`blob`, " +
 			"`todos`.`category_id`, `todos`.`init`, `todos`.`custom`, " +
-			"`todos`.`customp` FROM `todos` ORDER BY `todos`.`id`",
+			"`todos`.`customp`, `todos`.`value` FROM `todos` ORDER BY `todos`.`id`",
 	}, rec.queries)
 
 	rootO2M := ec.OneToMany.CreateBulk(

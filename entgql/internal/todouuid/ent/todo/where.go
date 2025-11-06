@@ -90,6 +90,11 @@ func Blob(v []byte) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldBlob, v))
 }
 
+// Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
+func Value(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldEQ(FieldValue, v))
+}
+
 // CategoryID applies equality check predicate on the "category_id" field. It's identical to CategoryIDEQ.
 func CategoryID(v uuid.UUID) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldCategoryID, v))
@@ -338,6 +343,46 @@ func CustompIsNil() predicate.Todo {
 // CustompNotNil applies the NotNil predicate on the "customp" field.
 func CustompNotNil() predicate.Todo {
 	return predicate.Todo(sql.FieldNotNull(FieldCustomp))
+}
+
+// ValueEQ applies the EQ predicate on the "value" field.
+func ValueEQ(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldEQ(FieldValue, v))
+}
+
+// ValueNEQ applies the NEQ predicate on the "value" field.
+func ValueNEQ(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldNEQ(FieldValue, v))
+}
+
+// ValueIn applies the In predicate on the "value" field.
+func ValueIn(vs ...int) predicate.Todo {
+	return predicate.Todo(sql.FieldIn(FieldValue, vs...))
+}
+
+// ValueNotIn applies the NotIn predicate on the "value" field.
+func ValueNotIn(vs ...int) predicate.Todo {
+	return predicate.Todo(sql.FieldNotIn(FieldValue, vs...))
+}
+
+// ValueGT applies the GT predicate on the "value" field.
+func ValueGT(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldGT(FieldValue, v))
+}
+
+// ValueGTE applies the GTE predicate on the "value" field.
+func ValueGTE(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldGTE(FieldValue, v))
+}
+
+// ValueLT applies the LT predicate on the "value" field.
+func ValueLT(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldLT(FieldValue, v))
+}
+
+// ValueLTE applies the LTE predicate on the "value" field.
+func ValueLTE(v int) predicate.Todo {
+	return predicate.Todo(sql.FieldLTE(FieldValue, v))
 }
 
 // CategoryIDEQ applies the EQ predicate on the "category_id" field.

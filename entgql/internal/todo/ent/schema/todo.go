@@ -86,6 +86,8 @@ func (Todo) Fields() []ent.Field {
 				entgql.Skip(entgql.SkipMutationUpdateInput),
 			).
 			Optional(),
+		field.Int("value").
+			Default(0),
 	}
 }
 

@@ -9,9 +9,12 @@ schema:
 
 resolver:
   layout: follow-schema
+  preserve_resolver: false
   dir: .
 
 autobind:
+  # Fix binding for the `Field` interface.
+  - github.com/99designs/gqlgen/graphql/introspection
   - entgo.io/contrib/entgql/internal/todo/ent
   # Auto-bind the generated `Status` enum to GraphQL.
   - entgo.io/contrib/entgql/internal/todo/ent/todo

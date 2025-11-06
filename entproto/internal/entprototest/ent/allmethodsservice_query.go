@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/contrib/entproto/internal/entprototest/ent/allmethodsservice"
 	"entgo.io/contrib/entproto/internal/entprototest/ent/predicate"
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -60,7 +61,7 @@ func (amsq *AllMethodsServiceQuery) Order(o ...allmethodsservice.OrderOption) *A
 // First returns the first AllMethodsService entity from the query.
 // Returns a *NotFoundError when no AllMethodsService was found.
 func (amsq *AllMethodsServiceQuery) First(ctx context.Context) (*AllMethodsService, error) {
-	nodes, err := amsq.Limit(1).All(setContextOp(ctx, amsq.ctx, "First"))
+	nodes, err := amsq.Limit(1).All(setContextOp(ctx, amsq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (amsq *AllMethodsServiceQuery) FirstX(ctx context.Context) *AllMethodsServi
 // Returns a *NotFoundError when no AllMethodsService ID was found.
 func (amsq *AllMethodsServiceQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = amsq.Limit(1).IDs(setContextOp(ctx, amsq.ctx, "FirstID")); err != nil {
+	if ids, err = amsq.Limit(1).IDs(setContextOp(ctx, amsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -106,7 +107,7 @@ func (amsq *AllMethodsServiceQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one AllMethodsService entity is found.
 // Returns a *NotFoundError when no AllMethodsService entities are found.
 func (amsq *AllMethodsServiceQuery) Only(ctx context.Context) (*AllMethodsService, error) {
-	nodes, err := amsq.Limit(2).All(setContextOp(ctx, amsq.ctx, "Only"))
+	nodes, err := amsq.Limit(2).All(setContextOp(ctx, amsq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (amsq *AllMethodsServiceQuery) OnlyX(ctx context.Context) *AllMethodsServic
 // Returns a *NotFoundError when no entities are found.
 func (amsq *AllMethodsServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = amsq.Limit(2).IDs(setContextOp(ctx, amsq.ctx, "OnlyID")); err != nil {
+	if ids, err = amsq.Limit(2).IDs(setContextOp(ctx, amsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -159,7 +160,7 @@ func (amsq *AllMethodsServiceQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of AllMethodsServices.
 func (amsq *AllMethodsServiceQuery) All(ctx context.Context) ([]*AllMethodsService, error) {
-	ctx = setContextOp(ctx, amsq.ctx, "All")
+	ctx = setContextOp(ctx, amsq.ctx, ent.OpQueryAll)
 	if err := amsq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -181,7 +182,7 @@ func (amsq *AllMethodsServiceQuery) IDs(ctx context.Context) (ids []int, err err
 	if amsq.ctx.Unique == nil && amsq.path != nil {
 		amsq.Unique(true)
 	}
-	ctx = setContextOp(ctx, amsq.ctx, "IDs")
+	ctx = setContextOp(ctx, amsq.ctx, ent.OpQueryIDs)
 	if err = amsq.Select(allmethodsservice.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (amsq *AllMethodsServiceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (amsq *AllMethodsServiceQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, amsq.ctx, "Count")
+	ctx = setContextOp(ctx, amsq.ctx, ent.OpQueryCount)
 	if err := amsq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -217,7 +218,7 @@ func (amsq *AllMethodsServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (amsq *AllMethodsServiceQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, amsq.ctx, "Exist")
+	ctx = setContextOp(ctx, amsq.ctx, ent.OpQueryExist)
 	switch _, err := amsq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -427,7 +428,7 @@ func (amsgb *AllMethodsServiceGroupBy) Aggregate(fns ...AggregateFunc) *AllMetho
 
 // Scan applies the selector query and scans the result into the given value.
 func (amsgb *AllMethodsServiceGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, amsgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, amsgb.build.ctx, ent.OpQueryGroupBy)
 	if err := amsgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -475,7 +476,7 @@ func (amss *AllMethodsServiceSelect) Aggregate(fns ...AggregateFunc) *AllMethods
 
 // Scan applies the selector query and scans the result into the given value.
 func (amss *AllMethodsServiceSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, amss.ctx, "Select")
+	ctx = setContextOp(ctx, amss.ctx, ent.OpQuerySelect)
 	if err := amss.prepareQuery(ctx); err != nil {
 		return err
 	}

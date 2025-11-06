@@ -115,6 +115,20 @@ func (tc *TodoCreate) SetCustomp(c []*customstruct.Custom) *TodoCreate {
 	return tc
 }
 
+// SetValue sets the "value" field.
+func (tc *TodoCreate) SetValue(i int) *TodoCreate {
+	tc.mutation.SetValue(i)
+	return tc
+}
+
+// SetNillableValue sets the "value" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableValue(i *int) *TodoCreate {
+	if i != nil {
+		tc.SetValue(*i)
+	}
+	return tc
+}
+
 // SetParentID sets the "parent" edge to the Todo entity by ID.
 func (tc *TodoCreate) SetParentID(id int) *TodoCreate {
 	tc.mutation.SetParentID(id)
@@ -216,6 +230,10 @@ func (tc *TodoCreate) defaults() {
 		v := todo.DefaultPriority
 		tc.mutation.SetPriority(v)
 	}
+	if _, ok := tc.mutation.Value(); !ok {
+		v := todo.DefaultValue
+		tc.mutation.SetValue(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -241,6 +259,9 @@ func (tc *TodoCreate) check() error {
 		if err := todo.TextValidator(v); err != nil {
 			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Todo.text": %w`, err)}
 		}
+	}
+	if _, ok := tc.mutation.Value(); !ok {
+		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "Todo.value"`)}
 	}
 	return nil
 }
@@ -299,6 +320,10 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Customp(); ok {
 		_spec.SetField(todo.FieldCustomp, field.TypeJSON, value)
 		_node.Customp = value
+	}
+	if value, ok := tc.mutation.Value(); ok {
+		_spec.SetField(todo.FieldValue, field.TypeInt, value)
+		_node.Value = value
 	}
 	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
