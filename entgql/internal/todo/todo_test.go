@@ -2580,7 +2580,7 @@ func TestFieldSelection(t *testing.T) {
 	require.Equal(t, []string{
 		// Unknown fields enforce query all columns.
 		"SELECT `todos`.`id`, `todos`.`created_at`, `todos`.`status`, " +
-			"`todos`.`priority`, `todos`.`text`, `todos`.`blob`, " +
+			"`todos`.`priority`, `todos`.`text`, `todos`.`name`, `todos`.`blob`, " +
 			"`todos`.`category_id`, `todos`.`init`, `todos`.`custom`, " +
 			"`todos`.`customp`, `todos`.`value` FROM `todos` ORDER BY `todos`.`id`",
 	}, rec.queries)
@@ -2632,6 +2632,39 @@ func TestFieldSelection(t *testing.T) {
 		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name` FROM `one_to_manies` ORDER BY `one_to_manies`.`id`",
 		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name`, `one_to_manies`.`parent_id` FROM `one_to_manies` WHERE `one_to_manies`.`parent_id` IN (?, ?, ?, ?, ?, ?)",
 	}, rec.queries)
+
+	// Test the CollectedFor annotation.
+	ec.Todo.Create().SetText("test").SetName("hello").SetStatus(todo.StatusCompleted).SaveX(ctx)
+	var (
+		// language=GraphQL
+		query5 = `query {
+			todos (where: {name: "hello"}) {
+				edges {
+					node {
+						uppercaseName
+					}
+				}
+			}
+		}`
+		rsp5 struct {
+			Todos struct {
+				Edges []struct {
+					Node struct {
+						UppercaseName *string
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query5, &rsp5)
+	require.Equal(t, []string{
+		"SELECT `todos`.`id`, `todos`.`name` FROM `todos` WHERE `todos`.`name` = ? ORDER BY `todos`.`id`",
+	}, rec.queries)
+	require.Len(t, rsp5.Todos.Edges, 1)
+	require.NotNil(t, rsp5.Todos.Edges[0].Node.UppercaseName)
+	require.Equal(t, "HELLO", *rsp5.Todos.Edges[0].Node.UppercaseName)
 }
 
 func TestOrderByEdgeCount(t *testing.T) {

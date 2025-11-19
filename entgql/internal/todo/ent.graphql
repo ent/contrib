@@ -317,6 +317,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  name: String
   init: Map
   value: Int
   parentID: ID
@@ -969,6 +970,7 @@ type Todo implements Node {
   status: TodoStatus!
   priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
+  name: String
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
@@ -1138,6 +1140,24 @@ input TodoWhereInput {
   textEqualFold: String
   textContainsFold: String
   """
+  name field predicates
+  """
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
+  nameEqualFold: String
+  nameContainsFold: String
+  """
   category_id field predicates
   """
   categoryID: ID
@@ -1219,6 +1239,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  name: String
+  clearName: Boolean
   init: Map
   clearInit: Boolean
   value: Int

@@ -1438,6 +1438,23 @@ type TodoWhereInput struct {
 	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
 	TextContainsFold *string  `json:"textContainsFold,omitempty"`
 
+	// "name" field predicates.
+	Name             *string  `json:"name,omitempty"`
+	NameNEQ          *string  `json:"nameNEQ,omitempty"`
+	NameIn           []string `json:"nameIn,omitempty"`
+	NameNotIn        []string `json:"nameNotIn,omitempty"`
+	NameGT           *string  `json:"nameGT,omitempty"`
+	NameGTE          *string  `json:"nameGTE,omitempty"`
+	NameLT           *string  `json:"nameLT,omitempty"`
+	NameLTE          *string  `json:"nameLTE,omitempty"`
+	NameContains     *string  `json:"nameContains,omitempty"`
+	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
+	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
+	NameIsNil        bool     `json:"nameIsNil,omitempty"`
+	NameNotNil       bool     `json:"nameNotNil,omitempty"`
+	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
+	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
+
 	// "value" field predicates.
 	Value      *int  `json:"value,omitempty"`
 	ValueNEQ   *int  `json:"valueNEQ,omitempty"`
@@ -1677,6 +1694,51 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 	}
 	if i.TextContainsFold != nil {
 		predicates = append(predicates, todo.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.Name != nil {
+		predicates = append(predicates, todo.NameEQ(*i.Name))
+	}
+	if i.NameNEQ != nil {
+		predicates = append(predicates, todo.NameNEQ(*i.NameNEQ))
+	}
+	if len(i.NameIn) > 0 {
+		predicates = append(predicates, todo.NameIn(i.NameIn...))
+	}
+	if len(i.NameNotIn) > 0 {
+		predicates = append(predicates, todo.NameNotIn(i.NameNotIn...))
+	}
+	if i.NameGT != nil {
+		predicates = append(predicates, todo.NameGT(*i.NameGT))
+	}
+	if i.NameGTE != nil {
+		predicates = append(predicates, todo.NameGTE(*i.NameGTE))
+	}
+	if i.NameLT != nil {
+		predicates = append(predicates, todo.NameLT(*i.NameLT))
+	}
+	if i.NameLTE != nil {
+		predicates = append(predicates, todo.NameLTE(*i.NameLTE))
+	}
+	if i.NameContains != nil {
+		predicates = append(predicates, todo.NameContains(*i.NameContains))
+	}
+	if i.NameHasPrefix != nil {
+		predicates = append(predicates, todo.NameHasPrefix(*i.NameHasPrefix))
+	}
+	if i.NameHasSuffix != nil {
+		predicates = append(predicates, todo.NameHasSuffix(*i.NameHasSuffix))
+	}
+	if i.NameIsNil {
+		predicates = append(predicates, todo.NameIsNil())
+	}
+	if i.NameNotNil {
+		predicates = append(predicates, todo.NameNotNil())
+	}
+	if i.NameEqualFold != nil {
+		predicates = append(predicates, todo.NameEqualFold(*i.NameEqualFold))
+	}
+	if i.NameContainsFold != nil {
+		predicates = append(predicates, todo.NameContainsFold(*i.NameContainsFold))
 	}
 	if i.Value != nil {
 		predicates = append(predicates, todo.ValueEQ(*i.Value))

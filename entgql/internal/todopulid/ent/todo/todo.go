@@ -40,6 +40,8 @@ const (
 	FieldPriority = "priority"
 	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldBlob holds the string denoting the blob field in the database.
 	FieldBlob = "blob"
 	// FieldInit holds the string denoting the init field in the database.
@@ -93,6 +95,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldPriority,
 	FieldText,
+	FieldName,
 	FieldBlob,
 	FieldInit,
 	FieldCustom,
@@ -186,6 +189,11 @@ func ByPriority(opts ...sql.OrderTermOption) OrderOption {
 // ByText orders the results by the text field.
 func ByText(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByValue orders the results by the value field.

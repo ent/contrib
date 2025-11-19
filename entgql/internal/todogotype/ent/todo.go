@@ -44,6 +44,8 @@ type Todo struct {
 	Priority int `json:"priority,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// Blob holds the value of the "blob" field.
 	Blob []byte `json:"blob,omitempty"`
 	// Init holds the value of the "init" field.
@@ -136,7 +138,7 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 			values[i] = new(bigintgql.BigInt)
 		case todo.FieldPriority, todo.FieldValue:
 			values[i] = new(sql.NullInt64)
-		case todo.FieldID, todo.FieldStatus, todo.FieldText:
+		case todo.FieldID, todo.FieldStatus, todo.FieldText, todo.FieldName:
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -188,6 +190,12 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field text", values[i])
 			} else if value.Valid {
 				t.Text = value.String
+			}
+		case todo.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				t.Name = value.String
 			}
 		case todo.FieldBlob:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -312,6 +320,9 @@ func (t *Todo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("text=")
 	builder.WriteString(t.Text)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(t.Name)
 	builder.WriteString(", ")
 	builder.WriteString("blob=")
 	builder.WriteString(fmt.Sprintf("%v", t.Blob))
