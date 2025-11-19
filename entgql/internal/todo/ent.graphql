@@ -165,7 +165,7 @@ type CategoryEdge {
   """
   The item at the end of the edge.
   """
-  node: Category
+  node: Category!
   """
   A cursor for use in pagination.
   """
@@ -375,7 +375,7 @@ type FriendshipEdge {
   """
   The item at the end of the edge.
   """
-  node: Friendship
+  node: Friendship!
   """
   A cursor for use in pagination.
   """
@@ -471,7 +471,7 @@ type GroupEdge {
   """
   The item at the end of the edge.
   """
-  node: Group
+  node: Group!
   """
   A cursor for use in pagination.
   """
@@ -563,7 +563,7 @@ type OneToManyEdge {
   """
   The item at the end of the edge.
   """
-  node: OneToMany
+  node: OneToMany!
   """
   A cursor for use in pagination.
   """
@@ -1036,7 +1036,7 @@ type TodoEdge {
   """
   The item at the end of the edge.
   """
-  node: Todo
+  node: Todo!
   """
   A cursor for use in pagination.
   """
@@ -1385,7 +1385,7 @@ type UserEdge {
   """
   The item at the end of the edge.
   """
-  node: User
+  node: User!
   """
   A cursor for use in pagination.
   """

@@ -48,7 +48,7 @@ type OneToManyConnection struct {
 // An edge in a connection.
 type OneToManyEdge struct {
 	// The item at the end of the edge.
-	Node *OneToMany `json:"node,omitempty"`
+	Node *OneToMany `json:"node"`
 	// A cursor for use in pagination.
 	Cursor entgql.Cursor[uuid.UUID] `json:"cursor"`
 }
