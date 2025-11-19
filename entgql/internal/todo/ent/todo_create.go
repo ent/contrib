@@ -77,6 +77,20 @@ func (tc *TodoCreate) SetText(s string) *TodoCreate {
 	return tc
 }
 
+// SetName sets the "name" field.
+func (tc *TodoCreate) SetName(s string) *TodoCreate {
+	tc.mutation.SetName(s)
+	return tc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (tc *TodoCreate) SetNillableName(s *string) *TodoCreate {
+	if s != nil {
+		tc.SetName(*s)
+	}
+	return tc
+}
+
 // SetBlob sets the "blob" field.
 func (tc *TodoCreate) SetBlob(b []byte) *TodoCreate {
 	tc.mutation.SetBlob(b)
@@ -304,6 +318,10 @@ func (tc *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Text(); ok {
 		_spec.SetField(todo.FieldText, field.TypeString, value)
 		_node.Text = value
+	}
+	if value, ok := tc.mutation.Name(); ok {
+		_spec.SetField(todo.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
 	if value, ok := tc.mutation.Blob(); ok {
 		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)

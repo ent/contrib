@@ -172,6 +172,7 @@ type CreateTodoInput struct {
 	Status     todo.Status
 	Priority   *int
 	Text       string
+	Name       *string
 	Init       map[string]interface{}
 	Value      *int
 	ParentID   *uuid.UUID
@@ -187,6 +188,9 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 		m.SetPriority(*v)
 	}
 	m.SetText(i.Text)
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
 	if v := i.Init; v != nil {
 		m.SetInit(v)
 	}
@@ -218,6 +222,8 @@ type UpdateTodoInput struct {
 	Status         *todo.Status
 	Priority       *int
 	Text           *string
+	ClearName      bool
+	Name           *string
 	ClearInit      bool
 	Init           map[string]interface{}
 	Value          *int
@@ -240,6 +246,12 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 	if v := i.Text; v != nil {
 		m.SetText(*v)
+	}
+	if i.ClearName {
+		m.ClearName()
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
 	}
 	if i.ClearInit {
 		m.ClearInit()

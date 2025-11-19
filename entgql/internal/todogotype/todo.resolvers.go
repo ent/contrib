@@ -71,6 +71,11 @@ func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*strin
 	panic(fmt.Errorf("not implemented"))
 }
 
+// UppercaseName is the resolver for the uppercaseName field.
+func (r *todoResolver) UppercaseName(ctx context.Context, obj *ent.Todo) (*string, error) {
+	panic(fmt.Errorf("not implemented: UppercaseName - uppercaseName"))
+}
+
 // CreateTodos is the resolver for the createTodos field.
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	panic(fmt.Errorf("not implemented"))

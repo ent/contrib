@@ -216,10 +216,12 @@ type ComplexityRoot struct {
 		ExtendedField func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Init          func(childComplexity int) int
+		Name          func(childComplexity int) int
 		Parent        func(childComplexity int) int
 		Priority      func(childComplexity int) int
 		Status        func(childComplexity int) int
 		Text          func(childComplexity int) int
+		UppercaseName func(childComplexity int) int
 		Value         func(childComplexity int) int
 	}
 
@@ -288,6 +290,7 @@ type TodoResolver interface {
 	Status(ctx context.Context, obj *ent.Todo) (todo.Status, error)
 
 	ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error)
+	UppercaseName(ctx context.Context, obj *ent.Todo) (*string, error)
 }
 type UserResolver interface {
 	Username(ctx context.Context, obj *ent.User) (string, error)
@@ -1027,6 +1030,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Init(childComplexity), true
 
+	case "Todo.name":
+		if e.complexity.Todo.Name == nil {
+			break
+		}
+
+		return e.complexity.Todo.Name(childComplexity), true
+
 	case "Todo.parent":
 		if e.complexity.Todo.Parent == nil {
 			break
@@ -1054,6 +1064,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Text(childComplexity), true
+
+	case "Todo.uppercaseName":
+		if e.complexity.Todo.UppercaseName == nil {
+			break
+		}
+
+		return e.complexity.Todo.UppercaseName(childComplexity), true
 
 	case "Todo.value":
 		if e.complexity.Todo.Value == nil {
@@ -1364,6 +1381,7 @@ extend type Category {
 
 extend type Todo {
   extendedField: String
+  uppercaseName: String
 }
 
 extend type Query {
@@ -1732,6 +1750,7 @@ input CreateTodoInput {
   status: TodoStatus!
   priority: Int
   text: String!
+  name: String
   init: Map
   value: Int
   parentID: ID
@@ -2384,6 +2403,7 @@ type Todo implements Node {
   status: TodoStatus!
   priorityOrder: Int! @goField(name: "Priority", forceResolver: false)
   text: String!
+  name: String
   categoryID: ID
   category_id: ID
   categoryX: ID @goField(name: "CategoryID", forceResolver: false)
@@ -2553,6 +2573,24 @@ input TodoWhereInput {
   textEqualFold: String
   textContainsFold: String
   """
+  name field predicates
+  """
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameIsNil: Boolean
+  nameNotNil: Boolean
+  nameEqualFold: String
+  nameContainsFold: String
+  """
   category_id field predicates
   """
   categoryID: ID
@@ -2634,6 +2672,8 @@ input UpdateTodoInput {
   status: TodoStatus
   priority: Int
   text: String
+  name: String
+  clearName: Boolean
   init: Map
   clearInit: Boolean
   value: Int
@@ -7352,6 +7392,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "name":
+				return ec.fieldContext_Todo_name(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "category_id":
@@ -7374,6 +7416,8 @@ func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context
 				return ec.fieldContext_Todo_category(ctx, field)
 			case "extendedField":
 				return ec.fieldContext_Todo_extendedField(ctx, field)
+			case "uppercaseName":
+				return ec.fieldContext_Todo_uppercaseName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -7441,6 +7485,8 @@ func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context
 				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "name":
+				return ec.fieldContext_Todo_name(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "category_id":
@@ -7463,6 +7509,8 @@ func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context
 				return ec.fieldContext_Todo_category(ctx, field)
 			case "extendedField":
 				return ec.fieldContext_Todo_extendedField(ctx, field)
+			case "uppercaseName":
+				return ec.fieldContext_Todo_uppercaseName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -9370,6 +9418,47 @@ func (ec *executionContext) fieldContext_Todo_text(_ context.Context, field grap
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_name(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Todo_categoryID(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_categoryID(ctx, field)
 	if err != nil {
@@ -9714,6 +9803,8 @@ func (ec *executionContext) fieldContext_Todo_parent(_ context.Context, field gr
 				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "name":
+				return ec.fieldContext_Todo_name(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "category_id":
@@ -9736,6 +9827,8 @@ func (ec *executionContext) fieldContext_Todo_parent(_ context.Context, field gr
 				return ec.fieldContext_Todo_category(ctx, field)
 			case "extendedField":
 				return ec.fieldContext_Todo_extendedField(ctx, field)
+			case "uppercaseName":
+				return ec.fieldContext_Todo_uppercaseName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -9900,6 +9993,47 @@ func (ec *executionContext) _Todo_extendedField(ctx context.Context, field graph
 }
 
 func (ec *executionContext) fieldContext_Todo_extendedField(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_uppercaseName(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_uppercaseName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Todo().UppercaseName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_uppercaseName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Todo",
 		Field:      field,
@@ -10103,6 +10237,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(_ context.Context, field 
 				return ec.fieldContext_Todo_priorityOrder(ctx, field)
 			case "text":
 				return ec.fieldContext_Todo_text(ctx, field)
+			case "name":
+				return ec.fieldContext_Todo_name(ctx, field)
 			case "categoryID":
 				return ec.fieldContext_Todo_categoryID(ctx, field)
 			case "category_id":
@@ -10125,6 +10261,8 @@ func (ec *executionContext) fieldContext_TodoEdge_node(_ context.Context, field 
 				return ec.fieldContext_Todo_category(ctx, field)
 			case "extendedField":
 				return ec.fieldContext_Todo_extendedField(ctx, field)
+			case "uppercaseName":
+				return ec.fieldContext_Todo_uppercaseName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -13763,7 +13901,7 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "priority", "text", "init", "value", "parentID", "childIDs", "categoryID", "secretID"}
+	fieldsInOrder := [...]string{"status", "priority", "text", "name", "init", "value", "parentID", "childIDs", "categoryID", "secretID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13793,6 +13931,13 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 				return it, err
 			}
 			it.Text = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
 		case "init":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
@@ -14970,7 +15115,7 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "priority", "priorityNEQ", "priorityIn", "priorityNotIn", "priorityGT", "priorityGTE", "priorityLT", "priorityLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "categoryID", "categoryIDNEQ", "categoryIDIn", "categoryIDNotIn", "categoryIDIsNil", "categoryIDNotNil", "value", "valueNEQ", "valueIn", "valueNotIn", "valueGT", "valueGTE", "valueLT", "valueLTE", "hasParent", "hasParentWith", "hasChildren", "hasChildrenWith", "hasCategory", "hasCategoryWith", "createdToday"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "priority", "priorityNEQ", "priorityIn", "priorityNotIn", "priorityGT", "priorityGTE", "priorityLT", "priorityLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameIsNil", "nameNotNil", "nameEqualFold", "nameContainsFold", "categoryID", "categoryIDNEQ", "categoryIDIn", "categoryIDNotIn", "categoryIDIsNil", "categoryIDNotNil", "value", "valueNEQ", "valueIn", "valueNotIn", "valueGT", "valueGTE", "valueLT", "valueLTE", "hasParent", "hasParentWith", "hasChildren", "hasChildrenWith", "hasCategory", "hasCategoryWith", "createdToday"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15293,6 +15438,111 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.TextContainsFold = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "nameNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameNEQ = data
+		case "nameIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameIn = data
+		case "nameNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameNotIn = data
+		case "nameGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameGT = data
+		case "nameGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameGTE = data
+		case "nameLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameLT = data
+		case "nameLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameLTE = data
+		case "nameContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameContains = data
+		case "nameHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameHasPrefix = data
+		case "nameHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameHasSuffix = data
+		case "nameIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameIsNil = data
+		case "nameNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameNotNil = data
+		case "nameEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameEqualFold = data
+		case "nameContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NameContainsFold = data
 		case "categoryID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryID"))
 			data, err := ec.unmarshalOID2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚋschemaᚋpulidᚐID(ctx, v)
@@ -15651,7 +15901,7 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "priority", "text", "init", "clearInit", "value", "parentID", "clearParent", "addChildIDs", "removeChildIDs", "clearChildren", "secretID", "clearSecret"}
+	fieldsInOrder := [...]string{"status", "priority", "text", "name", "clearName", "init", "clearInit", "value", "parentID", "clearParent", "addChildIDs", "removeChildIDs", "clearChildren", "secretID", "clearSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15681,6 +15931,20 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 				return it, err
 			}
 			it.Text = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "clearName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearName"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearName = data
 		case "init":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("init"))
 			data, err := ec.unmarshalOMap2map(ctx, v)
@@ -17832,6 +18096,8 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "name":
+			out.Values[i] = ec._Todo_name(ctx, field, obj)
 		case "categoryID":
 			out.Values[i] = ec._Todo_categoryID(ctx, field, obj)
 		case "category_id":
@@ -17961,6 +18227,39 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Todo_extendedField(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "uppercaseName":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Todo_uppercaseName(ctx, field, obj)
 				return res
 			}
 
@@ -20563,6 +20862,16 @@ func (ec *executionContext) unmarshalOProjectWhereInput2ᚖentgoᚗioᚋcontrib�
 	}
 	res, err := ec.unmarshalInputProjectWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOString2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {

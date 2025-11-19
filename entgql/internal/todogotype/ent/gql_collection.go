@@ -908,6 +908,11 @@ func (tq *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				selectedFields = append(selectedFields, todo.FieldText)
 				fieldSeen[todo.FieldText] = struct{}{}
 			}
+		case "name", "uppercaseName":
+			if _, ok := fieldSeen[todo.FieldName]; !ok {
+				selectedFields = append(selectedFields, todo.FieldName)
+				fieldSeen[todo.FieldName] = struct{}{}
+			}
 		case "init":
 			if _, ok := fieldSeen[todo.FieldInit]; !ok {
 				selectedFields = append(selectedFields, todo.FieldInit)
