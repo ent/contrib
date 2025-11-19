@@ -94,6 +94,26 @@ func (tu *TodoUpdate) SetNillableText(s *string) *TodoUpdate {
 	return tu
 }
 
+// SetName sets the "name" field.
+func (tu *TodoUpdate) SetName(s string) *TodoUpdate {
+	tu.mutation.SetName(s)
+	return tu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (tu *TodoUpdate) SetNillableName(s *string) *TodoUpdate {
+	if s != nil {
+		tu.SetName(*s)
+	}
+	return tu
+}
+
+// ClearName clears the value of the "name" field.
+func (tu *TodoUpdate) ClearName() *TodoUpdate {
+	tu.mutation.ClearName()
+	return tu
+}
+
 // SetBlob sets the "blob" field.
 func (tu *TodoUpdate) SetBlob(b []byte) *TodoUpdate {
 	tu.mutation.SetBlob(b)
@@ -338,6 +358,12 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.Text(); ok {
 		_spec.SetField(todo.FieldText, field.TypeString, value)
 	}
+	if value, ok := tu.mutation.Name(); ok {
+		_spec.SetField(todo.FieldName, field.TypeString, value)
+	}
+	if tu.mutation.NameCleared() {
+		_spec.ClearField(todo.FieldName, field.TypeString)
+	}
 	if value, ok := tu.mutation.Blob(); ok {
 		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)
 	}
@@ -549,6 +575,26 @@ func (tuo *TodoUpdateOne) SetNillableText(s *string) *TodoUpdateOne {
 	if s != nil {
 		tuo.SetText(*s)
 	}
+	return tuo
+}
+
+// SetName sets the "name" field.
+func (tuo *TodoUpdateOne) SetName(s string) *TodoUpdateOne {
+	tuo.mutation.SetName(s)
+	return tuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (tuo *TodoUpdateOne) SetNillableName(s *string) *TodoUpdateOne {
+	if s != nil {
+		tuo.SetName(*s)
+	}
+	return tuo
+}
+
+// ClearName clears the value of the "name" field.
+func (tuo *TodoUpdateOne) ClearName() *TodoUpdateOne {
+	tuo.mutation.ClearName()
 	return tuo
 }
 
@@ -825,6 +871,12 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) 
 	}
 	if value, ok := tuo.mutation.Text(); ok {
 		_spec.SetField(todo.FieldText, field.TypeString, value)
+	}
+	if value, ok := tuo.mutation.Name(); ok {
+		_spec.SetField(todo.FieldName, field.TypeString, value)
+	}
+	if tuo.mutation.NameCleared() {
+		_spec.ClearField(todo.FieldName, field.TypeString)
 	}
 	if value, ok := tuo.mutation.Blob(); ok {
 		_spec.SetField(todo.FieldBlob, field.TypeBytes, value)

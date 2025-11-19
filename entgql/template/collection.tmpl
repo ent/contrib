@@ -152,7 +152,13 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 						{{- end }}
 				{{- end }}
 				{{- range $f := $fields }}
-					{{- with fieldMapping $f }}
+					{{- $mapping := fieldMapping $f }}
+					{{- range fieldCollectedFor $f }}
+						{{- if eq (indexOf $mapping .) -1 }}
+							{{- $mapping = append $mapping . }}
+						{{- end }}
+					{{- end }}
+					{{- with $mapping }}
 						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
 							if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
 								selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})

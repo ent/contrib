@@ -72,7 +72,7 @@ func init() {
 	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
 	// todoDescValue is the schema descriptor for value field.
-	todoDescValue := todoFields[9].Descriptor()
+	todoDescValue := todoFields[10].Descriptor()
 	// todo.DefaultValue holds the default value on creation for the value field.
 	todo.DefaultValue = todoDescValue.Default.(int)
 	userFields := schema.User{}.Fields()

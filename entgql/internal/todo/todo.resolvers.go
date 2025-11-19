@@ -20,6 +20,7 @@ package todo
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"entgo.io/contrib/entgql"
@@ -105,6 +106,12 @@ func (r *queryResolver) TodosWithJoins(ctx context.Context, after *entgql.Cursor
 // ExtendedField is the resolver for the extendedField field.
 func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error) {
 	return &obj.Text, nil
+}
+
+// UppercaseName is the resolver for the uppercaseName field.
+func (r *todoResolver) UppercaseName(ctx context.Context, obj *ent.Todo) (*string, error) {
+	v := strings.ToUpper(obj.Name)
+	return &v, nil
 }
 
 // CreateTodos is the resolver for the createTodos field.

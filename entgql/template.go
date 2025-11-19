@@ -79,6 +79,7 @@ var (
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections":    fieldCollections,
 		"fieldMapping":        fieldMapping,
+		"fieldCollectedFor":   fieldCollectedFor,
 		"filterEdges":         filterEdges,
 		"filterFields":        filterFields,
 		"filterNodes":         filterNodes,
@@ -367,6 +368,16 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 		}
 	}
 	return filteredFields, nil
+}
+
+// fieldCollectedFor returns all fields that should be collected when the given GraphQL field name is queried.
+// This checks the CollectedFor annotation on all fields.
+func fieldCollectedFor(f *gen.Field) ([]string, error) {
+	ant, err := annotation(f.Annotations)
+	if err != nil || ant.Skip.Is(SkipType) || f.Sensitive() {
+		return nil, err
+	}
+	return ant.CollectedFor, nil
 }
 
 // OrderTerm is a struct that represents a single GraphQL order term.
