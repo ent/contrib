@@ -41,6 +41,20 @@ func TestBasic(t *testing.T) {
 	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
 }
 
+func TestOptional(t *testing.T) {
+	tt, err := newGenTest(t, "testdata/optional.proto")
+	require.NoError(t, err)
+	contents, err := tt.fileContents("optional.go")
+	require.NoError(t, err)
+	require.Contains(t, contents, "type Optional struct")
+	require.Contains(t, contents, `field.String("name")`)
+	require.Contains(t, contents, `field.String("optional_implicit").Nillable().Optional()`)
+	require.Contains(t, contents, `field.String("optional_explicit").Nillable().Optional()`)
+	require.Contains(t, contents, `field.String("optional_not_nillable").Optional()`)
+	require.Contains(t, contents, `field.String("optional_not_optional").Nillable()`)
+	require.True(t, strings.HasPrefix(contents, "// File updated by protoc-gen-ent."))
+}
+
 func TestCustomName(t *testing.T) {
 	tt, err := newGenTest(t, "testdata/custom_name.proto")
 	require.NoError(t, err)
@@ -122,6 +136,7 @@ func newGenTest(t *testing.T, files ...string) (*genTest, error) {
 	if err != nil {
 		return nil, err
 	}
+	gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 	err = printSchemas(tmp, gen)
 	if err != nil {
 		return nil, err
