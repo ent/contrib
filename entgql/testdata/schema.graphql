@@ -1,9 +1,15 @@
+"""
+BillProduct represents a product in a bill.
+"""
 type BillProduct {
   id: ID!
   name: String!
   sku: String!
   quantity: Uint64!
 }
+"""
+Category represents a category in the todo application.
+"""
 type Category {
   id: ID!
   text: String!

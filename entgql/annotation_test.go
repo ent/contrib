@@ -36,6 +36,10 @@ func TestAnnotation(t *testing.T) {
 	annotation = entgql.MapsTo(names...)
 	require.True(t, annotation.Unbind)
 	require.ElementsMatch(t, names, annotation.Mapping)
+
+	descr := "This is a test description"
+	annotation = entgql.Description(descr)
+	require.Equal(t, descr, annotation.Description)
 }
 
 func TestAnnotationDecode(t *testing.T) {
@@ -45,17 +49,19 @@ func TestAnnotationDecode(t *testing.T) {
 	require.Equal(t, ann, &entgql.Annotation{})
 	ann = &entgql.Annotation{}
 	err = ann.Decode(map[string]interface{}{
-		"OrderField": "NAME",
-		"Unbind":     true,
-		"Mapping":    []string{"f1", "f2"},
-		"Skip":       entgql.SkipAll,
+		"OrderField":  "NAME",
+		"Unbind":      true,
+		"Mapping":     []string{"f1", "f2"},
+		"Skip":        entgql.SkipAll,
+		"Description": "This is a test description",
 	})
 	require.NoError(t, err)
 	require.Equal(t, ann, &entgql.Annotation{
-		OrderField: "NAME",
-		Unbind:     true,
-		Mapping:    []string{"f1", "f2"},
-		Skip:       entgql.SkipAll,
+		OrderField:  "NAME",
+		Unbind:      true,
+		Mapping:     []string{"f1", "f2"},
+		Skip:        entgql.SkipAll,
+		Description: "This is a test description",
 	})
 	err = ann.Decode("invalid")
 	require.NotNil(t, err)

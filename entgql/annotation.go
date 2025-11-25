@@ -25,6 +25,8 @@ import (
 type (
 	// Annotation annotates fields and edges with metadata for templates.
 	Annotation struct {
+		// Description is the description of the type or field.
+		Description string `json:"Description,omitempty"`
 		// OrderField is the ordering field as defined in graphql schema.
 		OrderField string `json:"OrderField,omitempty"`
 		// MultiOrder indicates that orderBy should accept a list of OrderField terms.
@@ -112,6 +114,10 @@ const (
 // Name implements ent.Annotation interface.
 func (Annotation) Name() string {
 	return "EntGQL"
+}
+
+func Description(text string) Annotation {
+	return Annotation{Description: text}
 }
 
 // OrderField enables ordering in GraphQL for the annotated Ent field
@@ -465,6 +471,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 		}
 	default:
 		return a
+	}
+	if ant.Description != "" {
+		a.Description = ant.Description
 	}
 	if ant.OrderField != "" {
 		a.OrderField = ant.OrderField

@@ -97,6 +97,7 @@ func (Category) Edges() []ent.Edge {
 // Annotations returns Todo annotations.
 func (Category) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.Description("Category represents a category in the todo application."),
 		entgql.QueryField(),
 		entgql.RelayConnection(),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),

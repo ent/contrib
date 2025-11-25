@@ -1,3 +1,6 @@
+"""
+BillProduct represents a product in a bill.
+"""
 type BillProduct implements Node {
   id: ID!
   name: String!
@@ -67,6 +70,9 @@ input BillProductWhereInput {
   quantityLT: Uint64
   quantityLTE: Uint64
 }
+"""
+Category represents a category in the todo application.
+"""
 type Category implements Node {
   id: ID!
   text: String!
@@ -1225,6 +1231,9 @@ type User implements Node {
   username: UUID!
   requiredMetadata: Map!
   metadata: Map
+  """
+  The groups of the user
+  """
   groups(
     """
     Returns the elements in the list that come after the specified cursor.
