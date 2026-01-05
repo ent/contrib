@@ -53,6 +53,9 @@ var (
 		"google.protobuf.StringValue": "google/protobuf/wrappers.proto",
 		"google.protobuf.BoolValue":   "google/protobuf/wrappers.proto",
 		"google.protobuf.BytesValue":  "google/protobuf/wrappers.proto",
+		"google.protobuf.Struct":      "google/protobuf/struct.proto",
+		"google.protobuf.ListValue":   "google/protobuf/struct.proto",
+		"google.protobuf.Value":       "google/protobuf/struct.proto",
 	}
 )
 
