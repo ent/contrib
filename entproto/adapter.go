@@ -28,6 +28,7 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"google.golang.org/protobuf/types/descriptorpb"
 	_ "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/protobuf/types/known/structpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	_ "google.golang.org/protobuf/types/known/wrapperspb" // needed to load wkt to global proto registry
 )
