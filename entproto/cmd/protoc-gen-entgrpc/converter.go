@@ -116,6 +116,9 @@ func (g *serviceGenerator) newConverter(fld *entproto.FieldMappingDescriptor) (*
 		case "[]string":
 		case "[]int32", "[]int64", "[]uint32", "[]uint64":
 			out.ToProtoConversion = ""
+		case "map[string]interface {}", "[]interface {}":
+			// Handled by convertPbMessageType for google.protobuf.Struct / google.protobuf.ListValue
+			// ToProtoConstructor and ToEntConstructor are already set
 		default:
 			return nil, fmt.Errorf("entproto: no mapping to ent field type %q", efld.Type.ConstName())
 		}
@@ -179,6 +182,12 @@ func convertPbMessageType(md *desc.MessageDescriptor, entField *gen.Field, conv 
 	switch {
 	case md.GetFullyQualifiedName() == "google.protobuf.Timestamp":
 		conv.ToProtoConstructor = protogen.GoImportPath("google.golang.org/protobuf/types/known/timestamppb").Ident("New")
+	case md.GetFullyQualifiedName() == "google.protobuf.Struct":
+		conv.ToProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("NewStruct")
+		conv.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractStruct")
+	case md.GetFullyQualifiedName() == "google.protobuf.ListValue":
+		conv.ToProtoConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("NewList")
+		conv.ToEntConstructor = protogen.GoImportPath("entgo.io/contrib/entproto/runtime").Ident("ExtractList")
 	case isWrapperType(md):
 		fqn := md.GetFullyQualifiedName()
 		typ := strings.Split(fqn, ".")[2]
