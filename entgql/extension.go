@@ -35,6 +35,7 @@ type (
 		outputWriter func(*ast.Schema) error
 		hooks        []gen.Hook
 		templates    []*gen.Template
+		schemaDir    string // directory for split schema output
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -53,9 +54,42 @@ type (
 //	schema:
 //	 - schema.graphql // existing schema.
 //	 - ent.graphql	  // generated schema.
+//
+// WithSchemaPath and WithSchemaDir are mutually exclusive.
 func WithSchemaPath(path string) ExtensionOption {
 	return func(ex *Extension) error {
+		if ex.schemaDir != "" {
+			return fmt.Errorf("entgql: WithSchemaPath and WithSchemaDir are mutually exclusive")
+		}
 		ex.path = path
+		return nil
+	}
+}
+
+// WithSchemaDir sets the directory for split schema output, generating
+// per-entity GraphQL files instead of a single file. This can help gqlgen
+// generate smaller resolver files, reducing memory usage during compilation.
+//
+// Output structure:
+//
+//	<schema_dir>/
+//	  ent_shared.graphql      # Shared types: directives, Node, Cursor, PageInfo, etc.
+//	  ent_query.graphql       # Query type with all entity fields
+//	  ent_<entity>.graphql    # Per-entity types (Connection, Edge, Order, WhereInput, etc.)
+//
+// Please note that your gqlgen.yml config file should be updated to use a glob pattern:
+//
+//	schema:
+//	 - schema.graphql            // existing schema.
+//	 - <schema_dir>/*.graphql    // generated split schemas.
+//
+// WithSchemaDir and WithSchemaPath are mutually exclusive.
+func WithSchemaDir(dir string) ExtensionOption {
+	return func(ex *Extension) error {
+		if ex.path != "" {
+			return fmt.Errorf("entgql: WithSchemaDir and WithSchemaPath are mutually exclusive")
+		}
+		ex.schemaDir = dir
 		return nil
 	}
 }
@@ -265,6 +299,10 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			if !(e.genSchema || e.genWhereInput || e.genMutations) {
 				return nil
 			}
+			// Handle split schema mode
+			if e.schemaDir != "" {
+				return e.generateSplitSchema(g)
+			}
 			schema, err := e.BuildSchema(g)
 			if err != nil {
 				return err
@@ -278,6 +316,38 @@ func (e *Extension) genSchemaHook() gen.Hook {
 			return e.outputWriter(schema)
 		})
 	}
+}
+
+// generateSplitSchema generates per-entity GraphQL schema files.
+func (e *Extension) generateSplitSchema(g *gen.Graph) error {
+	split, err := e.BuildSplitSchema(g)
+	if err != nil {
+		return err
+	}
+	// Create schema directory if needed
+	if err := os.MkdirAll(e.schemaDir, 0755); err != nil {
+		return fmt.Errorf("entgql: failed to create schema directory: %w", err)
+	}
+	// Write shared types
+	sharedPath := filepath.Join(e.schemaDir, "ent_shared.graphql")
+	if err := os.WriteFile(sharedPath, []byte(printSchema(split.Shared)), 0644); err != nil {
+		return fmt.Errorf("entgql: failed to write shared schema: %w", err)
+	}
+	// Write query type
+	if split.Query != nil && len(split.Query.Types) > 0 {
+		queryPath := filepath.Join(e.schemaDir, "ent_query.graphql")
+		if err := os.WriteFile(queryPath, []byte(printSchema(split.Query)), 0644); err != nil {
+			return fmt.Errorf("entgql: failed to write query schema: %w", err)
+		}
+	}
+	// Write per-entity schemas
+	for name, schema := range split.Entities {
+		entityPath := filepath.Join(e.schemaDir, fmt.Sprintf("ent_%s.graphql", snake(name)))
+		if err := os.WriteFile(entityPath, []byte(printSchema(schema)), 0644); err != nil {
+			return fmt.Errorf("entgql: failed to write entity schema %s: %w", name, err)
+		}
+	}
+	return nil
 }
 
 // hasTemplate reports if the template exists

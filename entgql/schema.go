@@ -115,6 +115,16 @@ type schemaGenerator struct {
 	schemaHooks []SchemaHook
 }
 
+// SplitSchema holds per-entity schemas for split output mode.
+type SplitSchema struct {
+	// Shared contains shared types: directives, Node, Cursor, PageInfo, OrderDirection, NullsDirection, scalars.
+	Shared *ast.Schema
+	// Query contains the Query type with all entity fields.
+	Query *ast.Schema
+	// Entities contains per-entity schemas keyed by entity name.
+	Entities map[string]*ast.Schema
+}
+
 func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	s = &ast.Schema{
 		Directives: make(map[string]*ast.DirectiveDefinition),
@@ -138,6 +148,203 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 		}
 	}
 	return s, nil
+}
+
+// BuildSplitSchema generates per-entity GraphQL schemas.
+func (e *schemaGenerator) BuildSplitSchema(g *gen.Graph) (*SplitSchema, error) {
+	// First, build the complete schema to run hooks and validate
+	completeSchema, err := e.BuildSchema(g)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize split schema
+	split := &SplitSchema{
+		Shared: &ast.Schema{
+			Directives: make(map[string]*ast.DirectiveDefinition),
+		},
+		Query: &ast.Schema{
+			Directives: make(map[string]*ast.DirectiveDefinition),
+		},
+		Entities: make(map[string]*ast.Schema),
+	}
+
+	// Track which scalars are used
+	usedScalars := make(map[string]bool)
+
+	// Add directives to shared schema
+	for name, d := range completeSchema.Directives {
+		split.Shared.Directives[name] = d
+	}
+
+	// Add builtin types to shared schema
+	if e.genSchema {
+		split.Shared.AddTypes(builtinTypes()...)
+		if e.relaySpec {
+			split.Shared.AddTypes(relayBuiltinTypes(g.Package)...)
+		}
+	}
+
+	// Build per-entity schemas
+	var queryFields ast.FieldList
+	if e.relaySpec {
+		queryFields = relayBuiltinQueryFields()
+	}
+
+	for _, node := range g.Nodes {
+		if node.HasCompositeID() {
+			continue
+		}
+		gqlType, ant, err := gqlTypeFromNode(node)
+		if err != nil {
+			return nil, err
+		}
+		names := paginationNames(gqlType)
+
+		// Create entity schema
+		entitySchema := &ast.Schema{
+			Directives: make(map[string]*ast.DirectiveDefinition),
+		}
+
+		// Build entity type
+		if e.genSchema && !ant.Skip.Is(SkipType) {
+			def, err := e.buildType(node, ant, gqlType, g.Package)
+			if err != nil {
+				return nil, err
+			}
+			if def != nil {
+				entitySchema.AddTypes(def)
+				e.collectScalars(def, usedScalars)
+			}
+		}
+
+		// Build field enums
+		if e.genSchema && !ant.Skip.Is(SkipEnumField) {
+			for _, f := range node.Fields {
+				fAnt, err := annotation(f.Annotations)
+				if err != nil {
+					return nil, err
+				}
+				if fAnt.Skip.Is(SkipEnumField) {
+					continue
+				}
+				if f.IsEnum() {
+					enumGqlType := e.mapScalar(gqlType, f, fAnt, nonInputObjectFilter)
+					if enumGqlType == "" {
+						return nil, errors.New("unable to map enum field " + f.Name)
+					}
+					def, err := e.buildFieldEnum(f, enumGqlType, fieldGoType(f, g.Package))
+					if err != nil {
+						return nil, err
+					}
+					if def != nil {
+						entitySchema.AddTypes(def)
+					}
+				}
+			}
+		}
+
+		// Build order field enum
+		if e.genSchema && !ant.Skip.Is(SkipOrderField) {
+			def, err := e.enumOrderByValues(node, names.OrderField)
+			if err != nil {
+				return nil, err
+			}
+			if def != nil {
+				def.Description = fmt.Sprintf("Properties by which %s connections can be ordered.", gqlType)
+				entitySchema.AddTypes(def, names.OrderInputDef())
+			}
+		}
+
+		// Build relay connection types and query field
+		if e.genSchema {
+			if ant.RelayConnection {
+				if !e.relaySpec {
+					return nil, ErrRelaySpecDisabled
+				}
+				entitySchema.AddTypes(names.TypeDefs()...)
+
+				if ant.QueryField != nil {
+					name := ant.QueryField.fieldName(gqlType)
+					_, hasOrderBy := entitySchema.Types[names.Order]
+					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
+
+					def := names.ConnectionField(name, hasOrderBy, ant.MultiOrder, hasWhereInput)
+					def.Description = ant.QueryField.Description
+					def.Directives = e.buildDirectives(ant.QueryField.Directives)
+					queryFields = append(queryFields, def)
+				}
+			} else if ant.QueryField != nil {
+				name := ant.QueryField.fieldName(gqlType)
+				def := &ast.FieldDefinition{
+					Name:        name,
+					Description: ant.QueryField.Description,
+					Type:        listNamedType(gqlType, false),
+				}
+				def.Directives = e.buildDirectives(ant.QueryField.Directives)
+				queryFields = append(queryFields, def)
+			}
+		}
+
+		// Build where input
+		if e.genWhereInput && !ant.Skip.Is(SkipWhereInput) {
+			def, err := e.buildWhereInput(node, gqlType, names.WhereInput)
+			if err != nil {
+				return nil, err
+			}
+			if def != nil {
+				entitySchema.AddTypes(def)
+			}
+		}
+
+		// Build mutation inputs
+		if e.genMutations {
+			defs, err := e.buildMutationInputs(node, ant, gqlType)
+			if err != nil {
+				return nil, err
+			}
+			if len(defs) > 0 {
+				entitySchema.AddTypes(defs...)
+			}
+		}
+
+		// Only add entity schema if it has types
+		if len(entitySchema.Types) > 0 {
+			split.Entities[gqlType] = entitySchema
+		}
+	}
+
+	// Add Query type if there are query fields
+	if e.genSchema && len(queryFields) > 0 {
+		split.Query.AddTypes(&ast.Definition{
+			Name:   QueryType,
+			Kind:   ast.Object,
+			Fields: queryFields,
+		})
+	}
+
+	// Add used dynamic scalars to shared schema
+	for scalar := range usedScalars {
+		if split.Shared.Types[scalar] == nil {
+			split.Shared.AddTypes(&ast.Definition{
+				Name:        scalar,
+				Kind:        ast.Scalar,
+				Description: fmt.Sprintf("The builtin %s type", scalar),
+			})
+		}
+	}
+
+	return split, nil
+}
+
+// collectScalars examines a definition's fields for dynamic scalar types and tracks them.
+func (e *schemaGenerator) collectScalars(def *ast.Definition, usedScalars map[string]bool) {
+	for _, f := range def.Fields {
+		switch name := f.Type.Name(); name {
+		case "Time", "Map", "Upload", "Any", "Int32", "Int64", "Uint", "Uint32", "Uint64":
+			usedScalars[name] = true
+		}
+	}
 }
 
 func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
