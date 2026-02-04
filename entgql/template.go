@@ -65,6 +65,14 @@ var (
 	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
 	MutationInputTemplate = parseT("template/mutation_input.tmpl").SkipIf(skipMutationTemplate)
 
+	// WhereInputEntityTemplate generates a WhereInput for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	WhereInputEntityTemplate *template.Template
+
+	// MutationInputEntityTemplate generates mutation inputs for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	MutationInputEntityTemplate *template.Template
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -109,6 +117,37 @@ func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(TemplateFuncs).
 		ParseFS(_templates, path))
+}
+
+func init() {
+	// Initialize entity templates after all vars are set up
+	WhereInputEntityTemplate = parseEntityTemplate("template/where_input_entity.tmpl", "gql_where_input_entity")
+	MutationInputEntityTemplate = parseEntityTemplate("template/mutation_input_entity.tmpl", "gql_mutation_input_entity")
+}
+
+// parseEntityTemplate parses a template for per-entity generation.
+// Unlike parseT which returns gen.Template for use with ent's generator,
+// this returns a plain text/template that can be executed manually.
+func parseEntityTemplate(path, name string) *template.Template {
+	// Combine ent's builtin funcs with entgql funcs
+	funcs := template.FuncMap{}
+	for k, v := range gen.Funcs {
+		funcs[k] = v
+	}
+	for k, v := range TemplateFuncs {
+		funcs[k] = v
+	}
+
+	content, err := _templates.ReadFile(path)
+	if err != nil {
+		panic(fmt.Sprintf("entgql: failed to read template %s: %v", path, err))
+	}
+
+	tmpl, err := template.New(name).Funcs(funcs).Parse(string(content))
+	if err != nil {
+		panic(fmt.Sprintf("entgql: failed to parse template %s: %v", path, err))
+	}
+	return tmpl
 }
 
 // idType is returned by the gqlIDType below to describe the

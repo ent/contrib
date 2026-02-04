@@ -15,6 +15,7 @@
 package entgql
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,6 +26,7 @@ import (
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
+	"golang.org/x/tools/imports"
 )
 
 type (
@@ -36,6 +38,7 @@ type (
 		hooks        []gen.Hook
 		templates    []*gen.Template
 		schemaDir    string // directory for split schema output
+		splitGoFiles bool   // split generated Go files into per-entity files
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -90,6 +93,26 @@ func WithSchemaDir(dir string) ExtensionOption {
 			return fmt.Errorf("entgql: WithSchemaDir and WithSchemaPath are mutually exclusive")
 		}
 		ex.schemaDir = dir
+		return nil
+	}
+}
+
+// WithSplitGoFiles enables splitting generated Go files (gql_where_input.go and
+// gql_mutation_input.go) into per-entity files. This can reduce build times and
+// memory usage during compilation by allowing the Go compiler to process smaller
+// chunks in parallel.
+//
+// Output structure when enabled:
+//
+//	ent/
+//	  gql_where_input_<entity>.go     # <Entity>WhereInput + methods
+//	  gql_mutation_input_<entity>.go  # Create<Entity>Input, Update<Entity>Input + methods
+//
+// The original monolithic files (gql_where_input.go, gql_mutation_input.go) will
+// not be generated when this option is enabled.
+func WithSplitGoFiles(enabled bool) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.splitGoFiles = enabled
 		return nil
 	}
 }
@@ -250,6 +273,12 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 			return nil, err
 		}
 	}
+	// When split Go files mode is enabled, add a hook to generate per-entity files
+	// after the standard templates run (which generate the monolithic files).
+	// The hook will replace the monolithic files with split files.
+	if ex.splitGoFiles {
+		ex.hooks = append(ex.hooks, ex.genSplitGoFilesHook())
+	}
 	ex.hooks = append(ex.hooks, ex.genSchemaHook(), removeOldAssets)
 	return ex, nil
 }
@@ -348,6 +377,135 @@ func (e *Extension) generateSplitSchema(g *gen.Graph) error {
 		}
 	}
 	return nil
+}
+
+// genSplitGoFilesHook returns a hook that generates per-entity Go files
+// for WhereInput and MutationInput types.
+func (e *Extension) genSplitGoFilesHook() gen.Hook {
+	return func(next gen.Generator) gen.Generator {
+		return gen.GenerateFunc(func(g *gen.Graph) error {
+			if err := next.Generate(g); err != nil {
+				return err
+			}
+			return e.generateSplitGoFiles(g)
+		})
+	}
+}
+
+// generateSplitGoFiles generates per-entity Go files for WhereInput and MutationInput types.
+func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
+	// Remove old monolithic files to avoid duplicate type definitions
+	if err := e.removeMonolithicGoFiles(g); err != nil {
+		return err
+	}
+	// Generate where input files
+	if e.genWhereInput {
+		if err := e.generateSplitWhereInputs(g); err != nil {
+			return err
+		}
+	}
+	// Generate mutation input files
+	if e.genMutations {
+		if err := e.generateSplitMutationInputs(g); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// removeMonolithicGoFiles removes the old monolithic Go files when split mode is enabled.
+func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
+	filesToRemove := []string{
+		"gql_where_input.go",
+		"gql_mutation_input.go",
+	}
+	for _, filename := range filesToRemove {
+		path := filepath.Join(g.Target, filename)
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("entgql: failed to remove monolithic file %s: %w", filename, err)
+		}
+	}
+	return nil
+}
+
+// generateSplitWhereInputs generates per-entity where input files.
+func (e *Extension) generateSplitWhereInputs(g *gen.Graph) error {
+	nodes, err := filterNodes(g.Nodes, SkipWhereInput)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if err := e.generateWhereInputFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateSplitMutationInputs generates per-entity mutation input files.
+func (e *Extension) generateSplitMutationInputs(g *gen.Graph) error {
+	inputs, err := mutationInputs(g.Nodes)
+	if err != nil {
+		return err
+	}
+	// Group mutation inputs by entity
+	byEntity := make(map[string][]*MutationDescriptor)
+	for _, input := range inputs {
+		byEntity[input.Type.Name] = append(byEntity[input.Type.Name], input)
+	}
+	for name, entityInputs := range byEntity {
+		if err := e.generateMutationInputFile(g, name, entityInputs); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateWhereInputFile generates a where input file for a single entity.
+func (e *Extension) generateWhereInputFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_where_input_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+
+	tmpl := WhereInputEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node *gen.Type
+	}{g, n}); err != nil {
+		return fmt.Errorf("entgql: execute where_input_entity template for %s: %w", n.Name, err)
+	}
+
+	// Format and add missing imports using goimports
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format where_input for %s: %w", n.Name, err)
+	}
+
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateMutationInputFile generates a mutation input file for a single entity.
+func (e *Extension) generateMutationInputFile(g *gen.Graph, name string, inputs []*MutationDescriptor) error {
+	filename := fmt.Sprintf("gql_mutation_input_%s.go", snake(name))
+	path := filepath.Join(g.Target, filename)
+
+	tmpl := MutationInputEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		EntityName string
+		Inputs     []*MutationDescriptor
+	}{g, name, inputs}); err != nil {
+		return fmt.Errorf("entgql: execute mutation_input_entity template for %s: %w", name, err)
+	}
+
+	// Format and add missing imports using goimports
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format mutation_input for %s: %w", name, err)
+	}
+
+	return os.WriteFile(path, content, 0644)
 }
 
 // hasTemplate reports if the template exists
