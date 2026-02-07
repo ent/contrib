@@ -419,6 +419,16 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	if err := e.generateSplitCollection(g); err != nil {
 		return err
 	}
+	// Split edge (always, since edge template is always included)
+	if err := e.generateSplitEdge(g); err != nil {
+		return err
+	}
+	// Split node descriptor (only if the NodeDescriptorTemplate is enabled)
+	if _, exists := e.hasTemplate(NodeDescriptorTemplate); exists {
+		if err := e.generateSplitNodeDescriptor(g); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -427,6 +437,7 @@ func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
 	filesToRemove := []string{
 		"gql_where_input.go",
 		"gql_mutation_input.go",
+		"gql_edge.go",
 	}
 	for _, filename := range filesToRemove {
 		path := filepath.Join(g.Target, filename)
@@ -626,6 +637,105 @@ func (e *Extension) generateCollectionEntityFile(g *gen.Graph, n *gen.Type) erro
 	content, err := imports.Process(path, buf.Bytes(), nil)
 	if err != nil {
 		return fmt.Errorf("entgql: format collection for %s: %w", n.Name, err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateSplitEdge deletes the monolithic edge file and generates per-entity edge files.
+func (e *Extension) generateSplitEdge(g *gen.Graph) error {
+	// Generate per-entity files (only for entities that have edges after filtering)
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		edges, err := filterEdges(n.Edges, SkipType)
+		if err != nil {
+			return err
+		}
+		// Skip entities with no edges after filtering
+		if len(edges) == 0 {
+			continue
+		}
+		if err := e.generateEdgeEntityFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateEdgeEntityFile generates an edge file for a single entity.
+func (e *Extension) generateEdgeEntityFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_edge_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+	tmpl := EdgeEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{g, n, e.genWhereInput}); err != nil {
+		return fmt.Errorf("entgql: execute edge_entity template for %s: %w", n.Name, err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format edge for %s: %w", n.Name, err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateSplitNodeDescriptor overwrites the monolithic node descriptor file with shared-only
+// content, then generates per-entity node descriptor files.
+func (e *Extension) generateSplitNodeDescriptor(g *gen.Graph) error {
+	// Overwrite monolithic file with shared-only content
+	if err := e.generateNodeDescriptorSharedFile(g); err != nil {
+		return err
+	}
+	// Generate per-entity files
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if err := e.generateNodeDescriptorEntityFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateNodeDescriptorSharedFile overwrites gql_node_descriptor.go with shared-only content.
+func (e *Extension) generateNodeDescriptorSharedFile(g *gen.Graph) error {
+	path := filepath.Join(g.Target, "gql_node_descriptor.go")
+	tmpl := NodeDescriptorSharedTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+	}{g}); err != nil {
+		return fmt.Errorf("entgql: execute node_descriptor_shared template: %w", err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format node_descriptor_shared: %w", err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateNodeDescriptorEntityFile generates a node descriptor file for a single entity.
+func (e *Extension) generateNodeDescriptorEntityFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_node_descriptor_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+	tmpl := NodeDescriptorEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node *gen.Type
+	}{g, n}); err != nil {
+		return fmt.Errorf("entgql: execute node_descriptor_entity template for %s: %w", n.Name, err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format node_descriptor for %s: %w", n.Name, err)
 	}
 	return os.WriteFile(path, content, 0644)
 }
