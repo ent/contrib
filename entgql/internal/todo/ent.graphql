@@ -183,6 +183,10 @@ input CategoryOrder {
   The field by which to order Categories.
   """
   field: CategoryOrderField!
+  """
+  The direction to order null values.
+  """
+  nullsDirection: NullsDirection
 }
 """
 Properties by which Category connections can be ordered.
@@ -531,6 +535,19 @@ interface Node @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Noder"
   """
   id: ID!
 }
+"""
+Possible directions in which to order null values when provided an `orderBy` argument.
+"""
+enum NullsDirection {
+  """
+  Specifies that null values are ordered first when sorting with an `orderBy` argument.
+  """
+  FIRST
+  """
+  Specifies that null values are ordered last when sorting with an `orderBy` argument.
+  """
+  LAST
+}
 type OneToMany implements Node {
   id: ID!
   name: String!
@@ -580,6 +597,10 @@ input OneToManyOrder {
   The field by which to order OneToManies.
   """
   field: OneToManyOrderField!
+  """
+  The direction to order null values.
+  """
+  nullsDirection: NullsDirection
 }
 """
 Properties by which OneToMany connections can be ordered.
@@ -1052,6 +1073,10 @@ input TodoOrder {
   The field by which to order Todos.
   """
   field: TodoOrderField!
+  """
+  The direction to order null values.
+  """
+  nullsDirection: NullsDirection
 }
 """
 Properties by which Todo connections can be ordered.
@@ -1381,6 +1406,10 @@ input UserOrder {
   The field by which to order Users.
   """
   field: UserOrderField!
+  """
+  The direction to order null values.
+  """
+  nullsDirection: NullsDirection
 }
 """
 Properties by which User connections can be ordered.
