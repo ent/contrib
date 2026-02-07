@@ -392,7 +392,8 @@ func (e *Extension) genSplitGoFilesHook() gen.Hook {
 	}
 }
 
-// generateSplitGoFiles generates per-entity Go files for WhereInput and MutationInput types.
+// generateSplitGoFiles generates per-entity Go files for WhereInput, MutationInput,
+// Pagination, and Collection types.
 func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	// Remove old monolithic files to avoid duplicate type definitions
 	if err := e.removeMonolithicGoFiles(g); err != nil {
@@ -409,6 +410,14 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 		if err := e.generateSplitMutationInputs(g); err != nil {
 			return err
 		}
+	}
+	// Split pagination (always, since pagination template is always included)
+	if err := e.generateSplitPagination(g); err != nil {
+		return err
+	}
+	// Split collection (always, since collection template is always included)
+	if err := e.generateSplitCollection(g); err != nil {
+		return err
 	}
 	return nil
 }
@@ -505,6 +514,119 @@ func (e *Extension) generateMutationInputFile(g *gen.Graph, name string, inputs 
 		return fmt.Errorf("entgql: format mutation_input for %s: %w", name, err)
 	}
 
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateSplitPagination overwrites the monolithic pagination file with shared-only
+// content, then generates per-entity pagination files.
+func (e *Extension) generateSplitPagination(g *gen.Graph) error {
+	// Overwrite monolithic file with shared-only content
+	if err := e.generatePaginationSharedFile(g); err != nil {
+		return err
+	}
+	// Generate per-entity files
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if err := e.generatePaginationEntityFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateSplitCollection overwrites the monolithic collection file with shared-only
+// content, then generates per-entity collection files.
+func (e *Extension) generateSplitCollection(g *gen.Graph) error {
+	// Overwrite monolithic file with shared-only content
+	if err := e.generateCollectionSharedFile(g); err != nil {
+		return err
+	}
+	// Generate per-entity files
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if err := e.generateCollectionEntityFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generatePaginationSharedFile overwrites gql_pagination.go with shared-only content.
+func (e *Extension) generatePaginationSharedFile(g *gen.Graph) error {
+	path := filepath.Join(g.Target, "gql_pagination.go")
+	tmpl := PaginationSharedTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+	}{g}); err != nil {
+		return fmt.Errorf("entgql: execute pagination_shared template: %w", err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format pagination_shared: %w", err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generatePaginationEntityFile generates a pagination file for a single entity.
+func (e *Extension) generatePaginationEntityFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_pagination_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+	tmpl := PaginationEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node *gen.Type
+	}{g, n}); err != nil {
+		return fmt.Errorf("entgql: execute pagination_entity template for %s: %w", n.Name, err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format pagination for %s: %w", n.Name, err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateCollectionSharedFile overwrites gql_collection.go with shared-only content.
+func (e *Extension) generateCollectionSharedFile(g *gen.Graph) error {
+	path := filepath.Join(g.Target, "gql_collection.go")
+	tmpl := CollectionSharedTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+	}{g}); err != nil {
+		return fmt.Errorf("entgql: execute collection_shared template: %w", err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format collection_shared: %w", err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateCollectionEntityFile generates a collection file for a single entity.
+func (e *Extension) generateCollectionEntityFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_collection_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+	tmpl := CollectionEntityTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{g, n, e.genWhereInput}); err != nil {
+		return fmt.Errorf("entgql: execute collection_entity template for %s: %w", n.Name, err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format collection for %s: %w", n.Name, err)
+	}
 	return os.WriteFile(path, content, 0644)
 }
 
