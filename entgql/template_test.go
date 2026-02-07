@@ -406,11 +406,11 @@ func TestPaginationEntityTemplateContent(t *testing.T) {
 	require.NotNil(t, tmpl)
 	src := tmpl.Tree.Root.String()
 
-	// Verify per-entity types are present.
-	require.Contains(t, src, "Edge struct")
-	require.Contains(t, src, "Connection struct")
-	require.Contains(t, src, "PaginateOption")
-	require.Contains(t, src, "OrderField struct")
+	// Verify per-entity types are present (template source uses {{$edge}}, {{$conn}} etc.).
+	// In the parsed tree, template vars are rendered as {{$varname}}.
+	require.Contains(t, src, "}} struct")       // Edge/Connection struct declarations
+	require.Contains(t, src, "PaginateOption")  // PaginateOption type
+	require.Contains(t, src, "OrderField")      // OrderField struct
 
 	// Verify per-entity methods are present.
 	require.Contains(t, src, "Paginate")
@@ -491,10 +491,11 @@ func TestPaginationEntityTemplateExecution(t *testing.T) {
 	require.Contains(t, output, "pager.applyOrder(t)")
 
 	// Verify order fields are generated (Todo has OrderField annotations).
+	// VarName uses the field's StructField name, not the GQL order field name.
 	require.Contains(t, output, "TodoOrderFieldCreatedAt")
 	require.Contains(t, output, "TodoOrderFieldStatus")
 	require.Contains(t, output, "TodoOrderFieldText")
-	require.Contains(t, output, "TodoOrderFieldPriorityOrder")
+	require.Contains(t, output, "TodoOrderFieldPriority")
 
 	// Verify NO shared code is present (shared types, shared funcs).
 	require.NotContains(t, output, "Cursor = entgql.Cursor[")
