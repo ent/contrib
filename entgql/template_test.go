@@ -743,3 +743,429 @@ func TestCollectionEntityTemplateNoWhereInput(t *testing.T) {
 	require.NotContains(t, output, "BillProductWhereInput",
 		"where input filter should not be generated when HasWhereInputTemplate=false")
 }
+
+func TestEdgeEntityTemplateParsed(t *testing.T) {
+	// Verify the EdgeEntityTemplate was parsed successfully during init().
+	require.NotNil(t, EdgeEntityTemplate, "EdgeEntityTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_edge_entity", EdgeEntityTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := EdgeEntityTemplate.Lookup("gql_edge_entity")
+	require.NotNil(t, tmpl, "template should contain 'gql_edge_entity' define block")
+}
+
+func TestEdgeEntityTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected per-entity code elements
+	// and does not contain monolithic template artifacts.
+	tmpl := EdgeEntityTemplate.Lookup("gql_edge_entity")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify the paginate helper is inlined (no template call).
+	require.NotContains(t, src, `template "gql_edge/helper/paginate"`,
+		"paginate helper should be inlined, not called as a sub-template")
+
+	// Verify no $Scope references remain.
+	require.NotContains(t, src, "$.Scope",
+		"entity template should not contain $.Scope references")
+
+	// Verify hasTemplate is not used.
+	require.NotContains(t, src, "hasTemplate",
+		"entity template should use $.HasWhereInputTemplate instead of hasTemplate")
+
+	// Verify $.HasWhereInputTemplate is used instead.
+	require.Contains(t, src, "HasWhereInputTemplate",
+		"entity template should reference HasWhereInputTemplate")
+
+	// Verify it references $.Node (single entity, not range loop).
+	require.Contains(t, src, "$.Node",
+		"entity template should reference $.Node for the single entity")
+
+	// Verify all three edge types are handled.
+	require.Contains(t, src, "isRelayConn",
+		"template should handle Relay connection edges")
+	require.Contains(t, src, "IsNotLoaded",
+		"template should handle non-Relay edges with IsNotLoaded fallback")
+	require.Contains(t, src, "MaskNotFound",
+		"template should handle optional unique edges with MaskNotFound")
+
+	// Verify Relay connection inlined code has expected elements.
+	require.Contains(t, src, "nodePaginationNames",
+		"template should use nodePaginationNames for Relay edges")
+	require.Contains(t, src, "Paginate",
+		"template should call Paginate as fallback for Relay edges")
+}
+
+func TestEdgeEntityTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph for Todo entity
+	// and verify the generated output contains expected edge resolver code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find the Todo node.
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist in the schema")
+
+	tmpl := EdgeEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_edge_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{graph, todoNode, true})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify edge resolver methods are generated.
+	// Todo has edges: parent, children, category, secret.
+	// Children is a Relay connection edge, so it should have pagination params.
+	require.Contains(t, output, "func (t *Todo)")
+
+	// Verify import statements.
+	require.Contains(t, output, `"context"`)
+	require.Contains(t, output, `"github.com/99designs/gqlgen/graphql"`)
+
+	// Verify no template call to gql_edge/helper/paginate (it should be inlined).
+	require.NotContains(t, output, "gql_edge/helper/paginate")
+
+	// Verify no Scope references in output.
+	require.NotContains(t, output, "Scope")
+}
+
+func TestEdgeEntityTemplateNoWhereInput(t *testing.T) {
+	// Execute the template with HasWhereInputTemplate=false and verify
+	// the where input filter code is not generated.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find the Todo node.
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist in the schema")
+
+	tmpl := EdgeEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_edge_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{graph, todoNode, false})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify edge resolver methods are generated.
+	require.Contains(t, output, "func (t *Todo)")
+
+	// Since HasWhereInputTemplate=false, the where input filter should not appear.
+	require.NotContains(t, output, "WhereInput",
+		"where input should not be generated when HasWhereInputTemplate=false")
+}
+
+func TestEdgeEntityTemplateMultipleEntities(t *testing.T) {
+	// Verify the template can be executed for multiple different entities
+	// and produces distinct output for each.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find both Todo and Category nodes.
+	var todoNode, categoryNode *gen.Type
+	for _, n := range graph.Nodes {
+		switch n.Name {
+		case "Todo":
+			todoNode = n
+		case "Category":
+			categoryNode = n
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist")
+	require.NotNil(t, categoryNode, "Category node should exist")
+
+	tmpl := EdgeEntityTemplate
+
+	// Generate for Todo.
+	var todoBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&todoBuf, "gql_edge_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{graph, todoNode, true})
+	require.NoError(t, err)
+	todoOutput := todoBuf.String()
+
+	// Generate for Category.
+	var catBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&catBuf, "gql_edge_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasWhereInputTemplate bool
+	}{graph, categoryNode, true})
+	require.NoError(t, err)
+	catOutput := catBuf.String()
+
+	// Verify Todo output has Todo-specific methods.
+	require.Contains(t, todoOutput, "func (t *Todo)")
+	require.NotContains(t, todoOutput, "func (c *Category)")
+
+	// Verify Category output has Category-specific methods.
+	require.Contains(t, catOutput, "func (c *Category)")
+	require.NotContains(t, catOutput, "func (t *Todo)")
+}
+
+func TestNodeDescriptorSharedTemplateParsed(t *testing.T) {
+	// Verify the NodeDescriptorSharedTemplate was parsed successfully during init().
+	require.NotNil(t, NodeDescriptorSharedTemplate, "NodeDescriptorSharedTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_node_descriptor_shared", NodeDescriptorSharedTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := NodeDescriptorSharedTemplate.Lookup("gql_node_descriptor_shared")
+	require.NotNil(t, tmpl, "template should contain 'gql_node_descriptor_shared' define block")
+}
+
+func TestNodeDescriptorSharedTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected shared code elements.
+	tmpl := NodeDescriptorSharedTemplate.Lookup("gql_node_descriptor_shared")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify shared struct types are present.
+	require.Contains(t, src, "Node struct")
+	require.Contains(t, src, "Field struct")
+	require.Contains(t, src, "Edge struct")
+
+	// Verify Client.Node() method is present.
+	require.Contains(t, src, "func (c *Client) Node(")
+	require.Contains(t, src, "c.Noder(ctx, id)")
+
+	// Verify NO per-entity code is present.
+	// Note: $.Nodes (plural) is expected in the shared template for filterNodes;
+	// we check that $.Node (singular entity reference) is not used as a data field.
+	require.NotContains(t, src, "$.Node }}")
+	require.NotContains(t, src, "$.Node.Name")
+	require.NotContains(t, src, "json.Marshal")
+	require.NotContains(t, src, "QueryTodos")
+	require.NotContains(t, src, "Noder interface")
+}
+
+func TestNodeDescriptorSharedTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph and verify
+	// the generated output contains expected shared code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	tmpl := NodeDescriptorSharedTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_descriptor_shared", struct {
+		*gen.Graph
+	}{graph})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify shared struct types are generated.
+	require.Contains(t, output, "type Node struct")
+	require.Contains(t, output, "type Field struct")
+	require.Contains(t, output, "type Edge struct")
+
+	// Verify Client.Node() method is generated.
+	require.Contains(t, output, "func (c *Client) Node(ctx context.Context, id int) (*Node, error)")
+	require.Contains(t, output, "c.Noder(ctx, id)")
+
+	// Verify NO per-entity code is present.
+	require.False(t, strings.Contains(output, "func (bp *BillProduct) Node("),
+		"shared template should not generate per-entity BillProduct Node() method")
+	require.False(t, strings.Contains(output, "func (t *Todo) Node("),
+		"shared template should not generate per-entity Todo Node() method")
+	require.False(t, strings.Contains(output, "json.Marshal"),
+		"shared template should not contain json.Marshal (per-entity code)")
+}
+
+func TestNodeDescriptorEntityTemplateParsed(t *testing.T) {
+	// Verify the NodeDescriptorEntityTemplate was parsed successfully during init().
+	require.NotNil(t, NodeDescriptorEntityTemplate, "NodeDescriptorEntityTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_node_descriptor_entity", NodeDescriptorEntityTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := NodeDescriptorEntityTemplate.Lookup("gql_node_descriptor_entity")
+	require.NotNil(t, tmpl, "template should contain 'gql_node_descriptor_entity' define block")
+}
+
+func TestNodeDescriptorEntityTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected per-entity code elements.
+	tmpl := NodeDescriptorEntityTemplate.Lookup("gql_node_descriptor_entity")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify per-entity Node() method is present.
+	require.Contains(t, src, "Noder interface")
+	require.Contains(t, src, "json.Marshal")
+	require.Contains(t, src, "$.Node")
+
+	// Verify NO shared code is present.
+	require.NotContains(t, src, "Node struct")
+	require.NotContains(t, src, "Field struct")
+	require.NotContains(t, src, "Edge struct")
+	require.NotContains(t, src, "func (c *Client) Node(")
+}
+
+func TestNodeDescriptorEntityTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph for one entity
+	// and verify the generated output contains expected per-entity code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find the Todo node.
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist in the schema")
+
+	tmpl := NodeDescriptorEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_descriptor_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, todoNode})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify per-entity Node() method is generated for Todo.
+	require.Contains(t, output, "func (t *Todo) Node(ctx context.Context) (node *Node, err error)")
+
+	// Verify field serialization is present.
+	require.Contains(t, output, "json.Marshal(t.CreatedAt)")
+	require.Contains(t, output, "json.Marshal(t.Status)")
+	require.Contains(t, output, "json.Marshal(t.Priority)")
+	require.Contains(t, output, "json.Marshal(t.Text)")
+
+	// Verify edge queries are present.
+	require.Contains(t, output, "t.QueryParent()")
+	require.Contains(t, output, "t.QueryChildren()")
+	require.Contains(t, output, "t.QueryCategory()")
+
+	// Verify edge type imports.
+	require.Contains(t, output, `"entgo.io/contrib/entgql/internal/todo/ent/todo"`)
+	require.Contains(t, output, `"entgo.io/contrib/entgql/internal/todo/ent/category"`)
+
+	// Verify NO shared code is present.
+	require.NotContains(t, output, "type Node struct")
+	require.NotContains(t, output, "type Field struct")
+	require.NotContains(t, output, "type Edge struct")
+	require.NotContains(t, output, "func (c *Client) Node(")
+}
+
+func TestNodeDescriptorEntityTemplateMultipleEntities(t *testing.T) {
+	// Verify the template can be executed for multiple different entities
+	// and produces distinct output for each.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find both Todo and BillProduct nodes.
+	var todoNode, billProductNode *gen.Type
+	for _, n := range graph.Nodes {
+		switch n.Name {
+		case "Todo":
+			todoNode = n
+		case "BillProduct":
+			billProductNode = n
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist")
+	require.NotNil(t, billProductNode, "BillProduct node should exist")
+
+	tmpl := NodeDescriptorEntityTemplate
+
+	// Generate for Todo.
+	var todoBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&todoBuf, "gql_node_descriptor_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, todoNode})
+	require.NoError(t, err)
+	todoOutput := todoBuf.String()
+
+	// Generate for BillProduct.
+	var bpBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&bpBuf, "gql_node_descriptor_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, billProductNode})
+	require.NoError(t, err)
+	bpOutput := bpBuf.String()
+
+	// Verify Todo output has Todo-specific method.
+	require.Contains(t, todoOutput, "func (t *Todo) Node(ctx context.Context)")
+	require.NotContains(t, todoOutput, "func (bp *BillProduct) Node(")
+
+	// Verify BillProduct output has BillProduct-specific method.
+	require.Contains(t, bpOutput, "func (bp *BillProduct) Node(ctx context.Context)")
+	require.NotContains(t, bpOutput, "func (t *Todo) Node(")
+
+	// BillProduct has no edges, so no edge queries should appear.
+	require.NotContains(t, bpOutput, "QueryTodos")
+	require.NotContains(t, bpOutput, "QueryParent")
+
+	// BillProduct has fields: name, sku, quantity.
+	require.Contains(t, bpOutput, "json.Marshal(bp.Name)")
+	require.Contains(t, bpOutput, "json.Marshal(bp.Sku)")
+	require.Contains(t, bpOutput, "json.Marshal(bp.Quantity)")
+}

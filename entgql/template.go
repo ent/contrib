@@ -91,6 +91,19 @@ var (
 	// Initialized in init() to avoid initialization order issues.
 	CollectionEntityTemplate *template.Template
 
+	// EdgeEntityTemplate generates edge resolver code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	EdgeEntityTemplate *template.Template
+
+	// NodeDescriptorSharedTemplate generates the shared node descriptor code (Node/Field/Edge structs
+	// and Client.Node() method) that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	NodeDescriptorSharedTemplate *template.Template
+
+	// NodeDescriptorEntityTemplate generates node descriptor code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	NodeDescriptorEntityTemplate *template.Template
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -145,6 +158,9 @@ func init() {
 	PaginationSharedTemplate = parseEntityTemplate("template/pagination_shared.tmpl", "gql_pagination_shared")
 	CollectionSharedTemplate = parseEntityTemplate("template/collection_shared.tmpl", "gql_collection_shared")
 	CollectionEntityTemplate = parseEntityTemplate("template/collection_entity.tmpl", "gql_collection_entity")
+	EdgeEntityTemplate = parseEntityTemplate("template/edge_entity.tmpl", "gql_edge_entity")
+	NodeDescriptorSharedTemplate = parseEntityTemplate("template/node_descriptor_shared.tmpl", "gql_node_descriptor_shared")
+	NodeDescriptorEntityTemplate = parseEntityTemplate("template/node_descriptor_entity.tmpl", "gql_node_descriptor_entity")
 }
 
 // parseEntityTemplate parses a template for per-entity generation.
