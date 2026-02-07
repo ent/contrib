@@ -429,6 +429,10 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 			return err
 		}
 	}
+	// Split node (always, since node template is always included)
+	if err := e.generateSplitNode(g); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -736,6 +740,66 @@ func (e *Extension) generateNodeDescriptorEntityFile(g *gen.Graph, n *gen.Type) 
 	content, err := imports.Process(path, buf.Bytes(), nil)
 	if err != nil {
 		return fmt.Errorf("entgql: format node_descriptor for %s: %w", n.Name, err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateSplitNode overwrites the monolithic node file with shared-only
+// content, then generates per-entity node files.
+func (e *Extension) generateSplitNode(g *gen.Graph) error {
+	// Overwrite monolithic file with shared-only content
+	if err := e.generateNodeSharedFile(g); err != nil {
+		return err
+	}
+	// Generate per-entity files
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if err := e.generateNodeEntityFile(g, n); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// generateNodeSharedFile overwrites gql_node.go with shared-only content.
+func (e *Extension) generateNodeSharedFile(g *gen.Graph) error {
+	path := filepath.Join(g.Target, "gql_node.go")
+	tmpl := NodeSharedTemplate
+	_, hasNodeDescriptor := e.hasTemplate(NodeDescriptorTemplate)
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		HasNodeDescriptorTemplate bool
+	}{g, hasNodeDescriptor}); err != nil {
+		return fmt.Errorf("entgql: execute node_shared template: %w", err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format node_shared: %w", err)
+	}
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateNodeEntityFile generates a node file for a single entity.
+func (e *Extension) generateNodeEntityFile(g *gen.Graph, n *gen.Type) error {
+	filename := fmt.Sprintf("gql_node_%s.go", snake(n.Name))
+	path := filepath.Join(g.Target, filename)
+	tmpl := NodeEntityTemplate
+	_, hasCollection := e.hasTemplate(CollectionTemplate)
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasCollectionTemplate bool
+	}{g, n, hasCollection}); err != nil {
+		return fmt.Errorf("entgql: execute node_entity template for %s: %w", n.Name, err)
+	}
+	content, err := imports.Process(path, buf.Bytes(), nil)
+	if err != nil {
+		return fmt.Errorf("entgql: format node for %s: %w", n.Name, err)
 	}
 	return os.WriteFile(path, content, 0644)
 }
