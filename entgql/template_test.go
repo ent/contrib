@@ -390,6 +390,178 @@ func TestCollectionSharedTemplateExecution(t *testing.T) {
 		"shared template should not generate per-entity newPaginateArgs function")
 }
 
+func TestPaginationEntityTemplateParsed(t *testing.T) {
+	// Verify the PaginationEntityTemplate was parsed successfully during init().
+	require.NotNil(t, PaginationEntityTemplate, "PaginationEntityTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_pagination_entity", PaginationEntityTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := PaginationEntityTemplate.Lookup("gql_pagination_entity")
+	require.NotNil(t, tmpl, "template should contain 'gql_pagination_entity' define block")
+}
+
+func TestPaginationEntityTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected per-entity code elements.
+	tmpl := PaginationEntityTemplate.Lookup("gql_pagination_entity")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify per-entity types are present.
+	require.Contains(t, src, "Edge struct")
+	require.Contains(t, src, "Connection struct")
+	require.Contains(t, src, "PaginateOption")
+	require.Contains(t, src, "OrderField struct")
+
+	// Verify per-entity methods are present.
+	require.Contains(t, src, "Paginate")
+	require.Contains(t, src, "applyOrder")
+	require.Contains(t, src, "applyCursors")
+	require.Contains(t, src, "applyFilter")
+	require.Contains(t, src, "toCursor")
+	require.Contains(t, src, "orderExpr")
+	require.Contains(t, src, "ToEdge")
+	require.Contains(t, src, "MarshalGQL")
+	require.Contains(t, src, "UnmarshalGQL")
+
+	// Verify the paginate helper is inlined (no template call).
+	require.NotContains(t, src, `template "gql_pagination/helper/paginate"`)
+	require.Contains(t, src, "validateFirstLast")
+	require.Contains(t, src, "paginateLimit")
+
+	// Verify no $Scope references remain.
+	require.NotContains(t, src, "$.Scope")
+
+	// Verify the template uses $.Node instead of range loop.
+	require.Contains(t, src, "$.Node")
+	require.NotContains(t, src, "range $node := $gqlNodes")
+}
+
+func TestPaginationEntityTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph for one entity
+	// and verify the generated output contains expected per-entity code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find the Todo node.
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist in the schema")
+
+	tmpl := PaginationEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_pagination_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, todoNode})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify per-entity types are generated.
+	require.Contains(t, output, "TodoEdge struct")
+	require.Contains(t, output, "TodoConnection struct")
+	require.Contains(t, output, "TodoPaginateOption")
+	require.Contains(t, output, "todoPager")
+	require.Contains(t, output, "TodoOrderField struct")
+	require.Contains(t, output, "TodoOrder struct")
+	require.Contains(t, output, "DefaultTodoOrder")
+
+	// Verify per-entity methods are generated.
+	require.Contains(t, output, "func (t *TodoQuery) Paginate(")
+	require.Contains(t, output, "func (t *Todo) ToEdge(")
+
+	// Verify the paginate helper is inlined (no template calls in output).
+	require.Contains(t, output, "validateFirstLast(first, last)")
+	require.Contains(t, output, "newTodoPager(opts, last != nil)")
+	require.Contains(t, output, "pager.applyFilter(t)")
+	require.Contains(t, output, "pager.applyCursors(t, after, before)")
+	require.Contains(t, output, "pager.applyOrder(t)")
+
+	// Verify order fields are generated (Todo has OrderField annotations).
+	require.Contains(t, output, "TodoOrderFieldCreatedAt")
+	require.Contains(t, output, "TodoOrderFieldStatus")
+	require.Contains(t, output, "TodoOrderFieldText")
+	require.Contains(t, output, "TodoOrderFieldPriorityOrder")
+
+	// Verify NO shared code is present (shared types, shared funcs).
+	require.NotContains(t, output, "Cursor = entgql.Cursor[")
+	require.NotContains(t, output, "PageInfo = entgql.PageInfo[")
+	require.NotContains(t, output, "func orderFunc(")
+	require.NotContains(t, output, "func validateFirstLast(")
+	require.NotContains(t, output, "func paginateLimit(")
+	require.NotContains(t, output, "errInvalidPagination")
+}
+
+func TestPaginationEntityTemplateMultipleEntities(t *testing.T) {
+	// Verify the template can be executed for multiple different entities
+	// and produces distinct output for each.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find both Todo and Category nodes.
+	var todoNode, categoryNode *gen.Type
+	for _, n := range graph.Nodes {
+		switch n.Name {
+		case "Todo":
+			todoNode = n
+		case "Category":
+			categoryNode = n
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist")
+	require.NotNil(t, categoryNode, "Category node should exist")
+
+	tmpl := PaginationEntityTemplate
+
+	// Generate for Todo.
+	var todoBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&todoBuf, "gql_pagination_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, todoNode})
+	require.NoError(t, err)
+	todoOutput := todoBuf.String()
+
+	// Generate for Category.
+	var catBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&catBuf, "gql_pagination_entity", struct {
+		*gen.Graph
+		Node *gen.Type
+	}{graph, categoryNode})
+	require.NoError(t, err)
+	catOutput := catBuf.String()
+
+	// Verify Todo output has Todo-specific types.
+	require.Contains(t, todoOutput, "TodoEdge struct")
+	require.Contains(t, todoOutput, "TodoConnection struct")
+	require.NotContains(t, todoOutput, "CategoryEdge struct")
+	require.NotContains(t, todoOutput, "CategoryConnection struct")
+
+	// Verify Category output has Category-specific types.
+	require.Contains(t, catOutput, "CategoryEdge struct")
+	require.Contains(t, catOutput, "CategoryConnection struct")
+	require.NotContains(t, catOutput, "TodoEdge struct")
+	require.NotContains(t, catOutput, "TodoConnection struct")
+}
+
 func TestFilterFields(t *testing.T) {
 	fields, err := filterFields([]*gen.Field{
 		{
