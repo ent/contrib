@@ -1,0 +1,114 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "gql_pagination_shared" }}
+
+{{- /*gotype: entgo.io/contrib/entgql.paginationSharedData*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{ $.Config.Header }}
+
+package {{ $pkg }}
+
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
+
+import (
+	"io"
+	"strconv"
+	"encoding/base64"
+
+	{{- range $n := $gqlNodes }}
+		"{{ $.Config.Package }}/{{ $n.Package }}"
+	{{- end }}
+	"{{ $.Config.Package }}/predicate"
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/contrib/entgql"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/vektah/gqlparser/v2/gqlerror"
+	"github.com/vmihailenco/msgpack/v5"
+)
+
+// Common entgql types.
+type (
+	Cursor = entgql.Cursor[{{ $idType }}]
+	PageInfo = entgql.PageInfo[{{ $idType }}]
+	OrderDirection = entgql.OrderDirection
+	NullsDirection = entgql.NullsDirection
+)
+
+func orderFunc(o OrderDirection, field string) func(*sql.Selector) {
+       if o == entgql.OrderDirectionDesc {
+               return Desc(field)
+       }
+       return Asc(field)
+}
+
+const errInvalidPagination = "INVALID_PAGINATION"
+
+func validateFirstLast(first, last *int) (err *gqlerror.Error) {
+	switch {
+	case first != nil && last != nil:
+		err = &gqlerror.Error{
+			Message: "Passing both `first` and `last` to paginate a connection is not supported.",
+		}
+	{{- range $arg := list "first" "last" }}
+		case {{ $arg }} != nil && *{{ $arg }} < 0:
+			err = &gqlerror.Error{
+				Message: "`{{ $arg }}` on a connection cannot be less than zero.",
+			}
+			errcode.Set(err, errInvalidPagination)
+	{{- end }}
+	}
+	return err
+}
+
+func collectedField(ctx context.Context, path ...string) *graphql.CollectedField {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return nil
+	}
+	field := fc.Field
+	oc := graphql.GetOperationContext(ctx)
+walk:
+	for _, name := range path {
+		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
+			if f.Alias == name {
+				field = f
+				continue walk
+			}
+		}
+		return nil
+	}
+	return &field
+}
+
+func hasCollectedField(ctx context.Context, path ...string) bool {
+	if graphql.GetFieldContext(ctx) == nil {
+		return true
+	}
+	return collectedField(ctx, path...) != nil
+}
+
+const (
+	{{- range $field := list "edges" "node" "pageInfo" "totalCount" }}
+		{{ $field }}Field = "{{ $field }}"
+	{{- end }}
+)
+
+func paginateLimit(first, last *int) int {
+	var limit int
+	if first != nil {
+		limit = *first+1
+	} else if last != nil {
+		limit = *last+1
+	}
+	return limit
+}
+
+{{ end }}

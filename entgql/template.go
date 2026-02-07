@@ -73,6 +73,24 @@ var (
 	// Initialized in init() to avoid initialization order issues.
 	MutationInputEntityTemplate *template.Template
 
+	// PaginationEntityTemplate generates pagination code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	PaginationEntityTemplate *template.Template
+
+	// PaginationSharedTemplate generates the shared pagination code (type aliases, helpers, constants)
+	// that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	PaginationSharedTemplate *template.Template
+
+	// CollectionSharedTemplate generates the shared collection code (constants and helper functions)
+	// that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	CollectionSharedTemplate *template.Template
+
+	// CollectionEntityTemplate generates collection code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	CollectionEntityTemplate *template.Template
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -123,6 +141,10 @@ func init() {
 	// Initialize entity templates after all vars are set up
 	WhereInputEntityTemplate = parseEntityTemplate("template/where_input_entity.tmpl", "gql_where_input_entity")
 	MutationInputEntityTemplate = parseEntityTemplate("template/mutation_input_entity.tmpl", "gql_mutation_input_entity")
+	PaginationEntityTemplate = parseEntityTemplate("template/pagination_entity.tmpl", "gql_pagination_entity")
+	PaginationSharedTemplate = parseEntityTemplate("template/pagination_shared.tmpl", "gql_pagination_shared")
+	CollectionSharedTemplate = parseEntityTemplate("template/collection_shared.tmpl", "gql_collection_shared")
+	CollectionEntityTemplate = parseEntityTemplate("template/collection_entity.tmpl", "gql_collection_entity")
 }
 
 // parseEntityTemplate parses a template for per-entity generation.
