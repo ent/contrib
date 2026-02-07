@@ -159,7 +159,7 @@ func TestGenerateSplitGoFiles_IncludesPaginationAndCollection(t *testing.T) {
 	graph := loadTestGraph(t, tmpDir)
 
 	// Create dummy monolithic files to check they get handled.
-	for _, name := range []string{"gql_where_input.go", "gql_mutation_input.go", "gql_pagination.go", "gql_collection.go", "gql_edge.go", "gql_node_descriptor.go"} {
+	for _, name := range []string{"gql_where_input.go", "gql_mutation_input.go", "gql_pagination.go", "gql_collection.go", "gql_edge.go", "gql_node_descriptor.go", "gql_node.go"} {
 		path := filepath.Join(tmpDir, name)
 		err = os.WriteFile(path, []byte("package ent\n// placeholder\n"), 0644)
 		require.NoError(t, err)
@@ -191,8 +191,10 @@ func TestGenerateSplitGoFiles_IncludesPaginationAndCollection(t *testing.T) {
 	require.NoError(t, err, "gql_collection.go should still exist (overwritten with shared content)")
 	_, err = os.Stat(filepath.Join(tmpDir, "gql_node_descriptor.go"))
 	require.NoError(t, err, "gql_node_descriptor.go should still exist (overwritten with shared content)")
+	_, err = os.Stat(filepath.Join(tmpDir, "gql_node.go"))
+	require.NoError(t, err, "gql_node.go should still exist (overwritten with shared content)")
 
-	// Verify pagination and collection per-entity files exist.
+	// Verify pagination, collection, node_descriptor, and node per-entity files exist.
 	nodeNames := nonSkippedNodes(t, graph)
 	for _, name := range nodeNames {
 		paginationFile := filepath.Join(tmpDir, fmt.Sprintf("gql_pagination_%s.go", snake(name)))
@@ -206,6 +208,10 @@ func TestGenerateSplitGoFiles_IncludesPaginationAndCollection(t *testing.T) {
 		nodeDescFile := filepath.Join(tmpDir, fmt.Sprintf("gql_node_descriptor_%s.go", snake(name)))
 		_, err = os.Stat(nodeDescFile)
 		require.NoError(t, err, "node descriptor entity file should exist for %s", name)
+
+		nodeFile := filepath.Join(tmpDir, fmt.Sprintf("gql_node_%s.go", snake(name)))
+		_, err = os.Stat(nodeFile)
+		require.NoError(t, err, "node entity file should exist for %s", name)
 	}
 
 	// Verify edge per-entity files exist only for entities with edges.
@@ -697,4 +703,223 @@ func TestNodeDescriptorEntityFile(t *testing.T) {
 	require.NotContains(t, contentStr, "Node struct")
 	require.NotContains(t, contentStr, "Field struct")
 	require.NotContains(t, contentStr, "func (c *Client) Node(")
+}
+
+func TestGenerateSplitNode(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_split_node_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	// Create a dummy monolithic gql_node.go to verify overwrite.
+	monolithicPath := filepath.Join(tmpDir, "gql_node.go")
+	err = os.WriteFile(monolithicPath, []byte("package ent\n// monolithic placeholder\n"), 0644)
+	require.NoError(t, err)
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateSplitNode(graph)
+	require.NoError(t, err)
+
+	// Verify the monolithic file was overwritten with shared content.
+	sharedContent, err := os.ReadFile(monolithicPath)
+	require.NoError(t, err)
+	sharedStr := string(sharedContent)
+	require.Contains(t, sharedStr, "package ent")
+	require.Contains(t, sharedStr, "type Noder interface")
+	require.Contains(t, sharedStr, "nodeResolvers")
+	require.Contains(t, sharedStr, "registerNodeResolver")
+	// Shared content should NOT contain per-entity code.
+	require.NotContains(t, sharedStr, "case todo.Table:")
+	require.NotContains(t, sharedStr, "todoImplementors")
+
+	// Verify per-entity node files are created.
+	nodeNames := nonSkippedNodes(t, graph)
+	require.NotEmpty(t, nodeNames)
+	for _, name := range nodeNames {
+		filename := fmt.Sprintf("gql_node_%s.go", snake(name))
+		path := filepath.Join(tmpDir, filename)
+		content, err := os.ReadFile(path)
+		require.NoError(t, err, "node entity file should exist for %s", name)
+		contentStr := string(content)
+		require.Contains(t, contentStr, "package ent")
+		require.Contains(t, contentStr, "Implementors")
+		require.Contains(t, contentStr, "func init()")
+		require.Contains(t, contentStr, "registerNodeResolver")
+	}
+
+	// Verify skipped types do NOT get per-entity files.
+	skippedPath := filepath.Join(tmpDir, "gql_node_very_secret.go")
+	_, err = os.Stat(skippedPath)
+	require.True(t, os.IsNotExist(err), "skipped entity should not have node file")
+}
+
+func TestNodeSharedFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_node_shared_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateNodeSharedFile(graph)
+	require.NoError(t, err)
+
+	path := filepath.Join(tmpDir, "gql_node.go")
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	contentStr := string(content)
+
+	// Shared file should contain package declaration and shared types.
+	require.Contains(t, contentStr, "package ent")
+	require.Contains(t, contentStr, "type Noder interface")
+	require.Contains(t, contentStr, "nodeResolver struct")
+	require.Contains(t, contentStr, "nodeResolvers")
+	require.Contains(t, contentStr, "registerNodeResolver")
+
+	// Shared content should NOT contain per-entity code.
+	require.NotContains(t, contentStr, "func (t *Todo)")
+	require.NotContains(t, contentStr, "todoImplementors")
+	require.NotContains(t, contentStr, "case todo.Table")
+}
+
+func TestNodeSharedFile_WithNodeDescriptor(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_node_shared_nd_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithNodeDescriptor(true),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateNodeSharedFile(graph)
+	require.NoError(t, err)
+
+	path := filepath.Join(tmpDir, "gql_node.go")
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	contentStr := string(content)
+
+	// With NodeDescriptor enabled, the Noder interface should include Node().
+	require.Contains(t, contentStr, "Node(context.Context) (*Node, error)")
+}
+
+func TestNodeEntityFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_node_entity_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode)
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateNodeEntityFile(graph, todoNode)
+	require.NoError(t, err)
+
+	path := filepath.Join(tmpDir, "gql_node_todo.go")
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	contentStr := string(content)
+
+	require.Contains(t, contentStr, "package ent")
+	require.Contains(t, contentStr, "todoImplementors")
+	require.Contains(t, contentStr, "func init()")
+	require.Contains(t, contentStr, "registerNodeResolver")
+	require.Contains(t, contentStr, "todoNoder")
+	require.Contains(t, contentStr, "todoNoders")
+
+	// Should NOT contain other entity code.
+	require.NotContains(t, contentStr, "categoryImplementors")
+	require.NotContains(t, contentStr, "userImplementors")
+	// Should NOT contain shared types.
+	require.NotContains(t, contentStr, "type Noder interface")
+	require.NotContains(t, contentStr, "type nodeResolver struct")
+}
+
+func TestNodeEntityFile_HasCollectionTemplate(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_node_collection_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode)
+
+	// Test with collection template enabled (default).
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateNodeEntityFile(graph, todoNode)
+	require.NoError(t, err)
+
+	path := filepath.Join(tmpDir, "gql_node_todo.go")
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	contentStr := string(content)
+	require.Contains(t, contentStr, "collectField")
+	require.Contains(t, contentStr, "CollectFields")
+
+	// Test with collection template removed via WithTemplates().
+	// Provide all default templates except CollectionTemplate.
+	ex2, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSplitGoFiles(true),
+		WithTemplates(
+			EnumTemplate,
+			NodeTemplate,
+			PaginationTemplate,
+			TransactionTemplate,
+			EdgeTemplate,
+			MutationInputTemplate,
+		),
+	)
+	require.NoError(t, err)
+
+	err = ex2.generateNodeEntityFile(graph, todoNode)
+	require.NoError(t, err)
+
+	content2, err := os.ReadFile(path)
+	require.NoError(t, err)
+	contentStr2 := string(content2)
+	require.Contains(t, contentStr2, "package ent")
+	// Without collection template, collectField should not be present.
+	require.NotContains(t, contentStr2, "collectField")
 }
