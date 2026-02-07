@@ -743,8 +743,9 @@ func (e *Extension) generateNodeDescriptorEntityFile(g *gen.Graph, n *gen.Type) 
 // hasTemplate reports if the template exists
 // in the template list and returns its index.
 func (e *Extension) hasTemplate(tem *gen.Template) (int, bool) {
+	name := tem.Name()
 	for i := range e.templates {
-		if e.templates[i].Name() == tem.Templates()[1].Name() {
+		if e.templates[i].Name() == name {
 			return i, true
 		}
 	}
