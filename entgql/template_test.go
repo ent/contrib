@@ -1169,3 +1169,334 @@ func TestNodeDescriptorEntityTemplateMultipleEntities(t *testing.T) {
 	require.Contains(t, bpOutput, "json.Marshal(bp.Sku)")
 	require.Contains(t, bpOutput, "json.Marshal(bp.Quantity)")
 }
+
+func TestNodeSharedTemplateParsed(t *testing.T) {
+	// Verify the NodeSharedTemplate was parsed successfully during init().
+	require.NotNil(t, NodeSharedTemplate, "NodeSharedTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_node_shared", NodeSharedTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := NodeSharedTemplate.Lookup("gql_node_shared")
+	require.NotNil(t, tmpl, "template should contain 'gql_node_shared' define block")
+}
+
+func TestNodeSharedTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected shared code elements.
+	tmpl := NodeSharedTemplate.Lookup("gql_node_shared")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify shared types and infrastructure are present.
+	require.Contains(t, src, "Noder interface")
+	require.Contains(t, src, "errNodeInvalidID")
+	require.Contains(t, src, "NodeOption")
+	require.Contains(t, src, "WithNodeType")
+	require.Contains(t, src, "WithFixedNodeType")
+	require.Contains(t, src, "nodeOptions struct")
+
+	// Verify new map-based dispatch infrastructure.
+	require.Contains(t, src, "nodeResolver struct")
+	require.Contains(t, src, "nodeResolvers")
+	require.Contains(t, src, "registerNodeResolver")
+
+	// Verify Client methods are present.
+	require.Contains(t, src, "func (c *Client) Noder(")
+	require.Contains(t, src, "func (c *Client) noder(")
+	require.Contains(t, src, "func (c *Client) Noders(")
+	require.Contains(t, src, "func (c *Client) noders(")
+	require.Contains(t, src, "func (c *Client) newNodeOpts(")
+
+	// Verify map-based dispatch instead of switch.
+	require.Contains(t, src, "nodeResolvers[table]")
+	require.Contains(t, src, "resolver.byID(")
+	require.Contains(t, src, "resolver.byIDs(")
+
+	// Verify NO per-entity code is present.
+	require.NotContains(t, src, "range $n")
+	require.NotContains(t, src, "$.Node.Name")
+	require.NotContains(t, src, "nodeImplementorsVar")
+
+	// Verify HasNodeDescriptorTemplate is used instead of hasTemplate.
+	require.NotContains(t, src, "hasTemplate",
+		"shared template should use $.HasNodeDescriptorTemplate instead of hasTemplate")
+	require.Contains(t, src, "HasNodeDescriptorTemplate",
+		"shared template should reference HasNodeDescriptorTemplate")
+}
+
+func TestNodeSharedTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph and verify
+	// the generated output contains expected shared code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	tmpl := NodeSharedTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_shared", struct {
+		*gen.Graph
+		HasNodeDescriptorTemplate bool
+	}{graph, true})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify Noder interface is generated with Node() method when HasNodeDescriptorTemplate=true.
+	require.Contains(t, output, "type Noder interface")
+	require.Contains(t, output, "Node(context.Context) (*Node, error)")
+
+	// Verify shared infrastructure types are generated.
+	require.Contains(t, output, "var errNodeInvalidID")
+	require.Contains(t, output, "type NodeOption func(*nodeOptions)")
+	require.Contains(t, output, "func WithNodeType(")
+	require.Contains(t, output, "func WithFixedNodeType(")
+
+	// Verify new map-based dispatch types.
+	require.Contains(t, output, "type nodeResolver struct")
+	require.Contains(t, output, "var nodeResolvers = map[string]nodeResolver{}")
+	require.Contains(t, output, "func registerNodeResolver(")
+
+	// Verify Client methods.
+	require.Contains(t, output, "func (c *Client) Noder(ctx context.Context, id int")
+	require.Contains(t, output, "func (c *Client) Noders(ctx context.Context, ids []int")
+
+	// Verify NO per-entity code is present (no entity package imports, no switch cases per entity).
+	require.NotContains(t, output, `"/todo"`)
+	require.NotContains(t, output, `"/category"`)
+	require.NotContains(t, output, "case todo.Table")
+	require.NotContains(t, output, "case category.Table")
+}
+
+func TestNodeSharedTemplateExecution_WithoutNodeDescriptor(t *testing.T) {
+	// Execute with HasNodeDescriptorTemplate=false and verify Node() method is not in Noder interface.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	tmpl := NodeSharedTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_shared", struct {
+		*gen.Graph
+		HasNodeDescriptorTemplate bool
+	}{graph, false})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Noder interface should still exist but without Node() method.
+	require.Contains(t, output, "type Noder interface")
+	require.Contains(t, output, "IsNode()")
+	require.NotContains(t, output, "Node(context.Context) (*Node, error)")
+}
+
+func TestNodeEntityTemplateParsed(t *testing.T) {
+	// Verify the NodeEntityTemplate was parsed successfully during init().
+	require.NotNil(t, NodeEntityTemplate, "NodeEntityTemplate should be parsed during init()")
+	// Verify the template has the expected name.
+	require.Equal(t, "gql_node_entity", NodeEntityTemplate.Name())
+	// Verify it has the expected define block.
+	tmpl := NodeEntityTemplate.Lookup("gql_node_entity")
+	require.NotNil(t, tmpl, "template should contain 'gql_node_entity' define block")
+}
+
+func TestNodeEntityTemplateContent(t *testing.T) {
+	// Verify the template source contains the expected per-entity code elements.
+	tmpl := NodeEntityTemplate.Lookup("gql_node_entity")
+	require.NotNil(t, tmpl)
+	src := tmpl.Tree.Root.String()
+
+	// Verify per-entity code is present.
+	require.Contains(t, src, "nodeImplementorsVar")
+	require.Contains(t, src, "nodeImplementors")
+	require.Contains(t, src, "$.Node")
+	require.Contains(t, src, "registerNodeResolver")
+	require.Contains(t, src, "func init()")
+
+	// Verify HasCollectionTemplate is used instead of hasTemplate.
+	require.NotContains(t, src, "hasTemplate",
+		"entity template should use $.HasCollectionTemplate instead of hasTemplate")
+	require.Contains(t, src, "HasCollectionTemplate",
+		"entity template should reference HasCollectionTemplate")
+
+	// Verify NO shared code is present.
+	require.NotContains(t, src, "Noder interface")
+	require.NotContains(t, src, "errNodeInvalidID")
+	require.NotContains(t, src, "NodeOption")
+	require.NotContains(t, src, "func (c *Client) Noder(")
+	require.NotContains(t, src, "func (c *Client) Noders(")
+}
+
+func TestNodeEntityTemplateExecution(t *testing.T) {
+	// Execute the template against the real todo schema graph for one entity
+	// and verify the generated output contains expected per-entity code.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find the Todo node.
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist in the schema")
+
+	tmpl := NodeEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasCollectionTemplate bool
+	}{graph, todoNode, true})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify the generated output contains the package declaration.
+	require.Contains(t, output, "package ent")
+
+	// Verify implementors var.
+	require.Contains(t, output, "todoImplementors")
+
+	// Verify init() registration.
+	require.Contains(t, output, "func init()")
+	require.Contains(t, output, "registerNodeResolver(todo.Table")
+	require.Contains(t, output, "todoNoder")
+	require.Contains(t, output, "todoNoders")
+
+	// Verify noder functions.
+	require.Contains(t, output, "func todoNoder(ctx context.Context, c *Client, id int) (Noder, error)")
+	require.Contains(t, output, "func todoNoders(ctx context.Context, c *Client, ids []int")
+	require.Contains(t, output, "c.Todo.Query()")
+	require.Contains(t, output, "todo.ID(id)")
+	require.Contains(t, output, "todo.IDIn(ids...)")
+
+	// Verify collectField is present since HasCollectionTemplate=true.
+	require.Contains(t, output, "collectField")
+
+	// Verify entity package import.
+	require.Contains(t, output, `"entgo.io/contrib/entgql/internal/todo/ent/todo"`)
+
+	// Verify NO shared code is present.
+	require.NotContains(t, output, "type Noder interface")
+	require.NotContains(t, output, "var errNodeInvalidID")
+	require.NotContains(t, output, "func (c *Client) Noder(")
+	require.NotContains(t, output, "func (c *Client) Noders(")
+}
+
+func TestNodeEntityTemplateExecution_WithoutCollection(t *testing.T) {
+	// Execute with HasCollectionTemplate=false and verify collectField is absent.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	var todoNode *gen.Type
+	for _, n := range graph.Nodes {
+		if n.Name == "Todo" {
+			todoNode = n
+			break
+		}
+	}
+	require.NotNil(t, todoNode)
+
+	tmpl := NodeEntityTemplate
+	var buf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&buf, "gql_node_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasCollectionTemplate bool
+	}{graph, todoNode, false})
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify collectField is NOT present since HasCollectionTemplate=false.
+	require.NotContains(t, output, "collectField")
+	require.NotContains(t, output, "CollectFields")
+
+	// But the core noder functions should still be present.
+	require.Contains(t, output, "func todoNoder(")
+	require.Contains(t, output, "func todoNoders(")
+	require.Contains(t, output, "func init()")
+}
+
+func TestNodeEntityTemplateMultipleEntities(t *testing.T) {
+	// Verify the template can be executed for multiple different entities
+	// and produces distinct output for each.
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	// Find both Todo and Category nodes.
+	var todoNode, categoryNode *gen.Type
+	for _, n := range graph.Nodes {
+		switch n.Name {
+		case "Todo":
+			todoNode = n
+		case "Category":
+			categoryNode = n
+		}
+	}
+	require.NotNil(t, todoNode, "Todo node should exist")
+	require.NotNil(t, categoryNode, "Category node should exist")
+
+	tmpl := NodeEntityTemplate
+
+	// Generate for Todo.
+	var todoBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&todoBuf, "gql_node_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasCollectionTemplate bool
+	}{graph, todoNode, true})
+	require.NoError(t, err)
+	todoOutput := todoBuf.String()
+
+	// Generate for Category.
+	var catBuf bytes.Buffer
+	err = tmpl.ExecuteTemplate(&catBuf, "gql_node_entity", struct {
+		*gen.Graph
+		Node                  *gen.Type
+		HasCollectionTemplate bool
+	}{graph, categoryNode, true})
+	require.NoError(t, err)
+	catOutput := catBuf.String()
+
+	// Verify Todo output has Todo-specific code.
+	require.Contains(t, todoOutput, "todoImplementors")
+	require.Contains(t, todoOutput, "todoNoder")
+	require.Contains(t, todoOutput, "todoNoders")
+	require.Contains(t, todoOutput, "registerNodeResolver(todo.Table")
+	require.NotContains(t, todoOutput, "categoryNoder")
+
+	// Verify Category output has Category-specific code.
+	require.Contains(t, catOutput, "categoryImplementors")
+	require.Contains(t, catOutput, "categoryNoder")
+	require.Contains(t, catOutput, "categoryNoders")
+	require.Contains(t, catOutput, "registerNodeResolver(category.Table")
+	require.NotContains(t, catOutput, "todoNoder")
+}
