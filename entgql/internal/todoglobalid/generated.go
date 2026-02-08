@@ -11579,7 +11579,7 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11600,6 +11600,13 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -12697,7 +12704,7 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12718,6 +12725,13 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -13355,7 +13369,7 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj any
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13376,6 +13390,13 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj any
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -14286,7 +14307,7 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj any
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -14307,6 +14328,13 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj any
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -18726,6 +18754,16 @@ func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinterna
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx context.Context, v any) (entgql.NullsDirection, error) {
+	var res entgql.NullsDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx context.Context, sel ast.SelectionSet, v entgql.NullsDirection) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalOOneToMany2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoglobalidᚋentᚐOneToManyᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.OneToMany) graphql.Marshaler {
