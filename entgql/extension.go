@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 
 	"entgo.io/ent/entc"
@@ -26,6 +27,7 @@ import (
 	"github.com/99designs/gqlgen/api"
 	"github.com/99designs/gqlgen/codegen/config"
 	"github.com/vektah/gqlparser/v2/ast"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/tools/imports"
 )
 
@@ -369,14 +371,18 @@ func (e *Extension) generateSplitSchema(g *gen.Graph) error {
 			return fmt.Errorf("entgql: failed to write query schema: %w", err)
 		}
 	}
-	// Write per-entity schemas
+	// Write per-entity schemas in parallel.
+	var fns []func() error
 	for name, schema := range split.Entities {
-		entityPath := filepath.Join(e.schemaDir, fmt.Sprintf("ent_%s.graphql", snake(name)))
-		if err := os.WriteFile(entityPath, []byte(printSchema(schema)), 0644); err != nil {
-			return fmt.Errorf("entgql: failed to write entity schema %s: %w", name, err)
-		}
+		fns = append(fns, func() error {
+			entityPath := filepath.Join(e.schemaDir, fmt.Sprintf("ent_%s.graphql", snake(name)))
+			if err := os.WriteFile(entityPath, []byte(printSchema(schema)), 0644); err != nil {
+				return fmt.Errorf("entgql: failed to write entity schema %s: %w", name, err)
+			}
+			return nil
+		})
 	}
-	return nil
+	return parallelGenerate(fns)
 }
 
 // genSplitGoFilesHook returns a hook that generates per-entity Go files
@@ -392,48 +398,90 @@ func (e *Extension) genSplitGoFilesHook() gen.Hook {
 	}
 }
 
+// parallelGenerate runs a slice of file-generation functions concurrently,
+// limiting concurrency to the number of available CPUs.
+func parallelGenerate(fns []func() error) error {
+	g := new(errgroup.Group)
+	g.SetLimit(runtime.GOMAXPROCS(0))
+	for _, fn := range fns {
+		g.Go(fn)
+	}
+	return g.Wait()
+}
+
 // generateSplitGoFiles generates per-entity Go files for WhereInput, MutationInput,
-// Pagination, and Collection types.
+// Pagination, Collection, Edge, NodeDescriptor, and Node types.
 func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
-	// Remove old monolithic files to avoid duplicate type definitions
+	// Remove old monolithic files to avoid duplicate type definitions.
 	if err := e.removeMonolithicGoFiles(g); err != nil {
 		return err
 	}
-	// Generate where input files
-	if e.genWhereInput {
-		if err := e.generateSplitWhereInputs(g); err != nil {
-			return err
-		}
-	}
-	// Generate mutation input files
-	if e.genMutations {
-		if err := e.generateSplitMutationInputs(g); err != nil {
-			return err
-		}
-	}
-	// Split pagination (always, since pagination template is always included)
-	if err := e.generateSplitPagination(g); err != nil {
-		return err
-	}
-	// Split collection (always, since collection template is always included)
-	if err := e.generateSplitCollection(g); err != nil {
-		return err
-	}
-	// Split edge (always, since edge template is always included)
-	if err := e.generateSplitEdge(g); err != nil {
-		return err
-	}
-	// Split node descriptor (only if the NodeDescriptorTemplate is enabled)
+
+	// Collect all independent file-generation tasks into a single slice
+	// so they can be executed concurrently.
+	var fns []func() error
+
+	// Shared files (one per type, no per-entity loop).
+	fns = append(fns,
+		func() error { return e.generatePaginationSharedFile(g) },
+		func() error { return e.generateCollectionSharedFile(g) },
+		func() error { return e.generateNodeSharedFile(g) },
+	)
 	if _, exists := e.hasTemplate(NodeDescriptorTemplate); exists {
-		if err := e.generateSplitNodeDescriptor(g); err != nil {
+		fns = append(fns, func() error { return e.generateNodeDescriptorSharedFile(g) })
+	}
+
+	// Per-entity where input files.
+	if e.genWhereInput {
+		nodes, err := filterNodes(g.Nodes, SkipWhereInput)
+		if err != nil {
 			return err
 		}
+		for _, n := range nodes {
+			fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+		}
 	}
-	// Split node (always, since node template is always included)
-	if err := e.generateSplitNode(g); err != nil {
+
+	// Per-entity mutation input files.
+	if e.genMutations {
+		inputs, err := mutationInputs(g.Nodes)
+		if err != nil {
+			return err
+		}
+		byEntity := make(map[string][]*MutationDescriptor)
+		for _, input := range inputs {
+			byEntity[input.Type.Name] = append(byEntity[input.Type.Name], input)
+		}
+		for name, entityInputs := range byEntity {
+			fns = append(fns, func() error { return e.generateMutationInputFile(g, name, entityInputs) })
+		}
+	}
+
+	// Per-entity pagination, collection, edge, node descriptor, and node files.
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
 		return err
 	}
-	return nil
+	_, hasNodeDescriptor := e.hasTemplate(NodeDescriptorTemplate)
+	for _, n := range nodes {
+		fns = append(fns,
+			func() error { return e.generatePaginationEntityFile(g, n) },
+			func() error { return e.generateCollectionEntityFile(g, n) },
+			func() error { return e.generateNodeEntityFile(g, n) },
+		)
+		if hasNodeDescriptor {
+			fns = append(fns, func() error { return e.generateNodeDescriptorEntityFile(g, n) })
+		}
+		edges, err := filterEdges(n.Edges, SkipType)
+		if err != nil {
+			return err
+		}
+		if len(edges) > 0 {
+			fns = append(fns, func() error { return e.generateEdgeEntityFile(g, n) })
+		}
+	}
+
+	return parallelGenerate(fns)
 }
 
 // removeMonolithicGoFiles removes the old monolithic Go files when split mode is enabled.
@@ -452,18 +500,18 @@ func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
 	return nil
 }
 
+
 // generateSplitWhereInputs generates per-entity where input files.
 func (e *Extension) generateSplitWhereInputs(g *gen.Graph) error {
 	nodes, err := filterNodes(g.Nodes, SkipWhereInput)
 	if err != nil {
 		return err
 	}
+	var fns []func() error
 	for _, n := range nodes {
-		if err := e.generateWhereInputFile(g, n); err != nil {
-			return err
-		}
+		fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
 	}
-	return nil
+	return parallelGenerate(fns)
 }
 
 // generateSplitMutationInputs generates per-entity mutation input files.
@@ -472,17 +520,102 @@ func (e *Extension) generateSplitMutationInputs(g *gen.Graph) error {
 	if err != nil {
 		return err
 	}
-	// Group mutation inputs by entity
 	byEntity := make(map[string][]*MutationDescriptor)
 	for _, input := range inputs {
 		byEntity[input.Type.Name] = append(byEntity[input.Type.Name], input)
 	}
+	var fns []func() error
 	for name, entityInputs := range byEntity {
-		if err := e.generateMutationInputFile(g, name, entityInputs); err != nil {
+		fns = append(fns, func() error { return e.generateMutationInputFile(g, name, entityInputs) })
+	}
+	return parallelGenerate(fns)
+}
+
+// generateSplitPagination overwrites the monolithic pagination file with shared-only
+// content, then generates per-entity pagination files.
+func (e *Extension) generateSplitPagination(g *gen.Graph) error {
+	if err := e.generatePaginationSharedFile(g); err != nil {
+		return err
+	}
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	var fns []func() error
+	for _, n := range nodes {
+		fns = append(fns, func() error { return e.generatePaginationEntityFile(g, n) })
+	}
+	return parallelGenerate(fns)
+}
+
+// generateSplitCollection overwrites the monolithic collection file with shared-only
+// content, then generates per-entity collection files.
+func (e *Extension) generateSplitCollection(g *gen.Graph) error {
+	if err := e.generateCollectionSharedFile(g); err != nil {
+		return err
+	}
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	var fns []func() error
+	for _, n := range nodes {
+		fns = append(fns, func() error { return e.generateCollectionEntityFile(g, n) })
+	}
+	return parallelGenerate(fns)
+}
+
+// generateSplitEdge generates per-entity edge files.
+func (e *Extension) generateSplitEdge(g *gen.Graph) error {
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	var fns []func() error
+	for _, n := range nodes {
+		edges, err := filterEdges(n.Edges, SkipType)
+		if err != nil {
 			return err
 		}
+		if len(edges) > 0 {
+			fns = append(fns, func() error { return e.generateEdgeEntityFile(g, n) })
+		}
 	}
-	return nil
+	return parallelGenerate(fns)
+}
+
+// generateSplitNodeDescriptor overwrites the monolithic node descriptor file with shared-only
+// content, then generates per-entity node descriptor files.
+func (e *Extension) generateSplitNodeDescriptor(g *gen.Graph) error {
+	if err := e.generateNodeDescriptorSharedFile(g); err != nil {
+		return err
+	}
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	var fns []func() error
+	for _, n := range nodes {
+		fns = append(fns, func() error { return e.generateNodeDescriptorEntityFile(g, n) })
+	}
+	return parallelGenerate(fns)
+}
+
+// generateSplitNode overwrites the monolithic node file with shared-only
+// content, then generates per-entity node files.
+func (e *Extension) generateSplitNode(g *gen.Graph) error {
+	if err := e.generateNodeSharedFile(g); err != nil {
+		return err
+	}
+	nodes, err := filterNodes(g.Nodes, SkipType)
+	if err != nil {
+		return err
+	}
+	var fns []func() error
+	for _, n := range nodes {
+		fns = append(fns, func() error { return e.generateNodeEntityFile(g, n) })
+	}
+	return parallelGenerate(fns)
 }
 
 // generateWhereInputFile generates a where input file for a single entity.
@@ -532,45 +665,6 @@ func (e *Extension) generateMutationInputFile(g *gen.Graph, name string, inputs 
 	return os.WriteFile(path, content, 0644)
 }
 
-// generateSplitPagination overwrites the monolithic pagination file with shared-only
-// content, then generates per-entity pagination files.
-func (e *Extension) generateSplitPagination(g *gen.Graph) error {
-	// Overwrite monolithic file with shared-only content
-	if err := e.generatePaginationSharedFile(g); err != nil {
-		return err
-	}
-	// Generate per-entity files
-	nodes, err := filterNodes(g.Nodes, SkipType)
-	if err != nil {
-		return err
-	}
-	for _, n := range nodes {
-		if err := e.generatePaginationEntityFile(g, n); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// generateSplitCollection overwrites the monolithic collection file with shared-only
-// content, then generates per-entity collection files.
-func (e *Extension) generateSplitCollection(g *gen.Graph) error {
-	// Overwrite monolithic file with shared-only content
-	if err := e.generateCollectionSharedFile(g); err != nil {
-		return err
-	}
-	// Generate per-entity files
-	nodes, err := filterNodes(g.Nodes, SkipType)
-	if err != nil {
-		return err
-	}
-	for _, n := range nodes {
-		if err := e.generateCollectionEntityFile(g, n); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // generatePaginationSharedFile overwrites gql_pagination.go with shared-only content.
 func (e *Extension) generatePaginationSharedFile(g *gen.Graph) error {
@@ -645,28 +739,6 @@ func (e *Extension) generateCollectionEntityFile(g *gen.Graph, n *gen.Type) erro
 	return os.WriteFile(path, content, 0644)
 }
 
-// generateSplitEdge deletes the monolithic edge file and generates per-entity edge files.
-func (e *Extension) generateSplitEdge(g *gen.Graph) error {
-	// Generate per-entity files (only for entities that have edges after filtering)
-	nodes, err := filterNodes(g.Nodes, SkipType)
-	if err != nil {
-		return err
-	}
-	for _, n := range nodes {
-		edges, err := filterEdges(n.Edges, SkipType)
-		if err != nil {
-			return err
-		}
-		// Skip entities with no edges after filtering
-		if len(edges) == 0 {
-			continue
-		}
-		if err := e.generateEdgeEntityFile(g, n); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // generateEdgeEntityFile generates an edge file for a single entity.
 func (e *Extension) generateEdgeEntityFile(g *gen.Graph, n *gen.Type) error {
@@ -686,26 +758,6 @@ func (e *Extension) generateEdgeEntityFile(g *gen.Graph, n *gen.Type) error {
 		return fmt.Errorf("entgql: format edge for %s: %w", n.Name, err)
 	}
 	return os.WriteFile(path, content, 0644)
-}
-
-// generateSplitNodeDescriptor overwrites the monolithic node descriptor file with shared-only
-// content, then generates per-entity node descriptor files.
-func (e *Extension) generateSplitNodeDescriptor(g *gen.Graph) error {
-	// Overwrite monolithic file with shared-only content
-	if err := e.generateNodeDescriptorSharedFile(g); err != nil {
-		return err
-	}
-	// Generate per-entity files
-	nodes, err := filterNodes(g.Nodes, SkipType)
-	if err != nil {
-		return err
-	}
-	for _, n := range nodes {
-		if err := e.generateNodeDescriptorEntityFile(g, n); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // generateNodeDescriptorSharedFile overwrites gql_node_descriptor.go with shared-only content.
@@ -742,26 +794,6 @@ func (e *Extension) generateNodeDescriptorEntityFile(g *gen.Graph, n *gen.Type) 
 		return fmt.Errorf("entgql: format node_descriptor for %s: %w", n.Name, err)
 	}
 	return os.WriteFile(path, content, 0644)
-}
-
-// generateSplitNode overwrites the monolithic node file with shared-only
-// content, then generates per-entity node files.
-func (e *Extension) generateSplitNode(g *gen.Graph) error {
-	// Overwrite monolithic file with shared-only content
-	if err := e.generateNodeSharedFile(g); err != nil {
-		return err
-	}
-	// Generate per-entity files
-	nodes, err := filterNodes(g.Nodes, SkipType)
-	if err != nil {
-		return err
-	}
-	for _, n := range nodes {
-		if err := e.generateNodeEntityFile(g, n); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // generateNodeSharedFile overwrites gql_node.go with shared-only content.
