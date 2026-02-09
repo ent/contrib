@@ -43,6 +43,7 @@ func TestWithSplitGoFiles(t *testing.T) {
 		entgql.WithSchemaGenerator(),
 		entgql.WithWhereInputs(true),
 		entgql.WithSplitGoFiles(true),
+		entgql.WithParallelWhereInputFiles(true),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, ext)

@@ -923,3 +923,26 @@ func TestNodeEntityFile_HasCollectionTemplate(t *testing.T) {
 	// Without collection template, collectField should not be present.
 	require.NotContains(t, contentStr2, "collectField")
 }
+
+func TestGenerateSplitWhereInputs_ParallelFlag(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_split_where_inputs_parallel_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithWhereInputs(true),
+		WithSplitGoFiles(true),
+		WithParallelWhereInputFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateSplitWhereInputs(graph)
+	require.NoError(t, err)
+
+	path := filepath.Join(tmpDir, "gql_where_input_todo.go")
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+}

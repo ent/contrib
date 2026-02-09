@@ -36,11 +36,12 @@ type (
 	Extension struct {
 		schemaGenerator
 		entc.DefaultExtension
-		outputWriter func(*ast.Schema) error
-		hooks        []gen.Hook
-		templates    []*gen.Template
-		schemaDir    string // directory for split schema output
-		splitGoFiles bool   // split generated Go files into per-entity files
+		outputWriter            func(*ast.Schema) error
+		hooks                   []gen.Hook
+		templates               []*gen.Template
+		schemaDir               string // directory for split schema output
+		splitGoFiles            bool   // split generated Go files into per-entity files
+		parallelWhereInputFiles bool   // opt-in parallel generation for where-input split files
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -115,6 +116,18 @@ func WithSchemaDir(dir string) ExtensionOption {
 func WithSplitGoFiles(enabled bool) ExtensionOption {
 	return func(ex *Extension) error {
 		ex.splitGoFiles = enabled
+		return nil
+	}
+}
+
+// WithParallelWhereInputFiles configures split where-input generation mode.
+//
+// By default, split where-input files are generated sequentially because some
+// ent/op combinations may not be concurrency-safe during template execution.
+// Enable this option only when using an ent version/path verified as race-free.
+func WithParallelWhereInputFiles(enabled bool) ExtensionOption {
+	return func(ex *Extension) error {
+		ex.parallelWhereInputFiles = enabled
 		return nil
 	}
 }
@@ -439,9 +452,16 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 		if err != nil {
 			return err
 		}
-		for _, n := range nodes {
-			if err := e.generateWhereInputFile(g, n); err != nil {
-				return err
+		if e.parallelWhereInputFiles {
+			for _, n := range nodes {
+				n := n
+				fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+			}
+		} else {
+			for _, n := range nodes {
+				if err := e.generateWhereInputFile(g, n); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -512,6 +532,14 @@ func (e *Extension) generateSplitWhereInputs(g *gen.Graph) error {
 	nodes, err := filterNodes(g.Nodes, SkipWhereInput)
 	if err != nil {
 		return err
+	}
+	if e.parallelWhereInputFiles {
+		var fns []func() error
+		for _, n := range nodes {
+			n := n
+			fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+		}
+		return parallelGenerate(fns)
 	}
 	for _, n := range nodes {
 		if err := e.generateWhereInputFile(g, n); err != nil {
