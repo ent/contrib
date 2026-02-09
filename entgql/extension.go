@@ -374,6 +374,8 @@ func (e *Extension) generateSplitSchema(g *gen.Graph) error {
 	// Write per-entity schemas in parallel.
 	var fns []func() error
 	for name, schema := range split.Entities {
+		name := name
+		schema := schema
 		fns = append(fns, func() error {
 			entityPath := filepath.Join(e.schemaDir, fmt.Sprintf("ent_%s.graphql", snake(name)))
 			if err := os.WriteFile(entityPath, []byte(printSchema(schema)), 0644); err != nil {
@@ -438,7 +440,9 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 			return err
 		}
 		for _, n := range nodes {
-			fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+			if err := e.generateWhereInputFile(g, n); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -453,6 +457,8 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 			byEntity[input.Type.Name] = append(byEntity[input.Type.Name], input)
 		}
 		for name, entityInputs := range byEntity {
+			name := name
+			entityInputs := entityInputs
 			fns = append(fns, func() error { return e.generateMutationInputFile(g, name, entityInputs) })
 		}
 	}
@@ -464,6 +470,7 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	}
 	_, hasNodeDescriptor := e.hasTemplate(NodeDescriptorTemplate)
 	for _, n := range nodes {
+		n := n
 		fns = append(fns,
 			func() error { return e.generatePaginationEntityFile(g, n) },
 			func() error { return e.generateCollectionEntityFile(g, n) },
@@ -500,18 +507,18 @@ func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
 	return nil
 }
 
-
 // generateSplitWhereInputs generates per-entity where input files.
 func (e *Extension) generateSplitWhereInputs(g *gen.Graph) error {
 	nodes, err := filterNodes(g.Nodes, SkipWhereInput)
 	if err != nil {
 		return err
 	}
-	var fns []func() error
 	for _, n := range nodes {
-		fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+		if err := e.generateWhereInputFile(g, n); err != nil {
+			return err
+		}
 	}
-	return parallelGenerate(fns)
+	return nil
 }
 
 // generateSplitMutationInputs generates per-entity mutation input files.
@@ -526,6 +533,8 @@ func (e *Extension) generateSplitMutationInputs(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for name, entityInputs := range byEntity {
+		name := name
+		entityInputs := entityInputs
 		fns = append(fns, func() error { return e.generateMutationInputFile(g, name, entityInputs) })
 	}
 	return parallelGenerate(fns)
@@ -543,6 +552,7 @@ func (e *Extension) generateSplitPagination(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for _, n := range nodes {
+		n := n
 		fns = append(fns, func() error { return e.generatePaginationEntityFile(g, n) })
 	}
 	return parallelGenerate(fns)
@@ -560,6 +570,7 @@ func (e *Extension) generateSplitCollection(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for _, n := range nodes {
+		n := n
 		fns = append(fns, func() error { return e.generateCollectionEntityFile(g, n) })
 	}
 	return parallelGenerate(fns)
@@ -573,6 +584,7 @@ func (e *Extension) generateSplitEdge(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for _, n := range nodes {
+		n := n
 		edges, err := filterEdges(n.Edges, SkipType)
 		if err != nil {
 			return err
@@ -596,6 +608,7 @@ func (e *Extension) generateSplitNodeDescriptor(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for _, n := range nodes {
+		n := n
 		fns = append(fns, func() error { return e.generateNodeDescriptorEntityFile(g, n) })
 	}
 	return parallelGenerate(fns)
@@ -613,6 +626,7 @@ func (e *Extension) generateSplitNode(g *gen.Graph) error {
 	}
 	var fns []func() error
 	for _, n := range nodes {
+		n := n
 		fns = append(fns, func() error { return e.generateNodeEntityFile(g, n) })
 	}
 	return parallelGenerate(fns)
@@ -664,7 +678,6 @@ func (e *Extension) generateMutationInputFile(g *gen.Graph, name string, inputs 
 
 	return os.WriteFile(path, content, 0644)
 }
-
 
 // generatePaginationSharedFile overwrites gql_pagination.go with shared-only content.
 func (e *Extension) generatePaginationSharedFile(g *gen.Graph) error {
@@ -738,7 +751,6 @@ func (e *Extension) generateCollectionEntityFile(g *gen.Graph, n *gen.Type) erro
 	}
 	return os.WriteFile(path, content, 0644)
 }
-
 
 // generateEdgeEntityFile generates an edge file for a single entity.
 func (e *Extension) generateEdgeEntityFile(g *gen.Graph, n *gen.Type) error {
