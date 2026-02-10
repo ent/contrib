@@ -19,6 +19,7 @@ package ent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
@@ -50,16 +51,16 @@ type Edge struct {
 	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
 }
 
-// Node implements Noder interface
-func (bp *BillProduct) Node(ctx context.Context) (node *Node, err error) {
+// BillProductNode returns the Node descriptor of a BillProduct.
+func BillProductNode(_m *BillProduct, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     bp.ID,
+		ID:     _m.ID,
 		Type:   "BillProduct",
 		Fields: make([]*Field, 3),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(bp.Name); err != nil {
+	if buf, err = json.Marshal(_m.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -67,7 +68,7 @@ func (bp *BillProduct) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(bp.Sku); err != nil {
+	if buf, err = json.Marshal(_m.Sku); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -75,7 +76,7 @@ func (bp *BillProduct) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "sku",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(bp.Quantity); err != nil {
+	if buf, err = json.Marshal(_m.Quantity); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -86,16 +87,16 @@ func (bp *BillProduct) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (c *Category) Node(ctx context.Context) (node *Node, err error) {
+// CategoryNode returns the Node descriptor of a Category.
+func CategoryNode(_m *Category, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     c.ID,
+		ID:     _m.ID,
 		Type:   "Category",
 		Fields: make([]*Field, 7),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(c.Text); err != nil {
+	if buf, err = json.Marshal(_m.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -103,7 +104,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Status); err != nil {
+	if buf, err = json.Marshal(_m.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -111,15 +112,15 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "status",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Config); err != nil {
+	if buf, err = json.Marshal(_m.CategoryConfig); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "*schematype.CategoryConfig",
-		Name:  "config",
+		Name:  "category_config",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Types); err != nil {
+	if buf, err = json.Marshal(_m.Types); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
@@ -127,7 +128,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "types",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Duration); err != nil {
+	if buf, err = json.Marshal(_m.Duration); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
@@ -135,7 +136,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "duration",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Count); err != nil {
+	if buf, err = json.Marshal(_m.Count); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
@@ -143,7 +144,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "count",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.Strings); err != nil {
+	if buf, err = json.Marshal(_m.Strings); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
@@ -155,7 +156,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "todos",
 	}
-	err = c.QueryTodos().
+	err = FromContext(ctx).Category.QueryTodos(_m).
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -165,7 +166,7 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Category",
 		Name: "sub_categories",
 	}
-	err = c.QuerySubCategories().
+	err = FromContext(ctx).Category.QuerySubCategories(_m).
 		Select(category.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -174,16 +175,16 @@ func (c *Category) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
+// FriendshipNode returns the Node descriptor of a Friendship.
+func FriendshipNode(_m *Friendship, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     f.ID,
+		ID:     _m.ID,
 		Type:   "Friendship",
 		Fields: make([]*Field, 3),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(f.CreatedAt); err != nil {
+	if buf, err = json.Marshal(_m.CreatedAt); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -191,7 +192,7 @@ func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "created_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(f.UserID); err != nil {
+	if buf, err = json.Marshal(_m.UserID); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -199,7 +200,7 @@ func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "user_id",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(f.FriendID); err != nil {
+	if buf, err = json.Marshal(_m.FriendID); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -211,7 +212,7 @@ func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 		Type: "User",
 		Name: "user",
 	}
-	err = f.QueryUser().
+	err = FromContext(ctx).Friendship.QueryUser(_m).
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -221,7 +222,7 @@ func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 		Type: "User",
 		Name: "friend",
 	}
-	err = f.QueryFriend().
+	err = FromContext(ctx).Friendship.QueryFriend(_m).
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -230,16 +231,16 @@ func (f *Friendship) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
+// GroupNode returns the Node descriptor of a Group.
+func GroupNode(_m *Group, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     gr.ID,
+		ID:     _m.ID,
 		Type:   "Group",
 		Fields: make([]*Field, 1),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(gr.Name); err != nil {
+	if buf, err = json.Marshal(_m.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -251,7 +252,7 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 		Type: "User",
 		Name: "users",
 	}
-	err = gr.QueryUsers().
+	err = FromContext(ctx).Group.QueryUsers(_m).
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -260,16 +261,16 @@ func (gr *Group) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
+// OneToManyNode returns the Node descriptor of a OneToMany.
+func OneToManyNode(_m *OneToMany, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     otm.ID,
+		ID:     _m.ID,
 		Type:   "OneToMany",
 		Fields: make([]*Field, 2),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(otm.Name); err != nil {
+	if buf, err = json.Marshal(_m.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -277,7 +278,7 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(otm.Field2); err != nil {
+	if buf, err = json.Marshal(_m.Field2); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -289,7 +290,7 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 		Type: "OneToMany",
 		Name: "parent",
 	}
-	err = otm.QueryParent().
+	err = FromContext(ctx).OneToMany.QueryParent(_m).
 		Select(onetomany.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -299,7 +300,7 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 		Type: "OneToMany",
 		Name: "children",
 	}
-	err = otm.QueryChildren().
+	err = FromContext(ctx).OneToMany.QueryChildren(_m).
 		Select(onetomany.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -308,10 +309,10 @@ func (otm *OneToMany) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
+// ProjectNode returns the Node descriptor of a Project.
+func ProjectNode(_m *Project, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     pr.ID,
+		ID:     _m.ID,
 		Type:   "Project",
 		Fields: make([]*Field, 0),
 		Edges:  make([]*Edge, 1),
@@ -320,7 +321,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "todos",
 	}
-	err = pr.QueryTodos().
+	err = FromContext(ctx).Project.QueryTodos(_m).
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -329,16 +330,16 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
+// TodoNode returns the Node descriptor of a Todo.
+func TodoNode(_m *Todo, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     t.ID,
+		ID:     _m.ID,
 		Type:   "Todo",
 		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(t.CreatedAt); err != nil {
+	if buf, err = json.Marshal(_m.CreatedAt); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -346,7 +347,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "created_at",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Status); err != nil {
+	if buf, err = json.Marshal(_m.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -354,7 +355,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "status",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Priority); err != nil {
+	if buf, err = json.Marshal(_m.Priority); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -362,7 +363,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "priority",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Text); err != nil {
+	if buf, err = json.Marshal(_m.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
@@ -370,7 +371,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "text",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.CategoryID); err != nil {
+	if buf, err = json.Marshal(_m.CategoryID); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
@@ -378,7 +379,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "category_id",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Init); err != nil {
+	if buf, err = json.Marshal(_m.Init); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
@@ -386,7 +387,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "init",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Custom); err != nil {
+	if buf, err = json.Marshal(_m.Custom); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
@@ -394,7 +395,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "custom",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Customp); err != nil {
+	if buf, err = json.Marshal(_m.Customp); err != nil {
 		return nil, err
 	}
 	node.Fields[7] = &Field{
@@ -402,7 +403,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "customp",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(t.Value); err != nil {
+	if buf, err = json.Marshal(_m.Value); err != nil {
 		return nil, err
 	}
 	node.Fields[8] = &Field{
@@ -414,7 +415,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "parent",
 	}
-	err = t.QueryParent().
+	err = FromContext(ctx).Todo.QueryParent(_m).
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -424,7 +425,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Todo",
 		Name: "children",
 	}
-	err = t.QueryChildren().
+	err = FromContext(ctx).Todo.QueryChildren(_m).
 		Select(todo.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -434,7 +435,7 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Category",
 		Name: "category",
 	}
-	err = t.QueryCategory().
+	err = FromContext(ctx).Todo.QueryCategory(_m).
 		Select(category.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
@@ -443,16 +444,16 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (u *User) Node(ctx context.Context) (node *Node, err error) {
+// UserNode returns the Node descriptor of a User.
+func UserNode(_m *User, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     u.ID,
+		ID:     _m.ID,
 		Type:   "User",
 		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(u.Name); err != nil {
+	if buf, err = json.Marshal(_m.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -460,7 +461,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Username); err != nil {
+	if buf, err = json.Marshal(_m.Username); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
@@ -468,7 +469,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "username",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Password); err != nil {
+	if buf, err = json.Marshal(_m.Password); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
@@ -476,7 +477,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "password",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.RequiredMetadata); err != nil {
+	if buf, err = json.Marshal(_m.RequiredMetadata); err != nil {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
@@ -484,7 +485,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "required_metadata",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(u.Metadata); err != nil {
+	if buf, err = json.Marshal(_m.Metadata); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
@@ -496,7 +497,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Group",
 		Name: "groups",
 	}
-	err = u.QueryGroups().
+	err = FromContext(ctx).User.QueryGroups(_m).
 		Select(group.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
@@ -506,7 +507,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Type: "User",
 		Name: "friends",
 	}
-	err = u.QueryFriends().
+	err = FromContext(ctx).User.QueryFriends(_m).
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
@@ -516,7 +517,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Friendship",
 		Name: "friendships",
 	}
-	err = u.QueryFriendships().
+	err = FromContext(ctx).User.QueryFriendships(_m).
 		Select(friendship.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
@@ -525,16 +526,16 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
-// Node implements Noder interface
-func (w *Workspace) Node(ctx context.Context) (node *Node, err error) {
+// WorkspaceNode returns the Node descriptor of a Workspace.
+func WorkspaceNode(_m *Workspace, ctx context.Context) (node *Node, err error) {
 	node = &Node{
-		ID:     w.ID,
+		ID:     _m.ID,
 		Type:   "Workspace",
 		Fields: make([]*Field, 1),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(w.Name); err != nil {
+	if buf, err = json.Marshal(_m.Name); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
@@ -554,5 +555,26 @@ func (c *Client) Node(ctx context.Context, id int) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return n.Node(ctx)
+	switch v := n.(type) {
+	case *BillProduct:
+		return BillProductNode(v, ctx)
+	case *Category:
+		return CategoryNode(v, ctx)
+	case *Friendship:
+		return FriendshipNode(v, ctx)
+	case *Group:
+		return GroupNode(v, ctx)
+	case *OneToMany:
+		return OneToManyNode(v, ctx)
+	case *Project:
+		return ProjectNode(v, ctx)
+	case *Todo:
+		return TodoNode(v, ctx)
+	case *User:
+		return UserNode(v, ctx)
+	case *Workspace:
+		return WorkspaceNode(v, ctx)
+	default:
+		return nil, fmt.Errorf("cannot resolve node descriptor for type %T", n)
+	}
 }

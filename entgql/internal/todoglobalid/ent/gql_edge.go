@@ -22,7 +22,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (c *Category) Todos(
+// ResolveCategoryTodos resolves the todos edge of a Category.
+func ResolveCategoryTodos(_m *Category,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
@@ -30,8 +31,8 @@ func (c *Category) Todos(
 		WithTodoFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := c.Edges.totalCount[0][alias]
-	if nodes, err := c.NamedTodos(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[0][alias]
+	if nodes, err := _m.NamedTodos(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -40,10 +41,11 @@ func (c *Category) Todos(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return c.QueryTodos().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).Category.QueryTodos(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (c *Category) SubCategories(
+// ResolveCategorySubCategories resolves the sub_categories edge of a Category.
+func ResolveCategorySubCategories(_m *Category,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*CategoryOrder, where *CategoryWhereInput,
 ) (*CategoryConnection, error) {
 	opts := []CategoryPaginateOption{
@@ -51,8 +53,8 @@ func (c *Category) SubCategories(
 		WithCategoryFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := c.Edges.totalCount[1][alias]
-	if nodes, err := c.NamedSubCategories(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[1][alias]
+	if nodes, err := _m.NamedSubCategories(alias); err == nil || hasTotalCount {
 		pager, err := newCategoryPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -61,26 +63,29 @@ func (c *Category) SubCategories(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return c.QuerySubCategories().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).Category.QuerySubCategories(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (f *Friendship) User(ctx context.Context) (*User, error) {
-	result, err := f.Edges.UserOrErr()
+// ResolveFriendshipUser resolves the user edge of a Friendship.
+func ResolveFriendshipUser(_m *Friendship, ctx context.Context) (*User, error) {
+	result, err := _m.Edges.UserOrErr()
 	if IsNotLoaded(err) {
-		result, err = f.QueryUser().Only(ctx)
+		result, err = FromContext(ctx).Friendship.QueryUser(_m).Only(ctx)
 	}
 	return result, err
 }
 
-func (f *Friendship) Friend(ctx context.Context) (*User, error) {
-	result, err := f.Edges.FriendOrErr()
+// ResolveFriendshipFriend resolves the friend edge of a Friendship.
+func ResolveFriendshipFriend(_m *Friendship, ctx context.Context) (*User, error) {
+	result, err := _m.Edges.FriendOrErr()
 	if IsNotLoaded(err) {
-		result, err = f.QueryFriend().Only(ctx)
+		result, err = FromContext(ctx).Friendship.QueryFriend(_m).Only(ctx)
 	}
 	return result, err
 }
 
-func (gr *Group) Users(
+// ResolveGroupUsers resolves the users edge of a Group.
+func ResolveGroupUsers(_m *Group,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
@@ -88,8 +93,8 @@ func (gr *Group) Users(
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := gr.Edges.totalCount[0][alias]
-	if nodes, err := gr.NamedUsers(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[0][alias]
+	if nodes, err := _m.NamedUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -98,30 +103,33 @@ func (gr *Group) Users(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return gr.QueryUsers().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).Group.QueryUsers(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (otm *OneToMany) Parent(ctx context.Context) (*OneToMany, error) {
-	result, err := otm.Edges.ParentOrErr()
+// ResolveOneToManyParent resolves the parent edge of a OneToMany.
+func ResolveOneToManyParent(_m *OneToMany, ctx context.Context) (*OneToMany, error) {
+	result, err := _m.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
-		result, err = otm.QueryParent().Only(ctx)
+		result, err = FromContext(ctx).OneToMany.QueryParent(_m).Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (otm *OneToMany) Children(ctx context.Context) (result []*OneToMany, err error) {
+// ResolveOneToManyChildren resolves the children edge of a OneToMany.
+func ResolveOneToManyChildren(_m *OneToMany, ctx context.Context) (result []*OneToMany, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = otm.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = _m.NamedChildren(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = otm.Edges.ChildrenOrErr()
+		result, err = _m.Edges.ChildrenOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = otm.QueryChildren().All(ctx)
+		result, err = FromContext(ctx).OneToMany.QueryChildren(_m).All(ctx)
 	}
 	return result, err
 }
 
-func (pr *Project) Todos(
+// ResolveProjectTodos resolves the todos edge of a Project.
+func ResolveProjectTodos(_m *Project,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
@@ -129,8 +137,8 @@ func (pr *Project) Todos(
 		WithTodoFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := pr.Edges.totalCount[0][alias]
-	if nodes, err := pr.NamedTodos(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[0][alias]
+	if nodes, err := _m.NamedTodos(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -139,18 +147,20 @@ func (pr *Project) Todos(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return pr.QueryTodos().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).Project.QueryTodos(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (t *Todo) Parent(ctx context.Context) (*Todo, error) {
-	result, err := t.Edges.ParentOrErr()
+// ResolveTodoParent resolves the parent edge of a Todo.
+func ResolveTodoParent(_m *Todo, ctx context.Context) (*Todo, error) {
+	result, err := _m.Edges.ParentOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryParent().Only(ctx)
+		result, err = FromContext(ctx).Todo.QueryParent(_m).Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (t *Todo) Children(
+// ResolveTodoChildren resolves the children edge of a Todo.
+func ResolveTodoChildren(_m *Todo,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy []*TodoOrder, where *TodoWhereInput,
 ) (*TodoConnection, error) {
 	opts := []TodoPaginateOption{
@@ -158,8 +168,8 @@ func (t *Todo) Children(
 		WithTodoFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := t.Edges.totalCount[1][alias]
-	if nodes, err := t.NamedChildren(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[1][alias]
+	if nodes, err := _m.NamedChildren(alias); err == nil || hasTotalCount {
 		pager, err := newTodoPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -168,26 +178,28 @@ func (t *Todo) Children(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return t.QueryChildren().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).Todo.QueryChildren(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (t *Todo) Category(ctx context.Context) (*Category, error) {
-	result, err := t.Edges.CategoryOrErr()
+// ResolveTodoCategory resolves the category edge of a Todo.
+func ResolveTodoCategory(_m *Todo, ctx context.Context) (*Category, error) {
+	result, err := _m.Edges.CategoryOrErr()
 	if IsNotLoaded(err) {
-		result, err = t.QueryCategory().Only(ctx)
+		result, err = FromContext(ctx).Todo.QueryCategory(_m).Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }
 
-func (u *User) Groups(
+// ResolveUserGroups resolves the groups edge of a User.
+func ResolveUserGroups(_m *User,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *GroupWhereInput,
 ) (*GroupConnection, error) {
 	opts := []GroupPaginateOption{
 		WithGroupFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[0][alias]
-	if nodes, err := u.NamedGroups(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[0][alias]
+	if nodes, err := _m.NamedGroups(alias); err == nil || hasTotalCount {
 		pager, err := newGroupPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -196,10 +208,11 @@ func (u *User) Groups(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return u.QueryGroups().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).User.QueryGroups(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friends(
+// ResolveUserFriends resolves the friends edge of a User.
+func ResolveUserFriends(_m *User,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserOrder, where *UserWhereInput,
 ) (*UserConnection, error) {
 	opts := []UserPaginateOption{
@@ -207,8 +220,8 @@ func (u *User) Friends(
 		WithUserFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[1][alias]
-	if nodes, err := u.NamedFriends(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[1][alias]
+	if nodes, err := _m.NamedFriends(alias); err == nil || hasTotalCount {
 		pager, err := newUserPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -217,18 +230,19 @@ func (u *User) Friends(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return u.QueryFriends().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).User.QueryFriends(_m).Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (u *User) Friendships(
+// ResolveUserFriendships resolves the friendships edge of a User.
+func ResolveUserFriendships(_m *User,
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, where *FriendshipWhereInput,
 ) (*FriendshipConnection, error) {
 	opts := []FriendshipPaginateOption{
 		WithFriendshipFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := u.Edges.totalCount[2][alias]
-	if nodes, err := u.NamedFriendships(alias); err == nil || hasTotalCount {
+	totalCount, hasTotalCount := _m.Edges.TotalCount[2][alias]
+	if nodes, err := _m.NamedFriendships(alias); err == nil || hasTotalCount {
 		pager, err := newFriendshipPager(opts, last != nil)
 		if err != nil {
 			return nil, err
@@ -237,5 +251,5 @@ func (u *User) Friendships(
 		conn.build(nodes, pager, after, first, before, last)
 		return conn, nil
 	}
-	return u.QueryFriendships().Paginate(ctx, after, first, before, last, opts...)
+	return FromContext(ctx).User.QueryFriendships(_m).Paginate(ctx, after, first, before, last, opts...)
 }

@@ -49,9 +49,14 @@ type Config struct {
 
 type ResolverRoot interface {
 	Category() CategoryResolver
+	Friendship() FriendshipResolver
+	Group() GroupResolver
 	Mutation() MutationResolver
+	OneToMany() OneToManyResolver
+	Project() ProjectResolver
 	Query() QueryResolver
 	Todo() TodoResolver
+	User() UserResolver
 	CreateCategoryInput() CreateCategoryInputResolver
 	TodoWhereInput() TodoWhereInputResolver
 }
@@ -69,17 +74,17 @@ type ComplexityRoot struct {
 	}
 
 	Category struct {
-		Config        func(childComplexity int) int
-		Count         func(childComplexity int) int
-		Duration      func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Status        func(childComplexity int) int
-		Strings       func(childComplexity int) int
-		SubCategories func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) int
-		Text          func(childComplexity int) int
-		Todos         func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
-		TodosCount    func(childComplexity int) int
-		Types         func(childComplexity int) int
+		CategoryConfig func(childComplexity int) int
+		Count          func(childComplexity int) int
+		Duration       func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Status         func(childComplexity int) int
+		Strings        func(childComplexity int) int
+		SubCategories  func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) int
+		Text           func(childComplexity int) int
+		Todos          func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) int
+		TodosCount     func(childComplexity int) int
+		Types          func(childComplexity int) int
 	}
 
 	CategoryConfig struct {
@@ -251,7 +256,16 @@ type ComplexityRoot struct {
 }
 
 type CategoryResolver interface {
+	Todos(ctx context.Context, obj *ent.Category, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
+	SubCategories(ctx context.Context, obj *ent.Category, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error)
 	TodosCount(ctx context.Context, obj *ent.Category) (*int, error)
+}
+type FriendshipResolver interface {
+	User(ctx context.Context, obj *ent.Friendship) (*ent.User, error)
+	Friend(ctx context.Context, obj *ent.Friendship) (*ent.User, error)
+}
+type GroupResolver interface {
+	Users(ctx context.Context, obj *ent.Group, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error)
 }
 type MutationResolver interface {
 	CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error)
@@ -259,6 +273,13 @@ type MutationResolver interface {
 	UpdateTodo(ctx context.Context, id int, input ent.UpdateTodoInput) (*ent.Todo, error)
 	ClearTodos(ctx context.Context) (int, error)
 	UpdateFriendship(ctx context.Context, id int, input ent.UpdateFriendshipInput) (*ent.Friendship, error)
+}
+type OneToManyResolver interface {
+	Parent(ctx context.Context, obj *ent.OneToMany) (*ent.OneToMany, error)
+	Children(ctx context.Context, obj *ent.OneToMany) ([]*ent.OneToMany, error)
+}
+type ProjectResolver interface {
+	Todos(ctx context.Context, obj *ent.Project, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
@@ -273,7 +294,15 @@ type QueryResolver interface {
 	TodosWithJoins(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 }
 type TodoResolver interface {
+	Parent(ctx context.Context, obj *ent.Todo) (*ent.Todo, error)
+	Children(ctx context.Context, obj *ent.Todo, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
+	Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error)
 	ExtendedField(ctx context.Context, obj *ent.Todo) (*string, error)
+}
+type UserResolver interface {
+	Groups(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error)
+	Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error)
+	Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error)
 }
 
 type CreateCategoryInputResolver interface {
@@ -330,12 +359,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.BillProduct.Sku(childComplexity), true
 
-	case "Category.config":
-		if e.complexity.Category.Config == nil {
+	case "Category.categoryConfig":
+		if e.complexity.Category.CategoryConfig == nil {
 			break
 		}
 
-		return e.complexity.Category.Config(childComplexity), true
+		return e.complexity.Category.CategoryConfig(childComplexity), true
 
 	case "Category.count":
 		if e.complexity.Category.Count == nil {
@@ -3913,7 +3942,7 @@ func (ec *executionContext) _Category_status(ctx context.Context, field graphql.
 	}
 	res := resTmp.(category.Status)
 	fc.Result = res
-	return ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, field.Selections, res)
+	return ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Category_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3929,8 +3958,8 @@ func (ec *executionContext) fieldContext_Category_status(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Category_config(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Category_config(ctx, field)
+func (ec *executionContext) _Category_categoryConfig(ctx context.Context, field graphql.CollectedField, obj *ent.Category) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Category_categoryConfig(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3943,7 +3972,7 @@ func (ec *executionContext) _Category_config(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Config, nil
+		return obj.CategoryConfig, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3957,7 +3986,7 @@ func (ec *executionContext) _Category_config(ctx context.Context, field graphql.
 	return ec.marshalOCategoryConfig2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Category_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Category_categoryConfig(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Category",
 		Field:      field,
@@ -4156,7 +4185,7 @@ func (ec *executionContext) _Category_todos(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todos(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
+		return ec.resolvers.Category().Todos(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4178,7 +4207,7 @@ func (ec *executionContext) fieldContext_Category_todos(ctx context.Context, fie
 		Object:     "Category",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -4219,7 +4248,7 @@ func (ec *executionContext) _Category_subCategories(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SubCategories(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.CategoryOrder), fc.Args["where"].(*ent.CategoryWhereInput))
+		return ec.resolvers.Category().SubCategories(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.CategoryOrder), fc.Args["where"].(*ent.CategoryWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4241,7 +4270,7 @@ func (ec *executionContext) fieldContext_Category_subCategories(ctx context.Cont
 		Object:     "Category",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -4537,8 +4566,8 @@ func (ec *executionContext) fieldContext_CategoryEdge_node(_ context.Context, fi
 				return ec.fieldContext_Category_text(ctx, field)
 			case "status":
 				return ec.fieldContext_Category_status(ctx, field)
-			case "config":
-				return ec.fieldContext_Category_config(ctx, field)
+			case "categoryConfig":
+				return ec.fieldContext_Category_categoryConfig(ctx, field)
 			case "types":
 				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
@@ -4879,7 +4908,7 @@ func (ec *executionContext) _Friendship_user(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User(ctx)
+		return ec.resolvers.Friendship().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4901,7 +4930,7 @@ func (ec *executionContext) fieldContext_Friendship_user(_ context.Context, fiel
 		Object:     "Friendship",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -4941,7 +4970,7 @@ func (ec *executionContext) _Friendship_friend(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Friend(ctx)
+		return ec.resolvers.Friendship().Friend(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4963,7 +4992,7 @@ func (ec *executionContext) fieldContext_Friendship_friend(_ context.Context, fi
 		Object:     "Friendship",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -5335,7 +5364,7 @@ func (ec *executionContext) _Group_users(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Users(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["where"].(*ent.UserWhereInput))
+		return ec.resolvers.Group().Users(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["where"].(*ent.UserWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5357,7 +5386,7 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 		Object:     "Group",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -5570,7 +5599,7 @@ func (ec *executionContext) _GroupEdge_node(ctx context.Context, field graphql.C
 		if data, ok := tmp.(*ent.Group); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *entgo.io/contrib/entgql/internal/todo/ent.Group`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *entgo.io/contrib/entgql/internal/todo/ent/ent.Group`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5694,8 +5723,8 @@ func (ec *executionContext) fieldContext_Mutation_createCategory(ctx context.Con
 				return ec.fieldContext_Category_text(ctx, field)
 			case "status":
 				return ec.fieldContext_Category_status(ctx, field)
-			case "config":
-				return ec.fieldContext_Category_config(ctx, field)
+			case "categoryConfig":
+				return ec.fieldContext_Category_categoryConfig(ctx, field)
 			case "types":
 				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
@@ -6162,7 +6191,7 @@ func (ec *executionContext) _OneToMany_parent(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Parent(ctx)
+		return ec.resolvers.OneToMany().Parent(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6181,7 +6210,7 @@ func (ec *executionContext) fieldContext_OneToMany_parent(_ context.Context, fie
 		Object:     "OneToMany",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -6215,7 +6244,7 @@ func (ec *executionContext) _OneToMany_children(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Children(ctx)
+		return ec.resolvers.OneToMany().Children(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6234,7 +6263,7 @@ func (ec *executionContext) fieldContext_OneToMany_children(_ context.Context, f
 		Object:     "OneToMany",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -6812,7 +6841,7 @@ func (ec *executionContext) _Project_todos(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todos(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
+		return ec.resolvers.Project().Todos(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6834,7 +6863,7 @@ func (ec *executionContext) fieldContext_Project_todos(ctx context.Context, fiel
 		Object:     "Project",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -7691,7 +7720,7 @@ func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(todo.Status)
 	fc.Result = res
-	return ec.marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, field.Selections, res)
+	return ec.marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8107,7 +8136,7 @@ func (ec *executionContext) _Todo_parent(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Parent(ctx)
+		return ec.resolvers.Todo().Parent(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8126,7 +8155,7 @@ func (ec *executionContext) fieldContext_Todo_parent(_ context.Context, field gr
 		Object:     "Todo",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -8182,7 +8211,7 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Children(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
+		return ec.resolvers.Todo().Children(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].([]*ent.TodoOrder), fc.Args["where"].(*ent.TodoWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8204,7 +8233,7 @@ func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, fiel
 		Object:     "Todo",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -8245,7 +8274,7 @@ func (ec *executionContext) _Todo_category(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Category(ctx)
+		return ec.resolvers.Todo().Category(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8264,7 +8293,7 @@ func (ec *executionContext) fieldContext_Todo_category(_ context.Context, field 
 		Object:     "Todo",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -8273,8 +8302,8 @@ func (ec *executionContext) fieldContext_Todo_category(_ context.Context, field 
 				return ec.fieldContext_Category_text(ctx, field)
 			case "status":
 				return ec.fieldContext_Category_status(ctx, field)
-			case "config":
-				return ec.fieldContext_Category_config(ctx, field)
+			case "categoryConfig":
+				return ec.fieldContext_Category_categoryConfig(ctx, field)
 			case "types":
 				return ec.fieldContext_Category_types(ctx, field)
 			case "duration":
@@ -8832,7 +8861,7 @@ func (ec *executionContext) _User_groups(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Groups(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.GroupWhereInput))
+		return ec.resolvers.User().Groups(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.GroupWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8854,7 +8883,7 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 		Object:     "User",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -8895,7 +8924,7 @@ func (ec *executionContext) _User_friends(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Friends(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["where"].(*ent.UserWhereInput))
+		return ec.resolvers.User().Friends(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["orderBy"].(*ent.UserOrder), fc.Args["where"].(*ent.UserWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8917,7 +8946,7 @@ func (ec *executionContext) fieldContext_User_friends(ctx context.Context, field
 		Object:     "User",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -8958,7 +8987,7 @@ func (ec *executionContext) _User_friendships(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Friendships(ctx, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.FriendshipWhereInput))
+		return ec.resolvers.User().Friendships(rctx, obj, fc.Args["after"].(*entgql.Cursor[int]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[int]), fc.Args["last"].(*int), fc.Args["where"].(*ent.FriendshipWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8980,7 +9009,7 @@ func (ec *executionContext) fieldContext_User_friendships(ctx context.Context, f
 		Object:     "User",
 		Field:      field,
 		IsMethod:   true,
-		IsResolver: false,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "edges":
@@ -11579,7 +11608,7 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11600,6 +11629,13 @@ func (ec *executionContext) unmarshalInputCategoryOrder(ctx context.Context, obj
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -11640,7 +11676,7 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "config", "configNEQ", "configIn", "configNotIn", "configGT", "configGTE", "configLT", "configLTE", "configIsNil", "configNotNil", "duration", "durationNEQ", "durationIn", "durationNotIn", "durationGT", "durationGTE", "durationLT", "durationLTE", "durationIsNil", "durationNotNil", "count", "countNEQ", "countIn", "countNotIn", "countGT", "countGTE", "countLT", "countLTE", "countIsNil", "countNotNil", "hasTodos", "hasTodosWith", "hasSubCategories", "hasSubCategoriesWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "text", "textNEQ", "textIn", "textNotIn", "textGT", "textGTE", "textLT", "textLTE", "textContains", "textHasPrefix", "textHasSuffix", "textEqualFold", "textContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "categoryConfig", "categoryConfigNEQ", "categoryConfigIn", "categoryConfigNotIn", "categoryConfigGT", "categoryConfigGTE", "categoryConfigLT", "categoryConfigLTE", "categoryConfigIsNil", "categoryConfigNotNil", "duration", "durationNEQ", "durationIn", "durationNotIn", "durationGT", "durationGTE", "durationLT", "durationLTE", "durationIsNil", "durationNotNil", "count", "countNEQ", "countIn", "countNotIn", "countGT", "countGTE", "countLT", "countLTE", "countIsNil", "countNotNil", "hasTodos", "hasTodosWith", "hasSubCategories", "hasSubCategoriesWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11817,102 +11853,102 @@ func (ec *executionContext) unmarshalInputCategoryWhereInput(ctx context.Context
 			it.TextContainsFold = data
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, v)
+			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Status = data
 		case "statusNEQ":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
-			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, v)
+			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.StatusNEQ = data
 		case "statusIn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
-			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.StatusIn = data
 		case "statusNotIn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
-			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.StatusNotIn = data
-		case "config":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+		case "categoryConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfig"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Config = data
-		case "configNEQ":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNEQ"))
+			it.CategoryConfig = data
+		case "categoryConfigNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigNEQ"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigNEQ = data
-		case "configIn":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIn"))
+			it.CategoryConfigNEQ = data
+		case "categoryConfigIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigIn"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigIn = data
-		case "configNotIn":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotIn"))
+			it.CategoryConfigIn = data
+		case "categoryConfigNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigNotIn"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfigᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigNotIn = data
-		case "configGT":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGT"))
+			it.CategoryConfigNotIn = data
+		case "categoryConfigGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigGT"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigGT = data
-		case "configGTE":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configGTE"))
+			it.CategoryConfigGT = data
+		case "categoryConfigGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigGTE"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigGTE = data
-		case "configLT":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLT"))
+			it.CategoryConfigGTE = data
+		case "categoryConfigLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigLT"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigLT = data
-		case "configLTE":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configLTE"))
+			it.CategoryConfigLT = data
+		case "categoryConfigLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigLTE"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigLTE = data
-		case "configIsNil":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configIsNil"))
+			it.CategoryConfigLTE = data
+		case "categoryConfigIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigIsNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigIsNil = data
-		case "configNotNil":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configNotNil"))
+			it.CategoryConfigIsNil = data
+		case "categoryConfigNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfigNotNil"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ConfigNotNil = data
+			it.CategoryConfigNotNil = data
 		case "duration":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
 			data, err := ec.unmarshalODuration2ᚖtimeᚐDuration(ctx, v)
@@ -12094,7 +12130,7 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"text", "status", "config", "types", "duration", "count", "strings", "todoIDs", "subCategoryIDs", "createTodos"}
+	fieldsInOrder := [...]string{"text", "status", "categoryConfig", "types", "duration", "count", "strings", "todoIDs", "subCategoryIDs", "createTodos"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12110,18 +12146,18 @@ func (ec *executionContext) unmarshalInputCreateCategoryInput(ctx context.Contex
 			it.Text = data
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, v)
+			data, err := ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Status = data
-		case "config":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+		case "categoryConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfig"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Config = data
+			it.CategoryConfig = data
 		case "types":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
 			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx, v)
@@ -12195,7 +12231,7 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 		switch k {
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12697,7 +12733,7 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12718,6 +12754,13 @@ func (ec *executionContext) unmarshalInputOneToManyOrder(ctx context.Context, ob
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -13355,7 +13398,7 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj any
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13376,6 +13419,13 @@ func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj any
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -13531,28 +13581,28 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 			it.CreatedAtLTE = data
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Status = data
 		case "statusNEQ":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
-			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.StatusNEQ = data
 		case "statusIn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
-			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.StatusIn = data
 		case "statusNotIn":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
-			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx, v)
+			data, err := ec.unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatusᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13866,7 +13916,7 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"text", "status", "config", "clearConfig", "types", "clearTypes", "duration", "clearDuration", "count", "clearCount", "strings", "appendStrings", "clearStrings", "addTodoIDs", "removeTodoIDs", "clearTodos", "addSubCategoryIDs", "removeSubCategoryIDs", "clearSubCategories"}
+	fieldsInOrder := [...]string{"text", "status", "categoryConfig", "clearCategoryConfig", "types", "clearTypes", "duration", "clearDuration", "count", "clearCount", "strings", "appendStrings", "clearStrings", "addTodoIDs", "removeTodoIDs", "clearTodos", "addSubCategoryIDs", "removeSubCategoryIDs", "clearSubCategories"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13882,25 +13932,25 @@ func (ec *executionContext) unmarshalInputUpdateCategoryInput(ctx context.Contex
 			it.Text = data
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, v)
+			data, err := ec.unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Status = data
-		case "config":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+		case "categoryConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryConfig"))
 			data, err := ec.unmarshalOCategoryConfigInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryConfig(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Config = data
-		case "clearConfig":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearConfig"))
+			it.CategoryConfig = data
+		case "clearCategoryConfig":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearCategoryConfig"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ClearConfig = data
+			it.ClearCategoryConfig = data
 		case "types":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
 			data, err := ec.unmarshalOCategoryTypesInput2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋschemaᚋschematypeᚐCategoryTypes(ctx, v)
@@ -14069,7 +14119,7 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 		switch k {
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
+			data, err := ec.unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14286,7 +14336,7 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj any
 		asMap["direction"] = "ASC"
 	}
 
-	fieldsInOrder := [...]string{"direction", "field"}
+	fieldsInOrder := [...]string{"direction", "field", "nullsDirection"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -14307,6 +14357,13 @@ func (ec *executionContext) unmarshalInputUserOrder(ctx context.Context, obj any
 				return it, err
 			}
 			it.Field = data
+		case "nullsDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nullsDirection"))
+			data, err := ec.unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NullsDirection = data
 		}
 	}
 
@@ -14755,8 +14812,8 @@ func (ec *executionContext) _Category(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "config":
-			out.Values[i] = ec._Category_config(ctx, field, obj)
+		case "categoryConfig":
+			out.Values[i] = ec._Category_categoryConfig(ctx, field, obj)
 		case "types":
 			out.Values[i] = ec._Category_types(ctx, field, obj)
 		case "duration":
@@ -17193,13 +17250,13 @@ func (ec *executionContext) marshalNCategoryOrderField2ᚖentgoᚗioᚋcontrib�
 	return v
 }
 
-func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx context.Context, v any) (category.Status, error) {
+func (ec *executionContext) unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx context.Context, v any) (category.Status, error) {
 	var res category.Status
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx context.Context, sel ast.SelectionSet, v category.Status) graphql.Marshaler {
+func (ec *executionContext) marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx context.Context, sel ast.SelectionSet, v category.Status) graphql.Marshaler {
 	return v
 }
 
@@ -17264,6 +17321,10 @@ func (ec *executionContext) marshalNFriendship2ᚖentgoᚗioᚋcontribᚋentgql�
 		return graphql.Null
 	}
 	return ec._Friendship(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFriendshipConnection2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐFriendshipConnection(ctx context.Context, sel ast.SelectionSet, v ent.FriendshipConnection) graphql.Marshaler {
+	return ec._FriendshipConnection(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNFriendshipConnection2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐFriendshipConnection(ctx context.Context, sel ast.SelectionSet, v *ent.FriendshipConnection) graphql.Marshaler {
@@ -17597,13 +17658,13 @@ func (ec *executionContext) marshalNTodoOrderField2ᚖentgoᚗioᚋcontribᚋent
 	return v
 }
 
-func (ec *executionContext) unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, v any) (todo.Status, error) {
+func (ec *executionContext) unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx context.Context, v any) (todo.Status, error) {
 	var res todo.Status
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx context.Context, sel ast.SelectionSet, v todo.Status) graphql.Marshaler {
 	return v
 }
 
@@ -17650,6 +17711,10 @@ func (ec *executionContext) unmarshalNUpdateFriendshipInput2entgoᚗioᚋcontrib
 func (ec *executionContext) unmarshalNUpdateTodoInput2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUpdateTodoInput(ctx context.Context, v any) (ent.UpdateTodoInput, error) {
 	res, err := ec.unmarshalInputUpdateTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUser2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v ent.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
@@ -18106,7 +18171,7 @@ func (ec *executionContext) unmarshalOCategoryOrder2ᚕᚖentgoᚗioᚋcontrib�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatusᚄ(ctx context.Context, v any) ([]category.Status, error) {
+func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatusᚄ(ctx context.Context, v any) ([]category.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -18116,7 +18181,7 @@ func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋe
 	res := make([]category.Status, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -18124,7 +18189,7 @@ func (ec *executionContext) unmarshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋe
 	return res, nil
 }
 
-func (ec *executionContext) marshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []category.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []category.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -18151,7 +18216,7 @@ func (ec *executionContext) marshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋent
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNCategoryStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -18171,7 +18236,7 @@ func (ec *executionContext) marshalOCategoryStatus2ᚕentgoᚗioᚋcontribᚋent
 	return ret
 }
 
-func (ec *executionContext) unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx context.Context, v any) (*category.Status, error) {
+func (ec *executionContext) unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx context.Context, v any) (*category.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -18180,7 +18245,7 @@ func (ec *executionContext) unmarshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋe
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋcategoryᚐStatus(ctx context.Context, sel ast.SelectionSet, v *category.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOCategoryStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐCategoryStatus(ctx context.Context, sel ast.SelectionSet, v *category.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -18728,6 +18793,16 @@ func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinterna
 	return ec._Node(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx context.Context, v any) (entgql.NullsDirection, error) {
+	var res entgql.NullsDirection
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalONullsDirection2entgoᚗioᚋcontribᚋentgqlᚐNullsDirection(ctx context.Context, sel ast.SelectionSet, v entgql.NullsDirection) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalOOneToMany2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐOneToManyᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.OneToMany) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -19103,7 +19178,7 @@ func (ec *executionContext) unmarshalOTodoOrder2ᚕᚖentgoᚗioᚋcontribᚋent
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx context.Context, v any) ([]todo.Status, error) {
+func (ec *executionContext) unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatusᚄ(ctx context.Context, v any) ([]todo.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -19113,7 +19188,7 @@ func (ec *executionContext) unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgq
 	res := make([]todo.Status, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -19121,7 +19196,7 @@ func (ec *executionContext) unmarshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgq
 	return res, nil
 }
 
-func (ec *executionContext) marshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []todo.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -19148,7 +19223,7 @@ func (ec *executionContext) marshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNTodoStatus2entgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -19168,7 +19243,7 @@ func (ec *executionContext) marshalOTodoStatus2ᚕentgoᚗioᚋcontribᚋentgql�
 	return ret
 }
 
-func (ec *executionContext) unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, v any) (*todo.Status, error) {
+func (ec *executionContext) unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx context.Context, v any) (*todo.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -19177,7 +19252,7 @@ func (ec *executionContext) unmarshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgq
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v *todo.Status) graphql.Marshaler {
+func (ec *executionContext) marshalOTodoStatus2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodoᚋentᚐTodoStatus(ctx context.Context, sel ast.SelectionSet, v *todo.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -125,8 +125,8 @@ import (
     }
 
     {{- range $b := $n.Builders }}
-    // SetInput applies the change-set in the {{ $input }} on the {{ $b }} builder.
-    func(c *{{ $b }}) SetInput(i {{ $input }}) *{{ $b }} {
+    // Set{{ $b }}Input applies the change-set in the {{ $input }} on the {{ $n.Type.Package }}.{{ $b }} builder.
+    func Set{{ $b }}Input(c *{{ $n.Type.Package }}.{{ $b }}, i {{ $input }}) *{{ $n.Type.Package }}.{{ $b }} {
         i.Mutate(c.Mutation())
         return c
     }

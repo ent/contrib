@@ -17,101 +17,12 @@
 package ent
 
 import (
-	"fmt"
-	"strings"
-
-	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
+	"entgo.io/contrib/entgql/internal/todo/ent/internal"
 )
 
-// Workspace is the model entity for the Workspace schema.
-type Workspace struct {
-	config `json:"-"`
-	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name         string `json:"name,omitempty"`
-	selectValues sql.SelectValues
-}
-
-// scanValues returns the types for scanning values from sql.Rows.
-func (*Workspace) scanValues(columns []string) ([]any, error) {
-	values := make([]any, len(columns))
-	for i := range columns {
-		switch columns[i] {
-		case workspace.FieldID:
-			values[i] = new(sql.NullInt64)
-		case workspace.FieldName:
-			values[i] = new(sql.NullString)
-		default:
-			values[i] = new(sql.UnknownType)
-		}
-	}
-	return values, nil
-}
-
-// assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Workspace fields.
-func (w *Workspace) assignValues(columns []string, values []any) error {
-	if m, n := len(values), len(columns); m < n {
-		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
-	}
-	for i := range columns {
-		switch columns[i] {
-		case workspace.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			w.ID = int(value.Int64)
-		case workspace.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				w.Name = value.String
-			}
-		default:
-			w.selectValues.Set(columns[i], values[i])
-		}
-	}
-	return nil
-}
-
-// Value returns the ent.Value that was dynamically selected and assigned to the Workspace.
-// This includes values selected through modifiers, order, etc.
-func (w *Workspace) Value(name string) (ent.Value, error) {
-	return w.selectValues.Get(name)
-}
-
-// Update returns a builder for updating this Workspace.
-// Note that you need to call Workspace.Unwrap() before calling this method if this Workspace
-// was returned from a transaction, and the transaction was committed or rolled back.
-func (w *Workspace) Update() *WorkspaceUpdateOne {
-	return NewWorkspaceClient(w.config).UpdateOne(w)
-}
-
-// Unwrap unwraps the Workspace entity that was returned from a transaction after it was closed,
-// so that all future queries will be executed through the driver which created the transaction.
-func (w *Workspace) Unwrap() *Workspace {
-	_tx, ok := w.config.driver.(*txDriver)
-	if !ok {
-		panic("ent: Workspace is not a transactional entity")
-	}
-	w.config.driver = _tx.drv
-	return w
-}
-
-// String implements the fmt.Stringer.
-func (w *Workspace) String() string {
-	var builder strings.Builder
-	builder.WriteString("Workspace(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", w.ID))
-	builder.WriteString("name=")
-	builder.WriteString(w.Name)
-	builder.WriteByte(')')
-	return builder.String()
-}
-
-// Workspaces is a parsable slice of Workspace.
-type Workspaces []*Workspace
+// Model type aliases from internal.
+// Guardrail: aliasing is one-way (root -> internal), and methods belong to the type definition site.
+// Do not attach root-only methods to alias models; add model methods on internal types instead.
+// Keep the internal package free of root query/client imports to avoid import cycles.
+type Workspace = internal.Workspace
+type Workspaces = internal.Workspaces

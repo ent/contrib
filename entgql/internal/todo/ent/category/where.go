@@ -75,9 +75,9 @@ func Text(v string) predicate.Category {
 	return predicate.Category(sql.FieldEQ(FieldText, v))
 }
 
-// Config applies equality check predicate on the "config" field. It's identical to ConfigEQ.
-func Config(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldEQ(FieldConfig, v))
+// CategoryConfig applies equality check predicate on the "category_config" field. It's identical to CategoryConfigEQ.
+func CategoryConfig(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldEQ(FieldCategoryConfig, v))
 }
 
 // Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
@@ -176,54 +176,54 @@ func StatusNotIn(vs ...Status) predicate.Category {
 	return predicate.Category(sql.FieldNotIn(FieldStatus, vs...))
 }
 
-// ConfigEQ applies the EQ predicate on the "config" field.
-func ConfigEQ(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldEQ(FieldConfig, v))
+// CategoryConfigEQ applies the EQ predicate on the "category_config" field.
+func CategoryConfigEQ(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldEQ(FieldCategoryConfig, v))
 }
 
-// ConfigNEQ applies the NEQ predicate on the "config" field.
-func ConfigNEQ(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldNEQ(FieldConfig, v))
+// CategoryConfigNEQ applies the NEQ predicate on the "category_config" field.
+func CategoryConfigNEQ(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldNEQ(FieldCategoryConfig, v))
 }
 
-// ConfigIn applies the In predicate on the "config" field.
-func ConfigIn(vs ...*schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldIn(FieldConfig, vs...))
+// CategoryConfigIn applies the In predicate on the "category_config" field.
+func CategoryConfigIn(vs ...*schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldIn(FieldCategoryConfig, vs...))
 }
 
-// ConfigNotIn applies the NotIn predicate on the "config" field.
-func ConfigNotIn(vs ...*schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldNotIn(FieldConfig, vs...))
+// CategoryConfigNotIn applies the NotIn predicate on the "category_config" field.
+func CategoryConfigNotIn(vs ...*schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldNotIn(FieldCategoryConfig, vs...))
 }
 
-// ConfigGT applies the GT predicate on the "config" field.
-func ConfigGT(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldGT(FieldConfig, v))
+// CategoryConfigGT applies the GT predicate on the "category_config" field.
+func CategoryConfigGT(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldGT(FieldCategoryConfig, v))
 }
 
-// ConfigGTE applies the GTE predicate on the "config" field.
-func ConfigGTE(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldGTE(FieldConfig, v))
+// CategoryConfigGTE applies the GTE predicate on the "category_config" field.
+func CategoryConfigGTE(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldGTE(FieldCategoryConfig, v))
 }
 
-// ConfigLT applies the LT predicate on the "config" field.
-func ConfigLT(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldLT(FieldConfig, v))
+// CategoryConfigLT applies the LT predicate on the "category_config" field.
+func CategoryConfigLT(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldLT(FieldCategoryConfig, v))
 }
 
-// ConfigLTE applies the LTE predicate on the "config" field.
-func ConfigLTE(v *schematype.CategoryConfig) predicate.Category {
-	return predicate.Category(sql.FieldLTE(FieldConfig, v))
+// CategoryConfigLTE applies the LTE predicate on the "category_config" field.
+func CategoryConfigLTE(v *schematype.CategoryConfig) predicate.Category {
+	return predicate.Category(sql.FieldLTE(FieldCategoryConfig, v))
 }
 
-// ConfigIsNil applies the IsNil predicate on the "config" field.
-func ConfigIsNil() predicate.Category {
-	return predicate.Category(sql.FieldIsNull(FieldConfig))
+// CategoryConfigIsNil applies the IsNil predicate on the "category_config" field.
+func CategoryConfigIsNil() predicate.Category {
+	return predicate.Category(sql.FieldIsNull(FieldCategoryConfig))
 }
 
-// ConfigNotNil applies the NotNil predicate on the "config" field.
-func ConfigNotNil() predicate.Category {
-	return predicate.Category(sql.FieldNotNull(FieldConfig))
+// CategoryConfigNotNil applies the NotNil predicate on the "category_config" field.
+func CategoryConfigNotNil() predicate.Category {
+	return predicate.Category(sql.FieldNotNull(FieldCategoryConfig))
 }
 
 // TypesIsNil applies the IsNil predicate on the "types" field.

@@ -38,57 +38,26 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
-	Node(context.Context) (*Node, error)
 	IsNode()
 }
 
 var billproductImplementors = []string{"BillProduct", "Node"}
 
-// IsNode implements the Node interface check for GQLGen.
-func (*BillProduct) IsNode() {}
-
 var categoryImplementors = []string{"Category", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Category) IsNode() {}
 
 var friendshipImplementors = []string{"Friendship", "Node"}
 
-// IsNode implements the Node interface check for GQLGen.
-func (*Friendship) IsNode() {}
-
 var groupImplementors = []string{"Group", "Node", "NamedNode"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Group) IsNode() {}
-
-// IsNamedNode implements the NamedNode interface check for GQLGen.
-func (*Group) IsNamedNode() {}
 
 var onetomanyImplementors = []string{"OneToMany", "Node"}
 
-// IsNode implements the Node interface check for GQLGen.
-func (*OneToMany) IsNode() {}
-
 var projectImplementors = []string{"Project", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Project) IsNode() {}
 
 var todoImplementors = []string{"Todo", "Node"}
 
-// IsNode implements the Node interface check for GQLGen.
-func (*Todo) IsNode() {}
-
 var userImplementors = []string{"User", "Node"}
 
-// IsNode implements the Node interface check for GQLGen.
-func (*User) IsNode() {}
-
 var workspaceImplementors = []string{"Organization", "Node"}
-
-// IsNode implements the Node interface check for GQLGen.
-func (*Workspace) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 

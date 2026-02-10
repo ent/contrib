@@ -20,8 +20,10 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todoglobalid/ent/category"
+	"entgo.io/contrib/entgql/internal/todoglobalid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todoglobalid/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todoglobalid/ent/todo"
+	"entgo.io/contrib/entgql/internal/todoglobalid/ent/user"
 	"github.com/google/uuid"
 )
 
@@ -29,7 +31,7 @@ import (
 type CreateCategoryInput struct {
 	Text           string
 	Status         category.Status
-	Config         *schematype.CategoryConfig
+	CategoryConfig *schematype.CategoryConfig
 	Types          *schematype.CategoryTypes
 	Duration       *time.Duration
 	Count          *uint64
@@ -42,8 +44,8 @@ type CreateCategoryInput struct {
 func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	m.SetText(i.Text)
 	m.SetStatus(i.Status)
-	if v := i.Config; v != nil {
-		m.SetConfig(v)
+	if v := i.CategoryConfig; v != nil {
+		m.SetCategoryConfig(v)
 	}
 	if v := i.Types; v != nil {
 		m.SetTypes(v)
@@ -65,8 +67,8 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 }
 
-// SetInput applies the change-set in the CreateCategoryInput on the CategoryCreate builder.
-func (c *CategoryCreate) SetInput(i CreateCategoryInput) *CategoryCreate {
+// SetCategoryCreateInput applies the change-set in the CreateCategoryInput on the category.CategoryCreate builder.
+func SetCategoryCreateInput(c *category.CategoryCreate, i CreateCategoryInput) *category.CategoryCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -75,8 +77,8 @@ func (c *CategoryCreate) SetInput(i CreateCategoryInput) *CategoryCreate {
 type UpdateCategoryInput struct {
 	Text                 *string
 	Status               *category.Status
-	ClearConfig          bool
-	Config               *schematype.CategoryConfig
+	ClearCategoryConfig  bool
+	CategoryConfig       *schematype.CategoryConfig
 	ClearTypes           bool
 	Types                *schematype.CategoryTypes
 	ClearDuration        bool
@@ -102,11 +104,11 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	if v := i.Status; v != nil {
 		m.SetStatus(*v)
 	}
-	if i.ClearConfig {
-		m.ClearConfig()
+	if i.ClearCategoryConfig {
+		m.ClearCategoryConfig()
 	}
-	if v := i.Config; v != nil {
-		m.SetConfig(v)
+	if v := i.CategoryConfig; v != nil {
+		m.SetCategoryConfig(v)
 	}
 	if i.ClearTypes {
 		m.ClearTypes()
@@ -155,14 +157,14 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 }
 
-// SetInput applies the change-set in the UpdateCategoryInput on the CategoryUpdate builder.
-func (c *CategoryUpdate) SetInput(i UpdateCategoryInput) *CategoryUpdate {
+// SetCategoryUpdateInput applies the change-set in the UpdateCategoryInput on the category.CategoryUpdate builder.
+func SetCategoryUpdateInput(c *category.CategoryUpdate, i UpdateCategoryInput) *category.CategoryUpdate {
 	i.Mutate(c.Mutation())
 	return c
 }
 
-// SetInput applies the change-set in the UpdateCategoryInput on the CategoryUpdateOne builder.
-func (c *CategoryUpdateOne) SetInput(i UpdateCategoryInput) *CategoryUpdateOne {
+// SetCategoryUpdateOneInput applies the change-set in the UpdateCategoryInput on the category.CategoryUpdateOne builder.
+func SetCategoryUpdateOneInput(c *category.CategoryUpdateOne, i UpdateCategoryInput) *category.CategoryUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -187,14 +189,14 @@ func (i *UpdateFriendshipInput) Mutate(m *FriendshipMutation) {
 	}
 }
 
-// SetInput applies the change-set in the UpdateFriendshipInput on the FriendshipUpdate builder.
-func (c *FriendshipUpdate) SetInput(i UpdateFriendshipInput) *FriendshipUpdate {
+// SetFriendshipUpdateInput applies the change-set in the UpdateFriendshipInput on the friendship.FriendshipUpdate builder.
+func SetFriendshipUpdateInput(c *friendship.FriendshipUpdate, i UpdateFriendshipInput) *friendship.FriendshipUpdate {
 	i.Mutate(c.Mutation())
 	return c
 }
 
-// SetInput applies the change-set in the UpdateFriendshipInput on the FriendshipUpdateOne builder.
-func (c *FriendshipUpdateOne) SetInput(i UpdateFriendshipInput) *FriendshipUpdateOne {
+// SetFriendshipUpdateOneInput applies the change-set in the UpdateFriendshipInput on the friendship.FriendshipUpdateOne builder.
+func SetFriendshipUpdateOneInput(c *friendship.FriendshipUpdateOne, i UpdateFriendshipInput) *friendship.FriendshipUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -239,8 +241,8 @@ func (i *CreateTodoInput) Mutate(m *TodoMutation) {
 	}
 }
 
-// SetInput applies the change-set in the CreateTodoInput on the TodoCreate builder.
-func (c *TodoCreate) SetInput(i CreateTodoInput) *TodoCreate {
+// SetTodoCreateInput applies the change-set in the CreateTodoInput on the todo.TodoCreate builder.
+func SetTodoCreateInput(c *todo.TodoCreate, i CreateTodoInput) *todo.TodoCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -305,14 +307,14 @@ func (i *UpdateTodoInput) Mutate(m *TodoMutation) {
 	}
 }
 
-// SetInput applies the change-set in the UpdateTodoInput on the TodoUpdate builder.
-func (c *TodoUpdate) SetInput(i UpdateTodoInput) *TodoUpdate {
+// SetTodoUpdateInput applies the change-set in the UpdateTodoInput on the todo.TodoUpdate builder.
+func SetTodoUpdateInput(c *todo.TodoUpdate, i UpdateTodoInput) *todo.TodoUpdate {
 	i.Mutate(c.Mutation())
 	return c
 }
 
-// SetInput applies the change-set in the UpdateTodoInput on the TodoUpdateOne builder.
-func (c *TodoUpdateOne) SetInput(i UpdateTodoInput) *TodoUpdateOne {
+// SetTodoUpdateOneInput applies the change-set in the UpdateTodoInput on the todo.TodoUpdateOne builder.
+func SetTodoUpdateOneInput(c *todo.TodoUpdateOne, i UpdateTodoInput) *todo.TodoUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -353,8 +355,8 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 }
 
-// SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
-func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
+// SetUserCreateInput applies the change-set in the CreateUserInput on the user.UserCreate builder.
+func SetUserCreateInput(c *user.UserCreate, i CreateUserInput) *user.UserCreate {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -419,14 +421,14 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 }
 
-// SetInput applies the change-set in the UpdateUserInput on the UserUpdate builder.
-func (c *UserUpdate) SetInput(i UpdateUserInput) *UserUpdate {
+// SetUserUpdateInput applies the change-set in the UpdateUserInput on the user.UserUpdate builder.
+func SetUserUpdateInput(c *user.UserUpdate, i UpdateUserInput) *user.UserUpdate {
 	i.Mutate(c.Mutation())
 	return c
 }
 
-// SetInput applies the change-set in the UpdateUserInput on the UserUpdateOne builder.
-func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
+// SetUserUpdateOneInput applies the change-set in the UpdateUserInput on the user.UserUpdateOne builder.
+func SetUserUpdateOneInput(c *user.UserUpdateOne, i UpdateUserInput) *user.UserUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

@@ -18,10 +18,9 @@ package todo
 
 import (
 	"fmt"
-	"io"
-	"strconv"
 	"time"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/internal"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -134,8 +133,8 @@ var (
 	DefaultValue int
 )
 
-// Status defines the type for the "status" enum field.
-type Status string
+// Status is an alias for the enum type defined in the internal package.
+type Status = internal.TodoStatus
 
 // Status values.
 const (
@@ -143,10 +142,6 @@ const (
 	StatusCompleted  Status = "COMPLETED"
 	StatusPending    Status = "PENDING"
 )
-
-func (s Status) String() string {
-	return string(s)
-}
 
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
@@ -257,22 +252,4 @@ func newSecretStep() *sqlgraph.Step {
 		sqlgraph.To(SecretInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, SecretTable, SecretColumn),
 	)
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (e Status) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(e.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *Status) UnmarshalGQL(val interface{}) error {
-	str, ok := val.(string)
-	if !ok {
-		return fmt.Errorf("enum %T must be a string", val)
-	}
-	*e = Status(str)
-	if err := StatusValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid Status", str)
-	}
-	return nil
 }

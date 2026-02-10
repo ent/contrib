@@ -292,8 +292,6 @@ func (i *BillProductWhereInput) P() (predicate.BillProduct, error) {
 	}
 
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyBillProductWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -339,17 +337,17 @@ type CategoryWhereInput struct {
 	StatusIn    []category.Status `json:"statusIn,omitempty"`
 	StatusNotIn []category.Status `json:"statusNotIn,omitempty"`
 
-	// "config" field predicates.
-	Config       *schematype.CategoryConfig   `json:"config,omitempty"`
-	ConfigNEQ    *schematype.CategoryConfig   `json:"configNEQ,omitempty"`
-	ConfigIn     []*schematype.CategoryConfig `json:"configIn,omitempty"`
-	ConfigNotIn  []*schematype.CategoryConfig `json:"configNotIn,omitempty"`
-	ConfigGT     *schematype.CategoryConfig   `json:"configGT,omitempty"`
-	ConfigGTE    *schematype.CategoryConfig   `json:"configGTE,omitempty"`
-	ConfigLT     *schematype.CategoryConfig   `json:"configLT,omitempty"`
-	ConfigLTE    *schematype.CategoryConfig   `json:"configLTE,omitempty"`
-	ConfigIsNil  bool                         `json:"configIsNil,omitempty"`
-	ConfigNotNil bool                         `json:"configNotNil,omitempty"`
+	// "category_config" field predicates.
+	CategoryConfig       *schematype.CategoryConfig   `json:"categoryConfig,omitempty"`
+	CategoryConfigNEQ    *schematype.CategoryConfig   `json:"categoryConfigNEQ,omitempty"`
+	CategoryConfigIn     []*schematype.CategoryConfig `json:"categoryConfigIn,omitempty"`
+	CategoryConfigNotIn  []*schematype.CategoryConfig `json:"categoryConfigNotIn,omitempty"`
+	CategoryConfigGT     *schematype.CategoryConfig   `json:"categoryConfigGT,omitempty"`
+	CategoryConfigGTE    *schematype.CategoryConfig   `json:"categoryConfigGTE,omitempty"`
+	CategoryConfigLT     *schematype.CategoryConfig   `json:"categoryConfigLT,omitempty"`
+	CategoryConfigLTE    *schematype.CategoryConfig   `json:"categoryConfigLTE,omitempty"`
+	CategoryConfigIsNil  bool                         `json:"categoryConfigIsNil,omitempty"`
+	CategoryConfigNotNil bool                         `json:"categoryConfigNotNil,omitempty"`
 
 	// "duration" field predicates.
 	Duration       *time.Duration  `json:"duration,omitempty"`
@@ -530,35 +528,35 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 	if len(i.StatusNotIn) > 0 {
 		predicates = append(predicates, category.StatusNotIn(i.StatusNotIn...))
 	}
-	if i.Config != nil {
-		predicates = append(predicates, category.ConfigEQ(i.Config))
+	if i.CategoryConfig != nil {
+		predicates = append(predicates, category.CategoryConfigEQ(i.CategoryConfig))
 	}
-	if i.ConfigNEQ != nil {
-		predicates = append(predicates, category.ConfigNEQ(i.ConfigNEQ))
+	if i.CategoryConfigNEQ != nil {
+		predicates = append(predicates, category.CategoryConfigNEQ(i.CategoryConfigNEQ))
 	}
-	if len(i.ConfigIn) > 0 {
-		predicates = append(predicates, category.ConfigIn(i.ConfigIn...))
+	if len(i.CategoryConfigIn) > 0 {
+		predicates = append(predicates, category.CategoryConfigIn(i.CategoryConfigIn...))
 	}
-	if len(i.ConfigNotIn) > 0 {
-		predicates = append(predicates, category.ConfigNotIn(i.ConfigNotIn...))
+	if len(i.CategoryConfigNotIn) > 0 {
+		predicates = append(predicates, category.CategoryConfigNotIn(i.CategoryConfigNotIn...))
 	}
-	if i.ConfigGT != nil {
-		predicates = append(predicates, category.ConfigGT(i.ConfigGT))
+	if i.CategoryConfigGT != nil {
+		predicates = append(predicates, category.CategoryConfigGT(i.CategoryConfigGT))
 	}
-	if i.ConfigGTE != nil {
-		predicates = append(predicates, category.ConfigGTE(i.ConfigGTE))
+	if i.CategoryConfigGTE != nil {
+		predicates = append(predicates, category.CategoryConfigGTE(i.CategoryConfigGTE))
 	}
-	if i.ConfigLT != nil {
-		predicates = append(predicates, category.ConfigLT(i.ConfigLT))
+	if i.CategoryConfigLT != nil {
+		predicates = append(predicates, category.CategoryConfigLT(i.CategoryConfigLT))
 	}
-	if i.ConfigLTE != nil {
-		predicates = append(predicates, category.ConfigLTE(i.ConfigLTE))
+	if i.CategoryConfigLTE != nil {
+		predicates = append(predicates, category.CategoryConfigLTE(i.CategoryConfigLTE))
 	}
-	if i.ConfigIsNil {
-		predicates = append(predicates, category.ConfigIsNil())
+	if i.CategoryConfigIsNil {
+		predicates = append(predicates, category.CategoryConfigIsNil())
 	}
-	if i.ConfigNotNil {
-		predicates = append(predicates, category.ConfigNotNil())
+	if i.CategoryConfigNotNil {
+		predicates = append(predicates, category.CategoryConfigNotNil())
 	}
 	if i.Duration != nil {
 		predicates = append(predicates, category.DurationEQ(*i.Duration))
@@ -658,8 +656,6 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		predicates = append(predicates, category.HasSubCategoriesWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyCategoryWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -896,8 +892,6 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 		predicates = append(predicates, friendship.HasFriendWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyFriendshipWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1096,8 +1090,6 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		predicates = append(predicates, group.HasUsersWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyGroupWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1380,8 +1372,6 @@ func (i *OneToManyWhereInput) P() (predicate.OneToMany, error) {
 		predicates = append(predicates, onetomany.HasChildrenWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyOneToManyWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1526,8 +1516,6 @@ func (i *ProjectWhereInput) P() (predicate.Project, error) {
 		predicates = append(predicates, project.HasTodosWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyProjectWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1916,8 +1904,6 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		predicates = append(predicates, todo.HasCategoryWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyTodoWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -2256,8 +2242,6 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		predicates = append(predicates, user.HasFriendshipsWith(with...))
 	}
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyUserWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -2434,8 +2418,6 @@ func (i *OrganizationWhereInput) P() (predicate.Workspace, error) {
 	}
 
 	switch len(predicates) {
-	case 0:
-		return nil, ErrEmptyOrganizationWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

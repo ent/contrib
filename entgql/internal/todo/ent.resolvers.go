@@ -1,17 +1,3 @@
-// Copyright 2019-present Facebook
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package todo
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
@@ -24,6 +10,46 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent"
 )
+
+// Todos is the resolver for the todos field.
+func (r *categoryResolver) Todos(ctx context.Context, obj *ent.Category, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	return ent.ResolveCategoryTodos(obj, ctx, after, first, before, last, orderBy, where)
+}
+
+// SubCategories is the resolver for the subCategories field.
+func (r *categoryResolver) SubCategories(ctx context.Context, obj *ent.Category, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
+	return ent.ResolveCategorySubCategories(obj, ctx, after, first, before, last, orderBy, where)
+}
+
+// User is the resolver for the user field.
+func (r *friendshipResolver) User(ctx context.Context, obj *ent.Friendship) (*ent.User, error) {
+	return ent.ResolveFriendshipUser(obj, ctx)
+}
+
+// Friend is the resolver for the friend field.
+func (r *friendshipResolver) Friend(ctx context.Context, obj *ent.Friendship) (*ent.User, error) {
+	return ent.ResolveFriendshipFriend(obj, ctx)
+}
+
+// Users is the resolver for the users field.
+func (r *groupResolver) Users(ctx context.Context, obj *ent.Group, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	return ent.ResolveGroupUsers(obj, ctx, after, first, before, last, orderBy, where)
+}
+
+// Parent is the resolver for the parent field.
+func (r *oneToManyResolver) Parent(ctx context.Context, obj *ent.OneToMany) (*ent.OneToMany, error) {
+	return ent.ResolveOneToManyParent(obj, ctx)
+}
+
+// Children is the resolver for the children field.
+func (r *oneToManyResolver) Children(ctx context.Context, obj *ent.OneToMany) ([]*ent.OneToMany, error) {
+	return ent.ResolveOneToManyChildren(obj, ctx)
+}
+
+// Todos is the resolver for the todos field.
+func (r *projectResolver) Todos(ctx context.Context, obj *ent.Project, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	return ent.ResolveProjectTodos(obj, ctx, after, first, before, last, orderBy, where)
+}
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
@@ -82,14 +108,59 @@ func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], fi
 		)
 }
 
+// Parent is the resolver for the parent field.
+func (r *todoResolver) Parent(ctx context.Context, obj *ent.Todo) (*ent.Todo, error) {
+	return ent.ResolveTodoParent(obj, ctx)
+}
+
+// Children is the resolver for the children field.
+func (r *todoResolver) Children(ctx context.Context, obj *ent.Todo, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy []*ent.TodoOrder, where *ent.TodoWhereInput) (*ent.TodoConnection, error) {
+	return ent.ResolveTodoChildren(obj, ctx, after, first, before, last, orderBy, where)
+}
+
+// Category is the resolver for the category field.
+func (r *todoResolver) Category(ctx context.Context, obj *ent.Todo) (*ent.Category, error) {
+	return ent.ResolveTodoCategory(obj, ctx)
+}
+
+// Groups is the resolver for the groups field.
+func (r *userResolver) Groups(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.GroupWhereInput) (*ent.GroupConnection, error) {
+	return ent.ResolveUserGroups(obj, ctx, after, first, before, last, where)
+}
+
+// Friends is the resolver for the friends field.
+func (r *userResolver) Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error) {
+	return ent.ResolveUserFriends(obj, ctx, after, first, before, last, orderBy, where)
+}
+
+// Friendships is the resolver for the friendships field.
+func (r *userResolver) Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error) {
+	return ent.ResolveUserFriendships(obj, ctx, after, first, before, last, where)
+}
+
 // Category returns CategoryResolver implementation.
 func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
+
+// Friendship returns FriendshipResolver implementation.
+func (r *Resolver) Friendship() FriendshipResolver { return &friendshipResolver{r} }
+
+// Group returns GroupResolver implementation.
+func (r *Resolver) Group() GroupResolver { return &groupResolver{r} }
+
+// OneToMany returns OneToManyResolver implementation.
+func (r *Resolver) OneToMany() OneToManyResolver { return &oneToManyResolver{r} }
+
+// Project returns ProjectResolver implementation.
+func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 // Todo returns TodoResolver implementation.
 func (r *Resolver) Todo() TodoResolver { return &todoResolver{r} }
+
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
 // CreateCategoryInput returns CreateCategoryInputResolver implementation.
 func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
@@ -100,7 +171,12 @@ func (r *Resolver) CreateCategoryInput() CreateCategoryInputResolver {
 func (r *Resolver) TodoWhereInput() TodoWhereInputResolver { return &todoWhereInputResolver{r} }
 
 type categoryResolver struct{ *Resolver }
+type friendshipResolver struct{ *Resolver }
+type groupResolver struct{ *Resolver }
+type oneToManyResolver struct{ *Resolver }
+type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type todoResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
 type createCategoryInputResolver struct{ *Resolver }
 type todoWhereInputResolver struct{ *Resolver }

@@ -278,7 +278,7 @@ func (p *{{ $pager }}) toCursor({{ $r }} *{{ $name }}) Cursor {
 			cs_ = append(cs_, o_.Field.toCursor({{ $r }}).Value)
 		}
 		{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
-		return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}, Value: cs_}
+		return Cursor{ID: {{ if $marshalID }}marshal{{ $node.Name }}ID({{ $r }}){{ else }}{{ $r }}.ID{{ end }}, Value: cs_}
 	{{- else }}
 		return p.order.Field.toCursor({{ $r }})
 	{{- end }}
@@ -587,21 +587,21 @@ func ({{ $r }} *{{ $query }}) Paginate(
 					{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
 					{{- if $f.IsFieldTerm }}
 						return Cursor{
-							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+							ID: {{ if $marshalID }}marshal{{ $node.Name }}ID({{ $r }}){{ else }}{{ $r }}.ID{{ end }},
 							Value: {{ $r }}.{{ $f.Field.StructField }},
 						}
 					{{- else if $f.IsNonUniqueEdgeFieldTerm }}
 						{{- /* Non-unique edge field terms use ValueName to get the field value */}}
 						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 						return Cursor{
-							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+							ID: {{ if $marshalID }}marshal{{ $node.Name }}ID({{ $r }}){{ else }}{{ $r }}.ID{{ end }},
 							Value: cv,
 						}
 					{{- else }}
 						{{- /* Unxpected non-selected field error can occur. */}}
 						cv, _ := {{ $r }}.{{ $node.ValueName }}({{ $f.VarField }})
 						return Cursor{
-							ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+							ID: {{ if $marshalID }}marshal{{ $node.Name }}ID({{ $r }}){{ else }}{{ $r }}.ID{{ end }},
 							Value: cv,
 						}
 					{{- end }}
@@ -672,13 +672,13 @@ var {{ $defaultOrder }} = &{{ $order }}{
 		toTerm: {{ $node.Package }}.{{ $node.ID.OrderName }},
 		toCursor: func({{ $r }} *{{ $name }}) Cursor {
 			{{- $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
-			return Cursor{ID: {{ $r }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}}
+			return Cursor{ID: {{ if $marshalID }}marshal{{ $node.Name }}ID({{ $r }}){{ else }}{{ $r }}.ID{{ end }}}
 		},
 	},
 }
 
-// ToEdge converts {{ $name }} into {{ $edge }}.
-func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
+// {{ $name }}ToEdge converts {{ $name }} into {{ $edge }}.
+func {{ $name }}ToEdge({{ $r }} *{{ $name }}, order *{{ $order }}) *{{ $edge }} {
 	if order == nil {
 		order = {{ $defaultOrder }}
 	}
