@@ -64,7 +64,7 @@ type Noder interface {
 	{{- end }}
 {{ end }}
 
-var errNodeInvalidID = &NotFoundError{"node"}
+var errNodeInvalidID = &NotFoundError{Label: "node"}
 
 // NodeOption allows configuring the Noder execution using functional options.
 type NodeOption func(*nodeOptions)
