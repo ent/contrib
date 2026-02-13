@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"text/template/parse"
 
@@ -144,12 +145,14 @@ var (
 		"nodeImplementorsVar": nodeImplementorsVar,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
+		"safeOps":             safeOps,
 		"skipMode":            skipModeFromString,
 		"trimPrefix":          trimPrefix,
 	}
 
 	//go:embed template/*
 	_templates embed.FS
+	fieldOpsMu sync.Mutex
 
 	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
 	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
@@ -461,6 +464,17 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 	return filteredFields, nil
 }
 
+// safeOps serializes access to gen.Field.Ops() because its current
+// implementation mutates shared predicate-op slices in ent/gen.
+// We also return a copied slice to keep template iterations immutable.
+func safeOps(f *gen.Field) []gen.Op {
+	fieldOpsMu.Lock()
+	defer fieldOpsMu.Unlock()
+
+	ops := f.Ops()
+	return append([]gen.Op(nil), ops...)
+}
+
 // OrderTerm is a struct that represents a single GraphQL order term.
 type OrderTerm struct {
 	// The type that owns the order field.
@@ -762,7 +776,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 				Name:        "nullsDirection",
 				Type:        ast.NamedType(NullsDirectionEnum, nil),
 				Description: "The direction to order null values.",
-      },
+			},
 		},
 	}
 }

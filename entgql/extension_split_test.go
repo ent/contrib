@@ -16,6 +16,9 @@ package entgql
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
@@ -924,6 +927,40 @@ func TestNodeEntityFile_HasCollectionTemplate(t *testing.T) {
 	require.NotContains(t, contentStr2, "collectField")
 }
 
+func requireNoDuplicateStructFields(t *testing.T, path string) {
+	t.Helper()
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
+	require.NoError(t, err, "parse generated file %s", path)
+
+	for _, decl := range f.Decls {
+		genDecl, ok := decl.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.TYPE {
+			continue
+		}
+		for _, spec := range genDecl.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+			structType, ok := typeSpec.Type.(*ast.StructType)
+			if !ok {
+				continue
+			}
+			seen := make(map[string]struct{})
+			for _, field := range structType.Fields.List {
+				for _, name := range field.Names {
+					if _, ok := seen[name.Name]; ok {
+						t.Fatalf("duplicate struct field %q in %s (%s)", name.Name, filepath.Base(path), typeSpec.Name.Name)
+					}
+					seen[name.Name] = struct{}{}
+				}
+			}
+		}
+	}
+}
+
 func TestGenerateSplitWhereInputs_ParallelFlag(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "entgql_split_where_inputs_parallel_test")
 	require.NoError(t, err)
@@ -939,10 +976,20 @@ func TestGenerateSplitWhereInputs_ParallelFlag(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = ex.generateSplitWhereInputs(graph)
-	require.NoError(t, err)
+	for i := 0; i < 50; i++ {
+		err = ex.generateSplitWhereInputs(graph)
+		require.NoError(t, err)
 
-	path := filepath.Join(tmpDir, "gql_where_input_todo.go")
-	_, err = os.Stat(path)
-	require.NoError(t, err)
+		paths, err := filepath.Glob(filepath.Join(tmpDir, "gql_where_input_*.go"))
+		require.NoError(t, err)
+		require.NotEmpty(t, paths)
+
+		for _, path := range paths {
+			requireNoDuplicateStructFields(t, path)
+		}
+
+		path := filepath.Join(tmpDir, "gql_where_input_todo.go")
+		_, err = os.Stat(path)
+		require.NoError(t, err)
+	}
 }
