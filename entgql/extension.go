@@ -496,7 +496,7 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	resetSafeOpsCache()
 	defer resetSafeOpsCache()
 
-	tmpDir, err := os.MkdirTemp(g.Target, ".entgql-split-")
+	tmpDir, err := os.MkdirTemp("", ".entgql-split-")
 	if err != nil {
 		return fmt.Errorf("entgql: create split go temp dir: %w", err)
 	}
@@ -619,8 +619,12 @@ func promoteGeneratedGoFiles(fromDir, targetDir string, names []string) error {
 	for _, name := range names {
 		from := filepath.Join(fromDir, name)
 		to := filepath.Join(targetDir, name)
-		if err := os.Rename(from, to); err != nil {
-			return fmt.Errorf("entgql: promote generated go file %s: %w", name, err)
+		data, err := os.ReadFile(from)
+		if err != nil {
+			return fmt.Errorf("entgql: read generated go file %s: %w", name, err)
+		}
+		if err := os.WriteFile(to, data, 0644); err != nil {
+			return fmt.Errorf("entgql: write generated go file %s: %w", name, err)
 		}
 	}
 	return nil
