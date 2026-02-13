@@ -311,6 +311,54 @@ func TestEntGQL_BuildSplitSchema(t *testing.T) {
 	require.NotNil(t, todoSchema.Types["TodoWhereInput"], "Todo schema should have TodoWhereInput type")
 }
 
+func TestEntGQL_BuildSplitSchema_PreservesSchemaHooks(t *testing.T) {
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	plugin := &schemaGenerator{
+		genSchema:     true,
+		genWhereInput: true,
+		genMutations:  true,
+		relaySpec:     true,
+		schemaHooks: []SchemaHook{func(_ *gen.Graph, schema *ast.Schema) error {
+			schema.AddTypes(&ast.Definition{
+				Name: "HookScalar",
+				Kind: ast.Scalar,
+			})
+			todoType := schema.Types["Todo"]
+			require.NotNil(t, todoType)
+			todoType.Fields = append(todoType.Fields, &ast.FieldDefinition{
+				Name: "hookField",
+				Type: ast.NamedType("HookScalar", nil),
+			})
+			return nil
+		}},
+	}
+
+	split, err := plugin.BuildSplitSchema(graph)
+	require.NoError(t, err)
+
+	require.NotNil(t, split.Shared.Types["HookScalar"], "hook-added scalar should be preserved in split shared schema")
+	todoSchema, ok := split.Entities["Todo"]
+	require.True(t, ok, "Todo entity should exist in split schema")
+	todoType := todoSchema.Types["Todo"]
+	require.NotNil(t, todoType)
+
+	var hookFieldExists bool
+	for _, field := range todoType.Fields {
+		if field.Name == "hookField" {
+			hookFieldExists = true
+			break
+		}
+	}
+	require.True(t, hookFieldExists, "hook-added field should be preserved in split Todo type")
+}
+
 func TestEntGQL_SplitSchema_SharedTypesNotInEntities(t *testing.T) {
 	s, err := gen.NewStorage("sql")
 	require.NoError(t, err)
@@ -412,4 +460,39 @@ func TestEntGQL_generateSplitSchema_Files(t *testing.T) {
 	require.NotContains(t, string(todoContent), "type Node")
 	require.NotContains(t, string(todoContent), "enum OrderDirection")
 	require.NotContains(t, string(todoContent), "type PageInfo")
+}
+
+func TestEntGQL_generateSplitSchema_RemovesStaleFiles(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_split_cleanup_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+
+	staleSchema := tmpDir + "/ent_stale.graphql"
+	staleQuery := tmpDir + "/ent_query.graphql"
+	require.NoError(t, os.WriteFile(staleSchema, []byte("type Stale { id: ID! }\n"), 0644))
+	require.NoError(t, os.WriteFile(staleQuery, []byte("type Query { stale: String }\n"), 0644))
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithSchemaDir(tmpDir),
+		WithWhereInputs(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateSplitSchema(graph)
+	require.NoError(t, err)
+
+	_, err = os.Stat(staleSchema)
+	require.True(t, os.IsNotExist(err), "stale split schema file should be removed")
+
+	_, err = os.Stat(staleQuery)
+	require.NoError(t, err, "query schema file should be rewritten when query type exists")
 }

@@ -215,6 +215,8 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		predicates = append(predicates, group.HasUsersWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyGroupWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

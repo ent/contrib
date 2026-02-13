@@ -125,6 +125,8 @@ type SplitSchema struct {
 	Entities map[string]*ast.Schema
 }
 
+const splitTypeOwnerShared = "__entgql_shared__"
+
 func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	s = &ast.Schema{
 		Directives: make(map[string]*ast.DirectiveDefinition),
@@ -152,13 +154,11 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 
 // BuildSplitSchema generates per-entity GraphQL schemas.
 func (e *schemaGenerator) BuildSplitSchema(g *gen.Graph) (*SplitSchema, error) {
-	// First, build the complete schema to run hooks and validate
 	completeSchema, err := e.BuildSchema(g)
 	if err != nil {
 		return nil, err
 	}
 
-	// Initialize split schema
 	split := &SplitSchema{
 		Shared: &ast.Schema{
 			Directives: make(map[string]*ast.DirectiveDefinition),
@@ -169,172 +169,140 @@ func (e *schemaGenerator) BuildSplitSchema(g *gen.Graph) (*SplitSchema, error) {
 		Entities: make(map[string]*ast.Schema),
 	}
 
-	// Track which scalars are used
-	usedScalars := make(map[string]bool)
-
-	// Add directives to shared schema
 	for name, d := range completeSchema.Directives {
 		split.Shared.Directives[name] = d
 	}
 
-	// Add builtin types to shared schema
-	if e.genSchema {
-		split.Shared.AddTypes(builtinTypes()...)
-		if e.relaySpec {
-			split.Shared.AddTypes(relayBuiltinTypes(g.Package)...)
+	owners, entityNames, err := e.splitTypeOwners(g)
+	if err != nil {
+		return nil, err
+	}
+	for name := range completeSchema.Types {
+		if _, ok := owners[name]; ok {
+			continue
+		}
+		var matched string
+		for _, entityName := range entityNames {
+			if strings.HasPrefix(name, entityName) {
+				if matched != "" && matched != entityName {
+					matched = splitTypeOwnerShared
+					break
+				}
+				matched = entityName
+			}
+		}
+		if matched != "" {
+			owners[name] = matched
 		}
 	}
 
-	// Build per-entity schemas
-	var queryFields ast.FieldList
-	if e.relaySpec {
-		queryFields = relayBuiltinQueryFields()
+	for name, def := range completeSchema.Types {
+		if name == QueryType {
+			split.Query.AddTypes(def)
+			continue
+		}
+		switch owner, ok := owners[name]; {
+		case !ok, owner == splitTypeOwnerShared:
+			split.Shared.AddTypes(def)
+		default:
+			entitySchema, exists := split.Entities[owner]
+			if !exists {
+				entitySchema = &ast.Schema{Directives: make(map[string]*ast.DirectiveDefinition)}
+				split.Entities[owner] = entitySchema
+			}
+			entitySchema.AddTypes(def)
+		}
 	}
+
+	for name, schema := range split.Entities {
+		if len(schema.Types) == 0 {
+			delete(split.Entities, name)
+		}
+	}
+
+	return split, nil
+}
+
+func assignSplitTypeOwner(owners map[string]string, typeName, owner string) {
+	if current, exists := owners[typeName]; exists && current != owner {
+		owners[typeName] = splitTypeOwnerShared
+		return
+	}
+	owners[typeName] = owner
+}
+
+func (e *schemaGenerator) splitTypeOwners(g *gen.Graph) (map[string]string, []string, error) {
+	owners := make(map[string]string)
+	entityNames := make([]string, 0, len(g.Nodes))
 
 	for _, node := range g.Nodes {
 		if node.HasCompositeID() {
 			continue
 		}
+
 		gqlType, ant, err := gqlTypeFromNode(node)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		entityNames = append(entityNames, gqlType)
 		names := paginationNames(gqlType)
 
-		// Create entity schema
-		entitySchema := &ast.Schema{
-			Directives: make(map[string]*ast.DirectiveDefinition),
-		}
-
-		// Build entity type
 		if e.genSchema && !ant.Skip.Is(SkipType) {
-			def, err := e.buildType(node, ant, gqlType, g.Package)
-			if err != nil {
-				return nil, err
-			}
-			if def != nil {
-				entitySchema.AddTypes(def)
-				e.collectScalars(def, usedScalars)
-			}
+			assignSplitTypeOwner(owners, gqlType, gqlType)
 		}
 
-		// Build field enums
 		if e.genSchema && !ant.Skip.Is(SkipEnumField) {
 			for _, f := range node.Fields {
-				fAnt, err := annotation(f.Annotations)
+				fieldAnt, err := annotation(f.Annotations)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
-				if fAnt.Skip.Is(SkipEnumField) {
+				if fieldAnt.Skip.Is(SkipEnumField) || !f.IsEnum() {
 					continue
 				}
-				if f.IsEnum() {
-					enumGqlType := e.mapScalar(gqlType, f, fAnt, nonInputObjectFilter)
-					if enumGqlType == "" {
-						return nil, errors.New("unable to map enum field " + f.Name)
-					}
-					def, err := e.buildFieldEnum(f, enumGqlType, fieldGoType(f, g.Package))
-					if err != nil {
-						return nil, err
-					}
-					if def != nil {
-						entitySchema.AddTypes(def)
-					}
+				enumGQLType := e.mapScalar(gqlType, f, fieldAnt, nonInputObjectFilter)
+				if enumGQLType == "" {
+					return nil, nil, errors.New("unable to map enum field " + f.Name)
 				}
+				assignSplitTypeOwner(owners, enumGQLType, gqlType)
 			}
 		}
 
-		// Build order field enum
 		if e.genSchema && !ant.Skip.Is(SkipOrderField) {
 			def, err := e.enumOrderByValues(node, names.OrderField)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if def != nil {
-				def.Description = fmt.Sprintf("Properties by which %s connections can be ordered.", gqlType)
-				entitySchema.AddTypes(def, names.OrderInputDef())
+				assignSplitTypeOwner(owners, def.Name, gqlType)
+				assignSplitTypeOwner(owners, names.Order, gqlType)
 			}
 		}
 
-		// Build relay connection types and query field
-		if e.genSchema {
-			if ant.RelayConnection {
-				if !e.relaySpec {
-					return nil, ErrRelaySpecDisabled
-				}
-				entitySchema.AddTypes(names.TypeDefs()...)
-
-				if ant.QueryField != nil {
-					name := ant.QueryField.fieldName(gqlType)
-					_, hasOrderBy := entitySchema.Types[names.Order]
-					hasWhereInput := e.genWhereInput && !ant.Skip.Is(SkipWhereInput)
-
-					def := names.ConnectionField(name, hasOrderBy, ant.MultiOrder, hasWhereInput)
-					def.Description = ant.QueryField.Description
-					def.Directives = e.buildDirectives(ant.QueryField.Directives)
-					queryFields = append(queryFields, def)
-				}
-			} else if ant.QueryField != nil {
-				name := ant.QueryField.fieldName(gqlType)
-				def := &ast.FieldDefinition{
-					Name:        name,
-					Description: ant.QueryField.Description,
-					Type:        listNamedType(gqlType, false),
-				}
-				def.Directives = e.buildDirectives(ant.QueryField.Directives)
-				queryFields = append(queryFields, def)
+		if e.genSchema && ant.RelayConnection {
+			if !e.relaySpec {
+				return nil, nil, ErrRelaySpecDisabled
 			}
+			assignSplitTypeOwner(owners, names.Connection, gqlType)
+			assignSplitTypeOwner(owners, names.Edge, gqlType)
 		}
 
-		// Build where input
 		if e.genWhereInput && !ant.Skip.Is(SkipWhereInput) {
-			def, err := e.buildWhereInput(node, gqlType, names.WhereInput)
-			if err != nil {
-				return nil, err
-			}
-			if def != nil {
-				entitySchema.AddTypes(def)
-			}
+			assignSplitTypeOwner(owners, names.WhereInput, gqlType)
 		}
 
-		// Build mutation inputs
 		if e.genMutations {
 			defs, err := e.buildMutationInputs(node, ant, gqlType)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			if len(defs) > 0 {
-				entitySchema.AddTypes(defs...)
+			for _, def := range defs {
+				assignSplitTypeOwner(owners, def.Name, gqlType)
 			}
 		}
-
-		// Only add entity schema if it has types
-		if len(entitySchema.Types) > 0 {
-			split.Entities[gqlType] = entitySchema
-		}
 	}
 
-	// Add Query type if there are query fields
-	if e.genSchema && len(queryFields) > 0 {
-		split.Query.AddTypes(&ast.Definition{
-			Name:   QueryType,
-			Kind:   ast.Object,
-			Fields: queryFields,
-		})
-	}
-
-	// Add used dynamic scalars to shared schema
-	for scalar := range usedScalars {
-		if split.Shared.Types[scalar] == nil {
-			split.Shared.AddTypes(&ast.Definition{
-				Name:        scalar,
-				Kind:        ast.Scalar,
-				Description: fmt.Sprintf("The builtin %s type", scalar),
-			})
-		}
-	}
-
-	return split, nil
+	return owners, entityNames, nil
 }
 
 // collectScalars examines a definition's fields for dynamic scalar types and tracks them.

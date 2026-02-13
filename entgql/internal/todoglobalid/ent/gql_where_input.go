@@ -292,6 +292,8 @@ func (i *BillProductWhereInput) P() (predicate.BillProduct, error) {
 	}
 
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyBillProductWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -656,6 +658,8 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		predicates = append(predicates, category.HasSubCategoriesWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyCategoryWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -892,6 +896,8 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 		predicates = append(predicates, friendship.HasFriendWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyFriendshipWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1090,6 +1096,8 @@ func (i *GroupWhereInput) P() (predicate.Group, error) {
 		predicates = append(predicates, group.HasUsersWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyGroupWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1372,6 +1380,8 @@ func (i *OneToManyWhereInput) P() (predicate.OneToMany, error) {
 		predicates = append(predicates, onetomany.HasChildrenWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyOneToManyWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1516,6 +1526,8 @@ func (i *ProjectWhereInput) P() (predicate.Project, error) {
 		predicates = append(predicates, project.HasTodosWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyProjectWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -1904,6 +1916,8 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		predicates = append(predicates, todo.HasCategoryWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyTodoWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -2242,6 +2256,8 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 		predicates = append(predicates, user.HasFriendshipsWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyUserWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
@@ -2418,6 +2434,8 @@ func (i *OrganizationWhereInput) P() (predicate.Workspace, error) {
 	}
 
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyOrganizationWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

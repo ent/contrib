@@ -320,6 +320,8 @@ func (e *Extension) Options() []entc.Option {
 func (e *Extension) genSchemaHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
+			resetSafeOpsCache()
+			defer resetSafeOpsCache()
 			if err = next.Generate(g); err != nil {
 				return err
 			}
@@ -368,30 +370,45 @@ func (e *Extension) generateSplitSchema(g *gen.Graph) error {
 	if err != nil {
 		return err
 	}
-	// Create schema directory if needed
 	if err := os.MkdirAll(e.schemaDir, 0755); err != nil {
 		return fmt.Errorf("entgql: failed to create schema directory: %w", err)
 	}
-	// Write shared types
+
+	expected := map[string]struct{}{"ent_shared.graphql": {}}
+	if split.Query != nil && len(split.Query.Types) > 0 {
+		expected["ent_query.graphql"] = struct{}{}
+	}
+	for name, schema := range split.Entities {
+		if len(schema.Types) > 0 {
+			expected[fmt.Sprintf("ent_%s.graphql", snake(name))] = struct{}{}
+		}
+	}
+	if err := cleanupSplitSchemaFiles(e.schemaDir, expected); err != nil {
+		return err
+	}
+
 	sharedPath := filepath.Join(e.schemaDir, "ent_shared.graphql")
-	if err := os.WriteFile(sharedPath, []byte(printSchema(split.Shared)), 0644); err != nil {
+	if err := writeFileAtomic(sharedPath, []byte(printSchema(split.Shared)), 0644); err != nil {
 		return fmt.Errorf("entgql: failed to write shared schema: %w", err)
 	}
-	// Write query type
+
 	if split.Query != nil && len(split.Query.Types) > 0 {
 		queryPath := filepath.Join(e.schemaDir, "ent_query.graphql")
-		if err := os.WriteFile(queryPath, []byte(printSchema(split.Query)), 0644); err != nil {
+		if err := writeFileAtomic(queryPath, []byte(printSchema(split.Query)), 0644); err != nil {
 			return fmt.Errorf("entgql: failed to write query schema: %w", err)
 		}
 	}
-	// Write per-entity schemas in parallel.
+
 	var fns []func() error
 	for name, schema := range split.Entities {
+		if len(schema.Types) == 0 {
+			continue
+		}
 		name := name
 		schema := schema
 		fns = append(fns, func() error {
 			entityPath := filepath.Join(e.schemaDir, fmt.Sprintf("ent_%s.graphql", snake(name)))
-			if err := os.WriteFile(entityPath, []byte(printSchema(schema)), 0644); err != nil {
+			if err := writeFileAtomic(entityPath, []byte(printSchema(schema)), 0644); err != nil {
 				return fmt.Errorf("entgql: failed to write entity schema %s: %w", name, err)
 			}
 			return nil
@@ -400,11 +417,60 @@ func (e *Extension) generateSplitSchema(g *gen.Graph) error {
 	return parallelGenerate(fns)
 }
 
+func cleanupSplitSchemaFiles(schemaDir string, keep map[string]struct{}) error {
+	matches, err := filepath.Glob(filepath.Join(schemaDir, "ent_*.graphql"))
+	if err != nil {
+		return fmt.Errorf("entgql: list split schema files: %w", err)
+	}
+	for _, path := range matches {
+		name := filepath.Base(path)
+		if _, ok := keep[name]; ok {
+			continue
+		}
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("entgql: remove stale split schema file %s: %w", name, err)
+		}
+	}
+	return nil
+}
+
+func writeFileAtomic(path string, content []byte, mode os.FileMode) error {
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".entgql-write-*")
+	if err != nil {
+		return fmt.Errorf("create temp file: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	if _, err := tmp.Write(content); err != nil {
+		tmp.Close()
+		return fmt.Errorf("write temp file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp file: %w", err)
+	}
+	if err := os.Chmod(tmpName, mode); err != nil {
+		return fmt.Errorf("chmod temp file: %w", err)
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		if removeErr := os.Remove(path); removeErr != nil && !os.IsNotExist(removeErr) {
+			return fmt.Errorf("replace destination %s: %w", path, removeErr)
+		}
+		if err = os.Rename(tmpName, path); err != nil {
+			return fmt.Errorf("rename temp file: %w", err)
+		}
+	}
+	return nil
+}
+
 // genSplitGoFilesHook returns a hook that generates per-entity Go files
 // for WhereInput and MutationInput types.
 func (e *Extension) genSplitGoFilesHook() gen.Hook {
 	return func(next gen.Generator) gen.Generator {
 		return gen.GenerateFunc(func(g *gen.Graph) error {
+			resetSafeOpsCache()
+			defer resetSafeOpsCache()
 			if err := next.Generate(g); err != nil {
 				return err
 			}
@@ -427,39 +493,44 @@ func parallelGenerate(fns []func() error) error {
 // generateSplitGoFiles generates per-entity Go files for WhereInput, MutationInput,
 // Pagination, Collection, Edge, NodeDescriptor, and Node types.
 func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
-	// Remove old monolithic files to avoid duplicate type definitions.
-	if err := e.removeMonolithicGoFiles(g); err != nil {
-		return err
-	}
+	resetSafeOpsCache()
+	defer resetSafeOpsCache()
 
-	// Collect all independent file-generation tasks into a single slice
-	// so they can be executed concurrently.
+	tmpDir, err := os.MkdirTemp(g.Target, ".entgql-split-")
+	if err != nil {
+		return fmt.Errorf("entgql: create split go temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	staged := *g
+	staged.Target = tmpDir
+
 	var fns []func() error
 
 	// Shared files (one per type, no per-entity loop).
 	fns = append(fns,
-		func() error { return e.generatePaginationSharedFile(g) },
-		func() error { return e.generateCollectionSharedFile(g) },
-		func() error { return e.generateNodeSharedFile(g) },
+		func() error { return e.generatePaginationSharedFile(&staged) },
+		func() error { return e.generateCollectionSharedFile(&staged) },
+		func() error { return e.generateNodeSharedFile(&staged) },
 	)
 	if _, exists := e.hasTemplate(NodeDescriptorTemplate); exists {
-		fns = append(fns, func() error { return e.generateNodeDescriptorSharedFile(g) })
+		fns = append(fns, func() error { return e.generateNodeDescriptorSharedFile(&staged) })
 	}
 
 	// Per-entity where input files.
 	if e.genWhereInput {
-		nodes, err := filterNodes(g.Nodes, SkipWhereInput)
+		nodes, err := filterNodes(staged.Nodes, SkipWhereInput)
 		if err != nil {
 			return err
 		}
 		if e.parallelWhereInputFiles {
 			for _, n := range nodes {
 				n := n
-				fns = append(fns, func() error { return e.generateWhereInputFile(g, n) })
+				fns = append(fns, func() error { return e.generateWhereInputFile(&staged, n) })
 			}
 		} else {
 			for _, n := range nodes {
-				if err := e.generateWhereInputFile(g, n); err != nil {
+				if err := e.generateWhereInputFile(&staged, n); err != nil {
 					return err
 				}
 			}
@@ -468,7 +539,7 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 
 	// Per-entity mutation input files.
 	if e.genMutations {
-		inputs, err := mutationInputs(g.Nodes)
+		inputs, err := mutationInputs(staged.Nodes)
 		if err != nil {
 			return err
 		}
@@ -479,12 +550,12 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 		for name, entityInputs := range byEntity {
 			name := name
 			entityInputs := entityInputs
-			fns = append(fns, func() error { return e.generateMutationInputFile(g, name, entityInputs) })
+			fns = append(fns, func() error { return e.generateMutationInputFile(&staged, name, entityInputs) })
 		}
 	}
 
 	// Per-entity pagination, collection, edge, node descriptor, and node files.
-	nodes, err := filterNodes(g.Nodes, SkipType)
+	nodes, err := filterNodes(staged.Nodes, SkipType)
 	if err != nil {
 		return err
 	}
@@ -492,36 +563,99 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	for _, n := range nodes {
 		n := n
 		fns = append(fns,
-			func() error { return e.generatePaginationEntityFile(g, n) },
-			func() error { return e.generateCollectionEntityFile(g, n) },
-			func() error { return e.generateNodeEntityFile(g, n) },
+			func() error { return e.generatePaginationEntityFile(&staged, n) },
+			func() error { return e.generateCollectionEntityFile(&staged, n) },
+			func() error { return e.generateNodeEntityFile(&staged, n) },
 		)
 		if hasNodeDescriptor {
-			fns = append(fns, func() error { return e.generateNodeDescriptorEntityFile(g, n) })
+			fns = append(fns, func() error { return e.generateNodeDescriptorEntityFile(&staged, n) })
 		}
 		edges, err := filterEdges(n.Edges, SkipType)
 		if err != nil {
 			return err
 		}
 		if len(edges) > 0 {
-			fns = append(fns, func() error { return e.generateEdgeEntityFile(g, n) })
+			fns = append(fns, func() error { return e.generateEdgeEntityFile(&staged, n) })
 		}
 	}
 
-	return parallelGenerate(fns)
+	if err := parallelGenerate(fns); err != nil {
+		return err
+	}
+
+	keep, names, err := listGeneratedGoFiles(tmpDir)
+	if err != nil {
+		return err
+	}
+	if err := promoteGeneratedGoFiles(tmpDir, g.Target, names); err != nil {
+		return err
+	}
+	return cleanupSplitGeneratedGoFiles(g.Target, keep)
 }
 
-// removeMonolithicGoFiles removes the old monolithic Go files when split mode is enabled.
-func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
-	filesToRemove := []string{
-		"gql_where_input.go",
-		"gql_mutation_input.go",
-		"gql_edge.go",
+func listGeneratedGoFiles(dir string) (map[string]struct{}, []string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("entgql: read split go temp dir: %w", err)
 	}
-	for _, filename := range filesToRemove {
-		path := filepath.Join(g.Target, filename)
-		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
-			return fmt.Errorf("entgql: failed to remove monolithic file %s: %w", filename, err)
+	keep := make(map[string]struct{})
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if filepath.Ext(name) != ".go" {
+			continue
+		}
+		keep[name] = struct{}{}
+		names = append(names, name)
+	}
+	slices.Sort(names)
+	return keep, names, nil
+}
+
+func promoteGeneratedGoFiles(fromDir, targetDir string, names []string) error {
+	for _, name := range names {
+		from := filepath.Join(fromDir, name)
+		to := filepath.Join(targetDir, name)
+		if err := os.Rename(from, to); err != nil {
+			return fmt.Errorf("entgql: promote generated go file %s: %w", name, err)
+		}
+	}
+	return nil
+}
+
+func cleanupSplitGeneratedGoFiles(targetDir string, keep map[string]struct{}) error {
+	patterns := []string{
+		"gql_where_input.go",
+		"gql_where_input_*.go",
+		"gql_mutation_input.go",
+		"gql_mutation_input_*.go",
+		"gql_edge.go",
+		"gql_edge_*.go",
+		"gql_pagination.go",
+		"gql_pagination_*.go",
+		"gql_collection.go",
+		"gql_collection_*.go",
+		"gql_node.go",
+		"gql_node_*.go",
+		"gql_node_descriptor.go",
+		"gql_node_descriptor_*.go",
+	}
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(filepath.Join(targetDir, pattern))
+		if err != nil {
+			return fmt.Errorf("entgql: list generated go files (%s): %w", pattern, err)
+		}
+		for _, path := range matches {
+			name := filepath.Base(path)
+			if _, ok := keep[name]; ok {
+				continue
+			}
+			if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+				return fmt.Errorf("entgql: remove stale generated go file %s: %w", name, err)
+			}
 		}
 	}
 	return nil
@@ -529,6 +663,9 @@ func (e *Extension) removeMonolithicGoFiles(g *gen.Graph) error {
 
 // generateSplitWhereInputs generates per-entity where input files.
 func (e *Extension) generateSplitWhereInputs(g *gen.Graph) error {
+	resetSafeOpsCache()
+	defer resetSafeOpsCache()
+
 	nodes, err := filterNodes(g.Nodes, SkipWhereInput)
 	if err != nil {
 		return err

@@ -281,6 +281,8 @@ func (i *BillProductWhereInput) P() (predicate.BillProduct, error) {
 	}
 
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyBillProductWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

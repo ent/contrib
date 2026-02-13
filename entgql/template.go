@@ -151,8 +151,9 @@ var (
 	}
 
 	//go:embed template/*
-	_templates embed.FS
-	fieldOpsMu sync.Mutex
+	_templates    embed.FS
+	fieldOpsMu    sync.Mutex
+	fieldOpsCache sync.Map
 
 	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
 	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
@@ -466,13 +467,28 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 
 // safeOps serializes access to gen.Field.Ops() because its current
 // implementation mutates shared predicate-op slices in ent/gen.
-// We also return a copied slice to keep template iterations immutable.
 func safeOps(f *gen.Field) []gen.Op {
+	if ops, ok := fieldOpsCache.Load(f); ok {
+		return ops.([]gen.Op)
+	}
+
 	fieldOpsMu.Lock()
 	defer fieldOpsMu.Unlock()
 
-	ops := f.Ops()
-	return append([]gen.Op(nil), ops...)
+	if ops, ok := fieldOpsCache.Load(f); ok {
+		return ops.([]gen.Op)
+	}
+
+	ops := append([]gen.Op(nil), f.Ops()...)
+	fieldOpsCache.Store(f, ops)
+	return ops
+}
+
+func resetSafeOpsCache() {
+	fieldOpsCache.Range(func(key, _ any) bool {
+		fieldOpsCache.Delete(key)
+		return true
+	})
 }
 
 // OrderTerm is a struct that represents a single GraphQL order term.

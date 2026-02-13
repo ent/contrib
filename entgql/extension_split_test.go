@@ -228,6 +228,44 @@ func TestGenerateSplitGoFiles_IncludesPaginationAndCollection(t *testing.T) {
 	}
 }
 
+func TestGenerateSplitGoFiles_RemovesStaleGeneratedFiles(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "entgql_split_cleanup_gofiles_test")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	graph := loadTestGraph(t, tmpDir)
+
+	staleFiles := []string{
+		"gql_where_input_stale.go",
+		"gql_mutation_input_stale.go",
+		"gql_edge_stale.go",
+		"gql_pagination_stale.go",
+		"gql_collection_stale.go",
+		"gql_node_stale.go",
+		"gql_node_descriptor_stale.go",
+	}
+	for _, name := range staleFiles {
+		err = os.WriteFile(filepath.Join(tmpDir, name), []byte("package ent\n// stale generated file\n"), 0644)
+		require.NoError(t, err)
+	}
+
+	ex, err := NewExtension(
+		WithSchemaGenerator(),
+		WithWhereInputs(true),
+		WithNodeDescriptor(true),
+		WithSplitGoFiles(true),
+	)
+	require.NoError(t, err)
+
+	err = ex.generateSplitGoFiles(graph)
+	require.NoError(t, err)
+
+	for _, name := range staleFiles {
+		_, err = os.Stat(filepath.Join(tmpDir, name))
+		require.True(t, os.IsNotExist(err), "stale generated file should be removed: %s", name)
+	}
+}
+
 func TestCollectionEntityFile_HasWhereInputTemplate(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "entgql_collection_where_test")
 	require.NoError(t, err)
@@ -420,26 +458,12 @@ func TestGenerateSplitEdge(t *testing.T) {
 
 	graph := loadTestGraph(t, tmpDir)
 
-	// Create a dummy monolithic gql_edge.go to verify deletion.
-	monolithicPath := filepath.Join(tmpDir, "gql_edge.go")
-	err = os.WriteFile(monolithicPath, []byte("package ent\n// monolithic placeholder\n"), 0644)
-	require.NoError(t, err)
-
 	ex, err := NewExtension(
 		WithSchemaGenerator(),
 		WithWhereInputs(true),
 		WithSplitGoFiles(true),
 	)
 	require.NoError(t, err)
-
-	// The monolithic file is removed by removeMonolithicGoFiles, which is called
-	// by generateSplitGoFiles. Call removeMonolithicGoFiles then generateSplitEdge.
-	err = ex.removeMonolithicGoFiles(graph)
-	require.NoError(t, err)
-
-	// Verify the monolithic file was deleted.
-	_, err = os.Stat(monolithicPath)
-	require.True(t, os.IsNotExist(err), "monolithic gql_edge.go should be deleted")
 
 	err = ex.generateSplitEdge(graph)
 	require.NoError(t, err)

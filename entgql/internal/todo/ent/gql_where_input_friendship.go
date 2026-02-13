@@ -254,6 +254,8 @@ func (i *FriendshipWhereInput) P() (predicate.Friendship, error) {
 		predicates = append(predicates, friendship.HasFriendWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyFriendshipWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

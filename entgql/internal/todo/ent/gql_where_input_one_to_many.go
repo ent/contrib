@@ -299,6 +299,8 @@ func (i *OneToManyWhereInput) P() (predicate.OneToMany, error) {
 		predicates = append(predicates, onetomany.HasChildrenWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyOneToManyWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

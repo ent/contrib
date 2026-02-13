@@ -406,6 +406,8 @@ func (i *TodoWhereInput) P() (predicate.Todo, error) {
 		predicates = append(predicates, todo.HasCategoryWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyTodoWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

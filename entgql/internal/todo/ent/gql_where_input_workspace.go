@@ -193,6 +193,8 @@ func (i *OrganizationWhereInput) P() (predicate.Workspace, error) {
 	}
 
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyOrganizationWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

@@ -161,6 +161,8 @@ func (i *ProjectWhereInput) P() (predicate.Project, error) {
 		predicates = append(predicates, project.HasTodosWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyProjectWhereInput
 	case 1:
 		return predicates[0], nil
 	default:

@@ -383,6 +383,8 @@ func (i *CategoryWhereInput) P() (predicate.Category, error) {
 		predicates = append(predicates, category.HasSubCategoriesWith(with...))
 	}
 	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyCategoryWhereInput
 	case 1:
 		return predicates[0], nil
 	default:
