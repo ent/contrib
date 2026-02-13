@@ -2596,7 +2596,7 @@ func TestFieldSelection(t *testing.T) {
 	rec.reset()
 	gqlcO2M.MustPost(queryO2M, &rspO2M)
 	require.Equal(t, []string{
-		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name` FROM `one_to_manies` ORDER BY `one_to_manies`.`id`",
+		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name` FROM `one_to_manies` ORDER BY `one_to_manies`.`id` NULLS LAST",
 		"SELECT `one_to_manies`.`id`, `one_to_manies`.`name`, `one_to_manies`.`parent_id` FROM `one_to_manies` WHERE `one_to_manies`.`parent_id` IN (?, ?, ?, ?, ?, ?)",
 	}, rec.queries)
 }
@@ -3057,7 +3057,7 @@ func TestPrivateFieldSelectionForPagination(t *testing.T) {
 	rec.reset()
 	gqlc.MustPost(query, &rsp)
 	require.Equal(t, []string{
-		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC NULLS LAST, `todos`.`id` LIMIT 3",
 	}, rec.queries)
 
 	t.Log(rsp.TodosWithJoins)
@@ -3088,7 +3088,6 @@ func TestPrivateFieldSelectionForPagination(t *testing.T) {
 	rec.reset()
 	gqlc.MustPost(query2, &rsp2)
 	require.Equal(t, []string{
-		// BEFORE: "SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `status` < ? OR (`status` = ? AND `id` > ?) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
-		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `todos`.`status` < ? OR (`todos`.`status` = ? AND `todos`.`id` > ?) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `todos`.`status` IS NOT NULL AND `todos`.`status` < ? OR (`todos`.`status` = ? AND (`todos`.`id` > ? OR `todos`.`id` IS NULL)) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC NULLS LAST, `todos`.`id` LIMIT 3",
 	}, rec.queries)
 }

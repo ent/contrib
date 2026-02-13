@@ -45,6 +45,7 @@ type (
 	Cursor         = entgql.Cursor[int]
 	PageInfo       = entgql.PageInfo[int]
 	OrderDirection = entgql.OrderDirection
+	NullsDirection = entgql.NullsDirection
 )
 
 func orderFunc(o OrderDirection, field string) func(*sql.Selector) {
@@ -246,10 +247,12 @@ func (p *billproductPager) applyCursors(query *BillProductQuery, after, before *
 
 func (p *billproductPager) applyOrder(query *BillProductQuery) *BillProductQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultBillProductOrder.Field {
 		query = query.Order(DefaultBillProductOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -261,14 +264,20 @@ func (p *billproductPager) applyOrder(query *BillProductQuery) *BillProductQuery
 
 func (p *billproductPager) orderExpr(query *BillProductQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultBillProductOrder.Field {
 			b.Comma().Ident(DefaultBillProductOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -339,8 +348,9 @@ type BillProductOrderField struct {
 
 // BillProductOrder defines the ordering of BillProduct.
 type BillProductOrder struct {
-	Direction OrderDirection         `json:"direction"`
-	Field     *BillProductOrderField `json:"field"`
+	Direction      OrderDirection         `json:"direction"`
+	Field          *BillProductOrderField `json:"field"`
+	NullsDirection NullsDirection         `json:"nullsDirection"`
 }
 
 // DefaultBillProductOrder is the default ordering of BillProduct.
@@ -488,20 +498,24 @@ func (p *categoryPager) applyCursors(query *CategoryQuery, after, before *Cursor
 	if p.reverse {
 		idDirection = entgql.OrderDirectionDesc
 	}
-	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	fields, directions, nullsDirections := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order)), make([]NullsDirection, 0, len(p.order))
 	for _, o := range p.order {
 		fields = append(fields, o.Field.column)
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
 		directions = append(directions, direction)
+		nullsDirections = append(nullsDirections, nullsDirection)
 	}
 	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
-		FieldID:     DefaultCategoryOrder.Field.column,
-		DirectionID: idDirection,
-		Fields:      fields,
-		Directions:  directions,
+		FieldID:         DefaultCategoryOrder.Field.column,
+		DirectionID:     idDirection,
+		Fields:          fields,
+		Directions:      directions,
+		NullsDirections: nullsDirections,
 	})
 	if err != nil {
 		return nil, err
@@ -516,10 +530,12 @@ func (p *categoryPager) applyOrder(query *CategoryQuery) *CategoryQuery {
 	var defaultOrdered bool
 	for _, o := range p.order {
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
-		query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		query = query.Order(o.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 		if o.Field.column == DefaultCategoryOrder.Field.column {
 			defaultOrdered = true
 		}
@@ -546,10 +562,12 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 		switch o.Field.column {
 		case CategoryOrderFieldTodosCount.column:
 			direction := o.Direction
+			nullsDirection := o.NullsDirection
 			if p.reverse {
 				direction = direction.Reverse()
+				nullsDirection = nullsDirection.Reverse()
 			}
-			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+			query = query.Order(o.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 		default:
 			if len(query.ctx.Fields) > 0 {
 				query.ctx.AppendFieldOnce(o.Field.column)
@@ -559,10 +577,16 @@ func (p *categoryPager) orderExpr(query *CategoryQuery) sql.Querier {
 	return sql.ExprFunc(func(b *sql.Builder) {
 		for _, o := range p.order {
 			direction := o.Direction
+			nullsDirection := o.NullsDirection
+			if nullsDirection == "" {
+				nullsDirection = entgql.NullsLast
+			}
 			if p.reverse {
 				direction = direction.Reverse()
+				nullsDirection = nullsDirection.Reverse()
 			}
 			b.Ident(o.Field.column).Pad().WriteString(string(direction))
+			b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 			b.Comma()
 		}
 		direction := entgql.OrderDirectionAsc
@@ -779,8 +803,9 @@ type CategoryOrderField struct {
 
 // CategoryOrder defines the ordering of Category.
 type CategoryOrder struct {
-	Direction OrderDirection      `json:"direction"`
-	Field     *CategoryOrderField `json:"field"`
+	Direction      OrderDirection      `json:"direction"`
+	Field          *CategoryOrderField `json:"field"`
+	NullsDirection NullsDirection      `json:"nullsDirection"`
 }
 
 // DefaultCategoryOrder is the default ordering of Category.
@@ -935,10 +960,12 @@ func (p *friendshipPager) applyCursors(query *FriendshipQuery, after, before *Cu
 
 func (p *friendshipPager) applyOrder(query *FriendshipQuery) *FriendshipQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultFriendshipOrder.Field {
 		query = query.Order(DefaultFriendshipOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -950,14 +977,20 @@ func (p *friendshipPager) applyOrder(query *FriendshipQuery) *FriendshipQuery {
 
 func (p *friendshipPager) orderExpr(query *FriendshipQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultFriendshipOrder.Field {
 			b.Comma().Ident(DefaultFriendshipOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -1028,8 +1061,9 @@ type FriendshipOrderField struct {
 
 // FriendshipOrder defines the ordering of Friendship.
 type FriendshipOrder struct {
-	Direction OrderDirection        `json:"direction"`
-	Field     *FriendshipOrderField `json:"field"`
+	Direction      OrderDirection        `json:"direction"`
+	Field          *FriendshipOrderField `json:"field"`
+	NullsDirection NullsDirection        `json:"nullsDirection"`
 }
 
 // DefaultFriendshipOrder is the default ordering of Friendship.
@@ -1177,20 +1211,24 @@ func (p *groupPager) applyCursors(query *GroupQuery, after, before *Cursor) (*Gr
 	if p.reverse {
 		idDirection = entgql.OrderDirectionDesc
 	}
-	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	fields, directions, nullsDirections := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order)), make([]NullsDirection, 0, len(p.order))
 	for _, o := range p.order {
 		fields = append(fields, o.Field.column)
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
 		directions = append(directions, direction)
+		nullsDirections = append(nullsDirections, nullsDirection)
 	}
 	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
-		FieldID:     DefaultGroupOrder.Field.column,
-		DirectionID: idDirection,
-		Fields:      fields,
-		Directions:  directions,
+		FieldID:         DefaultGroupOrder.Field.column,
+		DirectionID:     idDirection,
+		Fields:          fields,
+		Directions:      directions,
+		NullsDirections: nullsDirections,
 	})
 	if err != nil {
 		return nil, err
@@ -1205,10 +1243,12 @@ func (p *groupPager) applyOrder(query *GroupQuery) *GroupQuery {
 	var defaultOrdered bool
 	for _, o := range p.order {
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
-		query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		query = query.Order(o.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 		if o.Field.column == DefaultGroupOrder.Field.column {
 			defaultOrdered = true
 		}
@@ -1235,10 +1275,16 @@ func (p *groupPager) orderExpr(query *GroupQuery) sql.Querier {
 	return sql.ExprFunc(func(b *sql.Builder) {
 		for _, o := range p.order {
 			direction := o.Direction
+			nullsDirection := o.NullsDirection
+			if nullsDirection == "" {
+				nullsDirection = entgql.NullsLast
+			}
 			if p.reverse {
 				direction = direction.Reverse()
+				nullsDirection = nullsDirection.Reverse()
 			}
 			b.Ident(o.Field.column).Pad().WriteString(string(direction))
+			b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 			b.Comma()
 		}
 		direction := entgql.OrderDirectionAsc
@@ -1313,8 +1359,9 @@ type GroupOrderField struct {
 
 // GroupOrder defines the ordering of Group.
 type GroupOrder struct {
-	Direction OrderDirection   `json:"direction"`
-	Field     *GroupOrderField `json:"field"`
+	Direction      OrderDirection   `json:"direction"`
+	Field          *GroupOrderField `json:"field"`
+	NullsDirection NullsDirection   `json:"nullsDirection"`
 }
 
 // DefaultGroupOrder is the default ordering of Group.
@@ -1469,10 +1516,12 @@ func (p *onetomanyPager) applyCursors(query *OneToManyQuery, after, before *Curs
 
 func (p *onetomanyPager) applyOrder(query *OneToManyQuery) *OneToManyQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultOneToManyOrder.Field {
 		query = query.Order(DefaultOneToManyOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -1484,14 +1533,20 @@ func (p *onetomanyPager) applyOrder(query *OneToManyQuery) *OneToManyQuery {
 
 func (p *onetomanyPager) orderExpr(query *OneToManyQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultOneToManyOrder.Field {
 			b.Comma().Ident(DefaultOneToManyOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -1609,8 +1664,9 @@ type OneToManyOrderField struct {
 
 // OneToManyOrder defines the ordering of OneToMany.
 type OneToManyOrder struct {
-	Direction OrderDirection       `json:"direction"`
-	Field     *OneToManyOrderField `json:"field"`
+	Direction      OrderDirection       `json:"direction"`
+	Field          *OneToManyOrderField `json:"field"`
+	NullsDirection NullsDirection       `json:"nullsDirection"`
 }
 
 // DefaultOneToManyOrder is the default ordering of OneToMany.
@@ -1765,10 +1821,12 @@ func (p *projectPager) applyCursors(query *ProjectQuery, after, before *Cursor) 
 
 func (p *projectPager) applyOrder(query *ProjectQuery) *ProjectQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultProjectOrder.Field {
 		query = query.Order(DefaultProjectOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -1780,14 +1838,20 @@ func (p *projectPager) applyOrder(query *ProjectQuery) *ProjectQuery {
 
 func (p *projectPager) orderExpr(query *ProjectQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultProjectOrder.Field {
 			b.Comma().Ident(DefaultProjectOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -1858,8 +1922,9 @@ type ProjectOrderField struct {
 
 // ProjectOrder defines the ordering of Project.
 type ProjectOrder struct {
-	Direction OrderDirection     `json:"direction"`
-	Field     *ProjectOrderField `json:"field"`
+	Direction      OrderDirection     `json:"direction"`
+	Field          *ProjectOrderField `json:"field"`
+	NullsDirection NullsDirection     `json:"nullsDirection"`
 }
 
 // DefaultProjectOrder is the default ordering of Project.
@@ -2007,20 +2072,24 @@ func (p *todoPager) applyCursors(query *TodoQuery, after, before *Cursor) (*Todo
 	if p.reverse {
 		idDirection = entgql.OrderDirectionDesc
 	}
-	fields, directions := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order))
+	fields, directions, nullsDirections := make([]string, 0, len(p.order)), make([]OrderDirection, 0, len(p.order)), make([]NullsDirection, 0, len(p.order))
 	for _, o := range p.order {
 		fields = append(fields, o.Field.column)
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
 		directions = append(directions, direction)
+		nullsDirections = append(nullsDirections, nullsDirection)
 	}
 	predicates, err := entgql.MultiCursorsPredicate(after, before, &entgql.MultiCursorsOptions{
-		FieldID:     DefaultTodoOrder.Field.column,
-		DirectionID: idDirection,
-		Fields:      fields,
-		Directions:  directions,
+		FieldID:         DefaultTodoOrder.Field.column,
+		DirectionID:     idDirection,
+		Fields:          fields,
+		Directions:      directions,
+		NullsDirections: nullsDirections,
 	})
 	if err != nil {
 		return nil, err
@@ -2035,10 +2104,12 @@ func (p *todoPager) applyOrder(query *TodoQuery) *TodoQuery {
 	var defaultOrdered bool
 	for _, o := range p.order {
 		direction := o.Direction
+		nullsDirection := o.NullsDirection
 		if p.reverse {
 			direction = direction.Reverse()
+			nullsDirection = nullsDirection.Reverse()
 		}
-		query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+		query = query.Order(o.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 		if o.Field.column == DefaultTodoOrder.Field.column {
 			defaultOrdered = true
 		}
@@ -2065,10 +2136,12 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 		switch o.Field.column {
 		case TodoOrderFieldParentStatus.column, TodoOrderFieldChildrenCount.column, TodoOrderFieldCategoryText.column:
 			direction := o.Direction
+			nullsDirection := o.NullsDirection
 			if p.reverse {
 				direction = direction.Reverse()
+				nullsDirection = nullsDirection.Reverse()
 			}
-			query = query.Order(o.Field.toTerm(direction.OrderTermOption()))
+			query = query.Order(o.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 		default:
 			if len(query.ctx.Fields) > 0 {
 				query.ctx.AppendFieldOnce(o.Field.column)
@@ -2078,10 +2151,16 @@ func (p *todoPager) orderExpr(query *TodoQuery) sql.Querier {
 	return sql.ExprFunc(func(b *sql.Builder) {
 		for _, o := range p.order {
 			direction := o.Direction
+			nullsDirection := o.NullsDirection
+			if nullsDirection == "" {
+				nullsDirection = entgql.NullsLast
+			}
 			if p.reverse {
 				direction = direction.Reverse()
+				nullsDirection = nullsDirection.Reverse()
 			}
 			b.Ident(o.Field.column).Pad().WriteString(string(direction))
+			b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 			b.Comma()
 		}
 		direction := entgql.OrderDirectionAsc
@@ -2328,8 +2407,9 @@ type TodoOrderField struct {
 
 // TodoOrder defines the ordering of Todo.
 type TodoOrder struct {
-	Direction OrderDirection  `json:"direction"`
-	Field     *TodoOrderField `json:"field"`
+	Direction      OrderDirection  `json:"direction"`
+	Field          *TodoOrderField `json:"field"`
+	NullsDirection NullsDirection  `json:"nullsDirection"`
 }
 
 // DefaultTodoOrder is the default ordering of Todo.
@@ -2484,10 +2564,12 @@ func (p *userPager) applyCursors(query *UserQuery, after, before *Cursor) (*User
 
 func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultUserOrder.Field {
 		query = query.Order(DefaultUserOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -2503,12 +2585,17 @@ func (p *userPager) applyOrder(query *UserQuery) *UserQuery {
 
 func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	switch p.order.Field.column {
 	case UserOrderFieldGroupsCount.column:
-		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+		query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	default:
 		if len(query.ctx.Fields) > 0 {
 			query.ctx.AppendFieldOnce(p.order.Field.column)
@@ -2516,6 +2603,7 @@ func (p *userPager) orderExpr(query *UserQuery) sql.Querier {
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultUserOrder.Field {
 			b.Comma().Ident(DefaultUserOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -2638,8 +2726,9 @@ type UserOrderField struct {
 
 // UserOrder defines the ordering of User.
 type UserOrder struct {
-	Direction OrderDirection  `json:"direction"`
-	Field     *UserOrderField `json:"field"`
+	Direction      OrderDirection  `json:"direction"`
+	Field          *UserOrderField `json:"field"`
+	NullsDirection NullsDirection  `json:"nullsDirection"`
 }
 
 // DefaultUserOrder is the default ordering of User.
@@ -2797,10 +2886,12 @@ func (p *organizationPager) applyCursors(query *WorkspaceQuery, after, before *C
 
 func (p *organizationPager) applyOrder(query *WorkspaceQuery) *WorkspaceQuery {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
-	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption(), nullsDirection.OrderTermOption()))
 	if p.order.Field != DefaultOrganizationOrder.Field {
 		query = query.Order(DefaultOrganizationOrder.Field.toTerm(direction.OrderTermOption()))
 	}
@@ -2812,14 +2903,20 @@ func (p *organizationPager) applyOrder(query *WorkspaceQuery) *WorkspaceQuery {
 
 func (p *organizationPager) orderExpr(query *WorkspaceQuery) sql.Querier {
 	direction := p.order.Direction
+	nullsDirection := p.order.NullsDirection
+	if nullsDirection == "" {
+		nullsDirection = entgql.NullsLast
+	}
 	if p.reverse {
 		direction = direction.Reverse()
+		nullsDirection = nullsDirection.Reverse()
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(p.order.Field.column)
 	}
 	return sql.ExprFunc(func(b *sql.Builder) {
 		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 		if p.order.Field != DefaultOrganizationOrder.Field {
 			b.Comma().Ident(DefaultOrganizationOrder.Field.column).Pad().WriteString(string(direction))
 		}
@@ -2890,8 +2987,9 @@ type OrganizationOrderField struct {
 
 // OrganizationOrder defines the ordering of Workspace.
 type OrganizationOrder struct {
-	Direction OrderDirection          `json:"direction"`
-	Field     *OrganizationOrderField `json:"field"`
+	Direction      OrderDirection          `json:"direction"`
+	Field          *OrganizationOrderField `json:"field"`
+	NullsDirection NullsDirection          `json:"nullsDirection"`
 }
 
 // DefaultOrganizationOrder is the default ordering of Workspace.

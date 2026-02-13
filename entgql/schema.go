@@ -115,6 +115,18 @@ type schemaGenerator struct {
 	schemaHooks []SchemaHook
 }
 
+// SplitSchema holds per-entity schemas for split output mode.
+type SplitSchema struct {
+	// Shared contains shared types: directives, Node, Cursor, PageInfo, OrderDirection, NullsDirection, scalars.
+	Shared *ast.Schema
+	// Query contains the Query type with all entity fields.
+	Query *ast.Schema
+	// Entities contains per-entity schemas keyed by entity name.
+	Entities map[string]*ast.Schema
+}
+
+const splitTypeOwnerShared = "__entgql_shared__"
+
 func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	s = &ast.Schema{
 		Directives: make(map[string]*ast.DirectiveDefinition),
@@ -138,6 +150,169 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 		}
 	}
 	return s, nil
+}
+
+// BuildSplitSchema generates per-entity GraphQL schemas.
+func (e *schemaGenerator) BuildSplitSchema(g *gen.Graph) (*SplitSchema, error) {
+	completeSchema, err := e.BuildSchema(g)
+	if err != nil {
+		return nil, err
+	}
+
+	split := &SplitSchema{
+		Shared: &ast.Schema{
+			Directives: make(map[string]*ast.DirectiveDefinition),
+		},
+		Query: &ast.Schema{
+			Directives: make(map[string]*ast.DirectiveDefinition),
+		},
+		Entities: make(map[string]*ast.Schema),
+	}
+
+	for name, d := range completeSchema.Directives {
+		split.Shared.Directives[name] = d
+	}
+
+	owners, entityNames, err := e.splitTypeOwners(g)
+	if err != nil {
+		return nil, err
+	}
+	for name := range completeSchema.Types {
+		if _, ok := owners[name]; ok {
+			continue
+		}
+		var matched string
+		for _, entityName := range entityNames {
+			if strings.HasPrefix(name, entityName) {
+				if matched != "" && matched != entityName {
+					matched = splitTypeOwnerShared
+					break
+				}
+				matched = entityName
+			}
+		}
+		if matched != "" {
+			owners[name] = matched
+		}
+	}
+
+	for name, def := range completeSchema.Types {
+		if name == QueryType {
+			split.Query.AddTypes(def)
+			continue
+		}
+		switch owner, ok := owners[name]; {
+		case !ok, owner == splitTypeOwnerShared:
+			split.Shared.AddTypes(def)
+		default:
+			entitySchema, exists := split.Entities[owner]
+			if !exists {
+				entitySchema = &ast.Schema{Directives: make(map[string]*ast.DirectiveDefinition)}
+				split.Entities[owner] = entitySchema
+			}
+			entitySchema.AddTypes(def)
+		}
+	}
+
+	for name, schema := range split.Entities {
+		if len(schema.Types) == 0 {
+			delete(split.Entities, name)
+		}
+	}
+
+	return split, nil
+}
+
+func assignSplitTypeOwner(owners map[string]string, typeName, owner string) {
+	if current, exists := owners[typeName]; exists && current != owner {
+		owners[typeName] = splitTypeOwnerShared
+		return
+	}
+	owners[typeName] = owner
+}
+
+func (e *schemaGenerator) splitTypeOwners(g *gen.Graph) (map[string]string, []string, error) {
+	owners := make(map[string]string)
+	entityNames := make([]string, 0, len(g.Nodes))
+
+	for _, node := range g.Nodes {
+		if node.HasCompositeID() {
+			continue
+		}
+
+		gqlType, ant, err := gqlTypeFromNode(node)
+		if err != nil {
+			return nil, nil, err
+		}
+		entityNames = append(entityNames, gqlType)
+		names := paginationNames(gqlType)
+
+		if e.genSchema && !ant.Skip.Is(SkipType) {
+			assignSplitTypeOwner(owners, gqlType, gqlType)
+		}
+
+		if e.genSchema && !ant.Skip.Is(SkipEnumField) {
+			for _, f := range node.Fields {
+				fieldAnt, err := annotation(f.Annotations)
+				if err != nil {
+					return nil, nil, err
+				}
+				if fieldAnt.Skip.Is(SkipEnumField) || !f.IsEnum() {
+					continue
+				}
+				enumGQLType := e.mapScalar(gqlType, f, fieldAnt, nonInputObjectFilter)
+				if enumGQLType == "" {
+					return nil, nil, errors.New("unable to map enum field " + f.Name)
+				}
+				assignSplitTypeOwner(owners, enumGQLType, gqlType)
+			}
+		}
+
+		if e.genSchema && !ant.Skip.Is(SkipOrderField) {
+			def, err := e.enumOrderByValues(node, names.OrderField)
+			if err != nil {
+				return nil, nil, err
+			}
+			if def != nil {
+				assignSplitTypeOwner(owners, def.Name, gqlType)
+				assignSplitTypeOwner(owners, names.Order, gqlType)
+			}
+		}
+
+		if e.genSchema && ant.RelayConnection {
+			if !e.relaySpec {
+				return nil, nil, ErrRelaySpecDisabled
+			}
+			assignSplitTypeOwner(owners, names.Connection, gqlType)
+			assignSplitTypeOwner(owners, names.Edge, gqlType)
+		}
+
+		if e.genWhereInput && !ant.Skip.Is(SkipWhereInput) {
+			assignSplitTypeOwner(owners, names.WhereInput, gqlType)
+		}
+
+		if e.genMutations {
+			defs, err := e.buildMutationInputs(node, ant, gqlType)
+			if err != nil {
+				return nil, nil, err
+			}
+			for _, def := range defs {
+				assignSplitTypeOwner(owners, def.Name, gqlType)
+			}
+		}
+	}
+
+	return owners, entityNames, nil
+}
+
+// collectScalars examines a definition's fields for dynamic scalar types and tracks them.
+func (e *schemaGenerator) collectScalars(def *ast.Definition, usedScalars map[string]bool) {
+	for _, f := range def.Fields {
+		switch name := f.Type.Name(); name {
+		case "Time", "Map", "Upload", "Any", "Int32", "Int64", "Uint", "Uint32", "Uint64":
+			usedScalars[name] = true
+		}
+	}
 }
 
 func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {

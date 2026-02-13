@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"text/template/parse"
 
@@ -65,6 +66,56 @@ var (
 	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
 	MutationInputTemplate = parseT("template/mutation_input.tmpl").SkipIf(skipMutationTemplate)
 
+	// WhereInputEntityTemplate generates a WhereInput for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	WhereInputEntityTemplate *template.Template
+
+	// MutationInputEntityTemplate generates mutation inputs for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	MutationInputEntityTemplate *template.Template
+
+	// PaginationEntityTemplate generates pagination code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	PaginationEntityTemplate *template.Template
+
+	// PaginationSharedTemplate generates the shared pagination code (type aliases, helpers, constants)
+	// that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	PaginationSharedTemplate *template.Template
+
+	// CollectionSharedTemplate generates the shared collection code (constants and helper functions)
+	// that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	CollectionSharedTemplate *template.Template
+
+	// CollectionEntityTemplate generates collection code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	CollectionEntityTemplate *template.Template
+
+	// EdgeEntityTemplate generates edge resolver code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	EdgeEntityTemplate *template.Template
+
+	// NodeDescriptorSharedTemplate generates the shared node descriptor code (Node/Field/Edge structs
+	// and Client.Node() method) that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	NodeDescriptorSharedTemplate *template.Template
+
+	// NodeDescriptorEntityTemplate generates node descriptor code for a single entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	NodeDescriptorEntityTemplate *template.Template
+
+	// NodeSharedTemplate generates the shared node code (Noder interface, nodeResolver type,
+	// nodeResolvers map, registerNodeResolver func, and map-based dispatch in noder()/noders())
+	// that doesn't repeat per entity (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	NodeSharedTemplate *template.Template
+
+	// NodeEntityTemplate generates node code for a single entity (used in split mode):
+	// implementors var, Is*() methods, init() registration, and resolver functions.
+	// Initialized in init() to avoid initialization order issues.
+	NodeEntityTemplate *template.Template
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -94,12 +145,15 @@ var (
 		"nodeImplementorsVar": nodeImplementorsVar,
 		"nodePaginationNames": nodePaginationNames,
 		"orderFields":         orderFields,
+		"safeOps":             safeOps,
 		"skipMode":            skipModeFromString,
 		"trimPrefix":          trimPrefix,
 	}
 
 	//go:embed template/*
-	_templates embed.FS
+	_templates    embed.FS
+	fieldOpsMu    sync.Mutex
+	fieldOpsCache sync.Map
 
 	marshalerType   = reflect.TypeOf((*graphql.Marshaler)(nil)).Elem()
 	unmarshalerType = reflect.TypeOf((*graphql.Unmarshaler)(nil)).Elem()
@@ -109,6 +163,46 @@ func parseT(path string) *gen.Template {
 	return gen.MustParse(gen.NewTemplate(path).
 		Funcs(TemplateFuncs).
 		ParseFS(_templates, path))
+}
+
+func init() {
+	// Initialize entity templates after all vars are set up
+	WhereInputEntityTemplate = parseEntityTemplate("template/where_input_entity.tmpl", "gql_where_input_entity")
+	MutationInputEntityTemplate = parseEntityTemplate("template/mutation_input_entity.tmpl", "gql_mutation_input_entity")
+	PaginationEntityTemplate = parseEntityTemplate("template/pagination_entity.tmpl", "gql_pagination_entity")
+	PaginationSharedTemplate = parseEntityTemplate("template/pagination_shared.tmpl", "gql_pagination_shared")
+	CollectionSharedTemplate = parseEntityTemplate("template/collection_shared.tmpl", "gql_collection_shared")
+	CollectionEntityTemplate = parseEntityTemplate("template/collection_entity.tmpl", "gql_collection_entity")
+	EdgeEntityTemplate = parseEntityTemplate("template/edge_entity.tmpl", "gql_edge_entity")
+	NodeDescriptorSharedTemplate = parseEntityTemplate("template/node_descriptor_shared.tmpl", "gql_node_descriptor_shared")
+	NodeDescriptorEntityTemplate = parseEntityTemplate("template/node_descriptor_entity.tmpl", "gql_node_descriptor_entity")
+	NodeSharedTemplate = parseEntityTemplate("template/node_shared.tmpl", "gql_node_shared")
+	NodeEntityTemplate = parseEntityTemplate("template/node_entity.tmpl", "gql_node_entity")
+}
+
+// parseEntityTemplate parses a template for per-entity generation.
+// Unlike parseT which returns gen.Template for use with ent's generator,
+// this returns a plain text/template that can be executed manually.
+func parseEntityTemplate(path, name string) *template.Template {
+	// Combine ent's builtin funcs with entgql funcs
+	funcs := template.FuncMap{}
+	for k, v := range gen.Funcs {
+		funcs[k] = v
+	}
+	for k, v := range TemplateFuncs {
+		funcs[k] = v
+	}
+
+	content, err := _templates.ReadFile(path)
+	if err != nil {
+		panic(fmt.Sprintf("entgql: failed to read template %s: %v", path, err))
+	}
+
+	tmpl, err := template.New(name).Funcs(funcs).Parse(string(content))
+	if err != nil {
+		panic(fmt.Sprintf("entgql: failed to parse template %s: %v", path, err))
+	}
+	return tmpl
 }
 
 // idType is returned by the gqlIDType below to describe the
@@ -369,6 +463,32 @@ func filterFields(fields []*gen.Field, skip SkipMode) ([]*gen.Field, error) {
 		}
 	}
 	return filteredFields, nil
+}
+
+// safeOps serializes access to gen.Field.Ops() because its current
+// implementation mutates shared predicate-op slices in ent/gen.
+func safeOps(f *gen.Field) []gen.Op {
+	if ops, ok := fieldOpsCache.Load(f); ok {
+		return ops.([]gen.Op)
+	}
+
+	fieldOpsMu.Lock()
+	defer fieldOpsMu.Unlock()
+
+	if ops, ok := fieldOpsCache.Load(f); ok {
+		return ops.([]gen.Op)
+	}
+
+	ops := append([]gen.Op(nil), f.Ops()...)
+	fieldOpsCache.Store(f, ops)
+	return ops
+}
+
+func resetSafeOpsCache() {
+	fieldOpsCache.Range(func(key, _ any) bool {
+		fieldOpsCache.Delete(key)
+		return true
+	})
 }
 
 // OrderTerm is a struct that represents a single GraphQL order term.
@@ -672,7 +792,7 @@ func (p *PaginationNames) OrderInputDef() *ast.Definition {
 				Name:        "nullsDirection",
 				Type:        ast.NamedType(NullsDirectionEnum, nil),
 				Description: "The direction to order null values.",
-      },
+			},
 		},
 	}
 }
