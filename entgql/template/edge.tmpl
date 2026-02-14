@@ -108,6 +108,18 @@ import (
 		}
 		return FromContext(ctx).{{ $n.Name }}.Query{{ $e.StructField }}({{ $r }}).Paginate(ctx, after, first, before, last, opts...)
 	}
+
+	// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
+		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+		{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
+		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
+	) (*{{ $conn }}, error) {
+		return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx, after, first, before, last,
+			{{- if orderFields $e.Type }} orderBy,{{ end }}
+			{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }} where,{{ end }}
+		)
+	}
 {{ end }}
 
 {{ define "dialect/sql/model/edges/fields/additional/load_total" }}
