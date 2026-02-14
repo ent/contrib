@@ -50,7 +50,7 @@ import (
 			}
 			{{- /* May be nil if the totalCount was not loaded. */}}
 			alias := graphql.GetFieldContext(ctx).Field.Alias
-			totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
+			totalCount, hasTotalCount := {{ $r }}.Edges.TotalCount[{{ $i }}][alias]
 			{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 			if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
 				pager, err := {{ $newPager }}(opts, last != nil)

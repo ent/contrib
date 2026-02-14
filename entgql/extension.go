@@ -42,6 +42,7 @@ type (
 		schemaDir               string // directory for split schema output
 		splitGoFiles            bool   // split generated Go files into per-entity files
 		parallelWhereInputFiles bool   // opt-in parallel generation for where-input split files
+		importsDir              string // real target dir for imports.Process path resolution during split generation
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -502,8 +503,17 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 	}
 	defer os.RemoveAll(tmpDir)
 
+	// Save the real target dir for imports.Process path resolution.
+	// When generating to tmpDir, imports.Process needs a path inside the real
+	// module tree to correctly resolve packages (e.g., google/uuid vs gofrs/uuid).
+	e.importsDir = g.Target
+
+	// Deep-copy Config so that setting staged.Target does not mutate g.Target.
+	// Graph embeds *Config (pointer), so a shallow copy shares the same Config.
+	cfgCopy := *g.Config
+	cfgCopy.Target = tmpDir
 	staged := *g
-	staged.Target = tmpDir
+	staged.Config = &cfgCopy
 
 	var fns []func() error
 
@@ -815,8 +825,7 @@ func (e *Extension) generateWhereInputFile(g *gen.Graph, n *gen.Type) error {
 		return fmt.Errorf("entgql: execute where_input_entity template for %s: %w", n.Name, err)
 	}
 
-	// Format and add missing imports using goimports
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format where_input for %s: %w", n.Name, err)
 	}
@@ -839,8 +848,7 @@ func (e *Extension) generateMutationInputFile(g *gen.Graph, name string, inputs 
 		return fmt.Errorf("entgql: execute mutation_input_entity template for %s: %w", name, err)
 	}
 
-	// Format and add missing imports using goimports
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format mutation_input for %s: %w", name, err)
 	}
@@ -858,7 +866,7 @@ func (e *Extension) generatePaginationSharedFile(g *gen.Graph) error {
 	}{g}); err != nil {
 		return fmt.Errorf("entgql: execute pagination_shared template: %w", err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format pagination_shared: %w", err)
 	}
@@ -877,7 +885,7 @@ func (e *Extension) generatePaginationEntityFile(g *gen.Graph, n *gen.Type) erro
 	}{g, n}); err != nil {
 		return fmt.Errorf("entgql: execute pagination_entity template for %s: %w", n.Name, err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format pagination for %s: %w", n.Name, err)
 	}
@@ -894,7 +902,7 @@ func (e *Extension) generateCollectionSharedFile(g *gen.Graph) error {
 	}{g}); err != nil {
 		return fmt.Errorf("entgql: execute collection_shared template: %w", err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format collection_shared: %w", err)
 	}
@@ -914,7 +922,7 @@ func (e *Extension) generateCollectionEntityFile(g *gen.Graph, n *gen.Type) erro
 	}{g, n, e.genWhereInput}); err != nil {
 		return fmt.Errorf("entgql: execute collection_entity template for %s: %w", n.Name, err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format collection for %s: %w", n.Name, err)
 	}
@@ -934,7 +942,7 @@ func (e *Extension) generateEdgeEntityFile(g *gen.Graph, n *gen.Type) error {
 	}{g, n, e.genWhereInput}); err != nil {
 		return fmt.Errorf("entgql: execute edge_entity template for %s: %w", n.Name, err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format edge for %s: %w", n.Name, err)
 	}
@@ -951,7 +959,7 @@ func (e *Extension) generateNodeDescriptorSharedFile(g *gen.Graph) error {
 	}{g}); err != nil {
 		return fmt.Errorf("entgql: execute node_descriptor_shared template: %w", err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format node_descriptor_shared: %w", err)
 	}
@@ -970,7 +978,7 @@ func (e *Extension) generateNodeDescriptorEntityFile(g *gen.Graph, n *gen.Type) 
 	}{g, n}); err != nil {
 		return fmt.Errorf("entgql: execute node_descriptor_entity template for %s: %w", n.Name, err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format node_descriptor for %s: %w", n.Name, err)
 	}
@@ -989,7 +997,7 @@ func (e *Extension) generateNodeSharedFile(g *gen.Graph) error {
 	}{g, hasNodeDescriptor}); err != nil {
 		return fmt.Errorf("entgql: execute node_shared template: %w", err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format node_shared: %w", err)
 	}
@@ -1010,11 +1018,22 @@ func (e *Extension) generateNodeEntityFile(g *gen.Graph, n *gen.Type) error {
 	}{g, n, hasCollection}); err != nil {
 		return fmt.Errorf("entgql: execute node_entity template for %s: %w", n.Name, err)
 	}
-	content, err := imports.Process(path, buf.Bytes(), nil)
+	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format node for %s: %w", n.Name, err)
 	}
 	return os.WriteFile(path, content, 0644)
+}
+
+// processImports runs imports.Process using the real module target directory
+// (not a temp dir) so that package resolution finds the correct go.mod context.
+// This prevents goimports from picking wrong packages (e.g., gofrs/uuid vs google/uuid).
+func (e *Extension) processImports(path string, src []byte) ([]byte, error) {
+	resolvePath := path
+	if e.importsDir != "" {
+		resolvePath = filepath.Join(e.importsDir, filepath.Base(path))
+	}
+	return imports.Process(resolvePath, src, nil)
 }
 
 // hasTemplate reports if the template exists
