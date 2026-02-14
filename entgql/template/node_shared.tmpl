@@ -1,0 +1,296 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "gql_node_shared" }}
+
+{{- /*gotype: entgo.io/contrib/entgql.nodeSharedData*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{ $.Config.Header }}
+
+package {{ $pkg }}
+
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
+
+import (
+	"context"
+	"fmt"
+
+	{{- if $.Config.FeatureEnabled "sql/globalid" }}
+		"encoding/json"
+	{{- else if $idType.Numeric }}
+		"sync"
+		"sync/atomic"
+	{{- end }}
+
+	{{- with $package := $idType.PkgPath }}
+		"{{ $package }}"
+	{{- end }}
+	{{- if $.Config.FeatureEnabled "sql/globalid" }}
+		"{{ $.Config.Package }}/internal"
+	{{- end }}
+
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/schema"
+	"entgo.io/contrib/entgql"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/hashicorp/go-multierror"
+	"golang.org/x/sync/semaphore"
+)
+
+// Noder wraps the basic Node method.
+type Noder interface {
+{{- if $.HasNodeDescriptorTemplate }}
+	Node(context.Context) (*Node, error)
+{{- end }}
+	IsNode()
+}
+
+var errNodeInvalidID = &NotFoundError{"node"}
+
+// NodeOption allows configuring the Noder execution using functional options.
+type NodeOption func(*nodeOptions)
+
+// WithNodeType sets the node Type resolver function (i.e. the table to query).
+// If was not provided, the table will be derived from the universal-id
+// configuration as described in: https://entgo.io/docs/migrate/#universal-ids.
+func WithNodeType(f func(context.Context, {{ $idType }}) (string, error)) NodeOption {
+	return func(o *nodeOptions) {
+		o.nodeType = f
+	}
+}
+
+// WithFixedNodeType sets the Type of the node to a fixed value.
+func WithFixedNodeType(t string) NodeOption {
+	return WithNodeType(func(context.Context, {{ $idType }}) (string, error) {
+		return t, nil
+	})
+}
+
+type nodeOptions struct {
+	nodeType func(context.Context, {{ $idType }}) (string, error)
+}
+
+// nodeResolver holds the per-entity resolver functions for node lookup.
+type nodeResolver struct {
+	byID  func(ctx context.Context, c *Client, id {{ $idType }}) (Noder, error)
+	byIDs func(ctx context.Context, c *Client, ids []{{ $idType }}, idmap map[{{ $idType }}][]*Noder) error
+}
+
+// nodeResolvers maps table names to their node resolver functions.
+// Each entity registers itself via init().
+var nodeResolvers = map[string]nodeResolver{}
+
+// registerNodeResolver registers a node resolver for a given table.
+// It panics if a resolver is already registered for the table.
+func registerNodeResolver(table string, r nodeResolver) {
+	if _, ok := nodeResolvers[table]; ok {
+		panic(fmt.Sprintf("entgql: duplicate node resolver for table %q", table))
+	}
+	nodeResolvers[table] = r
+}
+
+{{- if $.Config.FeatureEnabled "sql/globalid" }}
+// Each node has a range of 1<<32 ids. Pre-computing a map of node starting
+// value to node type ensures node type resolution happens in O(1) complexity.
+var nodeTypes = func () map[int]string {
+	var is map[string]int
+	if err := json.Unmarshal([]byte(internal.IncrementStarts), &is); err != nil {
+		panic(err)
+	}
+	// Get a map of range starting value to node type.
+	m := make(map[int]string, len(is))
+	for k, v := range is {
+		m[v] = k // ent ensures there are no duplicate starting values
+	}
+	return m
+}()
+
+{{- end }}
+func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
+	nopts := &nodeOptions{}
+	for _, opt := range opts {
+		opt(nopts)
+	}
+	if nopts.nodeType == nil {
+		nopts.nodeType = func(ctx context.Context, id {{ $idType }}) (string, error) {
+			{{- if $idType.Numeric }}
+				{{- if $.Config.FeatureEnabled "sql/globalid" }}
+					t, ok := nodeTypes[int(id/(1<<32-1))<<32]
+					if !ok {
+						return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+					}
+					return t, nil
+				{{- else }}
+					return c.tables.nodeType(ctx, c.driver, id)
+				{{- end }}
+			{{- else }}
+				return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
+			{{- end }}
+		}
+	}
+	return nopts
+}
+
+// Noder returns a Node by its id. If the NodeType was not provided, it will
+// be derived from the id value according to the universal-id configuration.
+//
+//		c.Noder(ctx, id)
+//		c.Noder(ctx, id, ent.WithNodeType(typeResolver))
+//
+func (c *Client) Noder(ctx context.Context, id {{ $idType }}, opts ...NodeOption) (_ Noder, err error) {
+	defer func() {
+		if IsNotFound(err) {
+			err = multierror.Append(err, entgql.ErrNodeNotFound(id))
+		}
+	}()
+	table, err := c.newNodeOpts(opts).nodeType(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return c.noder(ctx, table, id)
+}
+
+func (c *Client) noder(ctx context.Context, table string, id {{ $idType }}) (Noder, error) {
+	resolver, ok := nodeResolvers[table]
+	if !ok {
+		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
+	}
+	return resolver.byID(ctx, c, id)
+}
+
+func (c *Client) Noders(ctx context.Context, ids []{{ $idType }}, opts ...NodeOption) ([]Noder, error) {
+	switch len(ids) {
+	case 1:
+		noder, err := c.Noder(ctx, ids[0], opts...)
+		if err != nil {
+			return nil, err
+		}
+		return []Noder{noder}, nil
+	case 0:
+		return []Noder{}, nil
+	}
+
+	noders := make([]Noder, len(ids))
+	errors := make([]error, len(ids))
+	tables := make(map[string][]{{ $idType }})
+	id2idx := make(map[{{ $idType }}][]int, len(ids))
+	nopts := c.newNodeOpts(opts)
+	for i, id := range ids {
+		table, err := nopts.nodeType(ctx, id)
+		if err != nil {
+			errors[i] = err
+			continue
+		}
+		tables[table] = append(tables[table], id)
+		id2idx[id] = append(id2idx[id], i)
+	}
+
+	for table, ids := range tables {
+		nodes, err := c.noders(ctx, table, ids)
+		if err != nil {
+			for _, id := range ids {
+				for _, idx := range id2idx[id] {
+					errors[idx] = err
+				}
+			}
+		} else {
+			for i, id := range ids {
+				for _, idx := range id2idx[id] {
+					noders[idx] = nodes[i]
+				}
+			}
+		}
+	}
+
+	for i, id := range ids {
+		if errors[i] == nil {
+			if noders[i] != nil {
+				continue
+			}
+			errors[i] = entgql.ErrNodeNotFound(id)
+		} else if IsNotFound(errors[i]) {
+			errors[i] = multierror.Append(errors[i], entgql.ErrNodeNotFound(id))
+		}
+		ctx := graphql.WithPathContext(ctx,
+			graphql.NewPathWithIndex(i),
+		)
+		graphql.AddError(ctx, errors[i])
+	}
+	return noders, nil
+}
+
+func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) ([]Noder, error) {
+	noders := make([]Noder, len(ids))
+	idmap := make(map[{{ $idType }}][]*Noder, len(ids))
+	for i, id := range ids {
+		idmap[id] = append(idmap[id], &noders[i])
+	}
+	resolver, ok := nodeResolvers[table]
+	if !ok {
+		return nil, fmt.Errorf("cannot resolve noders from table %q: %w", table, errNodeInvalidID)
+	}
+	if err := resolver.byIDs(ctx, c, ids, idmap); err != nil {
+		return nil, err
+	}
+	return noders, nil
+}
+
+{{ if and (not ($.Config.FeatureEnabled "sql/globalid")) $idType.Numeric }}
+	type tables struct {
+		once  sync.Once
+		sem   *semaphore.Weighted
+		value atomic.Value
+	}
+
+	func (t *tables) nodeType(ctx context.Context, drv dialect.Driver, id {{ $idType }}) (string, error) {
+		tables, err := t.Load(ctx, drv)
+		if err != nil {
+			return "", err
+		}
+		idx := int(id/(1<<32 - 1))
+		if idx < 0 || idx >= len(tables) {
+			return "", fmt.Errorf("cannot resolve table from id %v: %w", id, errNodeInvalidID)
+		}
+		return tables[idx], nil
+	}
+
+	func (t *tables) Load(ctx context.Context, drv dialect.Driver) ([]string, error) {
+		if tables := t.value.Load(); tables != nil {
+			return tables.([]string), nil
+		}
+		t.once.Do(func() { t.sem = semaphore.NewWeighted(1) })
+		if err := t.sem.Acquire(ctx, 1); err != nil {
+			return nil, err
+		}
+		defer t.sem.Release(1)
+		if tables := t.value.Load(); tables != nil {
+			return tables.([]string), nil
+		}
+		tables, err := t.load(ctx, drv)
+		if err == nil {
+			t.value.Store(tables)
+		}
+		return tables, err
+	}
+
+	func (*tables) load(ctx context.Context, drv dialect.Driver) ([]string, error) {
+		rows := &sql.Rows{}
+		query, args := sql.Dialect(drv.Dialect()).
+			Select("type").
+			From(sql.Table(schema.TypeTable)).
+			OrderBy(sql.Asc("id")).
+			Query()
+		if err := drv.Query(ctx, query, args, rows); err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		var tables []string
+		return tables, sql.ScanSlice(rows, &tables)
+	}
+{{ end }}
+{{ end }}

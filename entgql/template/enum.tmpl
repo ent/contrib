@@ -19,10 +19,18 @@ in the LICENSE file in the root directory of this source tree.
 {{ range $f := $.EnumFields }}
 	{{ $enum := trimPackage $f.Type.String $.Package -}}
 	{{ $internalEnum := printf "%s%s" $.Name $enum -}}
+	{{ $fieldPrefix := pascal $f.Name -}}
 	{{- if not $f.HasGoType }}
 		// MarshalGQL implements graphql.Marshaler interface.
 		func (e {{ $internalEnum }}) MarshalGQL(w io.Writer) {
-			io.WriteString(w, strconv.Quote(e.String()))
+			switch string(e) {
+			{{- range $e := $f.Enums }}
+			case "{{ $e.Value }}":
+				io.WriteString(w, strconv.Quote("{{ trimPrefix $e.Name $fieldPrefix }}"))
+			{{- end }}
+			default:
+				io.WriteString(w, strconv.Quote(string(e)))
+			}
 		}
 
 		// UnmarshalGQL implements graphql.Unmarshaler interface.
@@ -31,13 +39,20 @@ in the LICENSE file in the root directory of this source tree.
 			if !ok {
 				return fmt.Errorf("enum %T must be a string", val)
 			}
-			*e = {{ $internalEnum }}(str)
 			switch str {
+			{{- range $e := $f.Enums }}
+			{{- $gqlName := trimPrefix $e.Name $fieldPrefix }}
+			{{- if ne $gqlName $e.Value }}
+			case "{{ $gqlName }}":
+				*e = {{ $internalEnum }}("{{ $e.Value }}")
+			{{- end }}
+			{{- end }}
 			case {{ range $i, $e := $f.Enums }}{{ if ne $i 0 }},{{ end }}"{{ $e.Value }}"{{ end }}:
-				return nil
+				*e = {{ $internalEnum }}(str)
 			default:
 				return fmt.Errorf("%s is not a valid {{ $internalEnum }}", str)
 			}
+			return nil
 		}
 	{{- end }}
 {{ end }}

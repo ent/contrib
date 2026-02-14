@@ -25,6 +25,7 @@ func main() {
 		entgql.WithSchemaPath("./ent.graphql"),
 		entgql.WithWhereInputs(true),
 		entgql.WithNodeDescriptor(true),
+		entgql.WithSplitGoFiles(true),
 	)
 	if err != nil {
 		log.Fatalf("creating entgql extension: %v", err)

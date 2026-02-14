@@ -1,0 +1,91 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "gql_edge_entity" }}
+
+{{- /*gotype: entgo.io/contrib/entgql.edgeEntityData*/ -}}
+
+{{ $pkg := base $.Config.Package }}
+{{ $.Config.Header }}
+
+package {{ $pkg }}
+
+{{ $node := $.Node }}
+{{ $r := $node.Receiver }}
+
+import (
+	"context"
+
+	"entgo.io/contrib/entgql"
+	"github.com/99designs/gqlgen/graphql"
+)
+
+{{ range $i, $e := filterEdges $node.Edges (skipMode "type") }}
+	{{ if isRelayConn $e }}
+		{{- /* Inlined gql_edge/helper/paginate logic */ -}}
+		{{ $names := nodePaginationNames $e.Type }}
+		{{ $order := $names.Order }}
+		{{ $multiOrder := $e.Type.Annotations.EntGQL.MultiOrder }}
+		{{ $whereInput := $names.WhereInput }}
+		{{- $edge := $names.Edge }}
+		{{ $conn := $names.Connection }}
+		{{ $opt := print $names.Node "PaginateOption" }}
+		{{ $newPager := print "new" $names.Node "Pager" }}
+
+		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(
+			ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+			{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
+			{{- if and $.HasWhereInputTemplate (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
+		) (*{{ $conn }}, error) {
+			opts := []{{ $opt }}{
+			{{- if orderFields $e.Type }}
+				{{ print "With" $order }}(orderBy),
+			{{- end }}
+			{{- if and $.HasWhereInputTemplate (hasWhereInput $e) }}
+				{{ print "With" $names.Node "Filter" }}(where.Filter),
+			{{- end }}
+			}
+			{{- /* May be nil if the totalCount was not loaded. */}}
+			alias := graphql.GetFieldContext(ctx).Field.Alias
+			totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
+			{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
+			if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
+				pager, err := {{ $newPager }}(opts, last != nil)
+				if err != nil {
+					return nil, err
+				}
+				{{- /* Ensure the "edges" field is marshaled as "[]" in case it is empty. */}}
+				conn := &{{ $conn }}{Edges: []*{{ $edge }}{}, TotalCount: totalCount}
+				conn.build(nodes, pager, after, first, before, last)
+				return conn, nil
+			}
+			return {{ $r }}.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
+		}
+	{{ else if not $e.Unique }}
+		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(ctx context.Context) (result []*{{ $e.Type.Name }}, err error) {
+			if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+				result, err = {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
+			} else {
+				{{- /* For regular edges (not Relay connections), we fallback to .Edges field in case the context is not GraphQL */}}
+				result, err = {{ $r }}.Edges.{{ $e.StructField }}OrErr()
+			}
+			if IsNotLoaded(err) {
+				result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
+			}
+			return result, err
+		}
+	{{ else }}
+		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
+			result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
+			if IsNotLoaded(err) {
+				result, err = {{ $r }}.Query{{ $e.StructField }}().Only(ctx)
+			}
+			return result, {{ if $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+		}
+	{{ end }}
+{{ end }}
+
+{{ end }}
