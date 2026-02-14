@@ -39,6 +39,11 @@ import (
 				}
 				return result, err
 			}
+
+			// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
+				return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx)
+			}
 		{{ else }}
 			// Resolve{{ $n.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
 			func Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }} *{{ $n.Name }}, ctx context.Context) (*{{ $e.Type.Name }}, error) {
@@ -47,6 +52,11 @@ import (
 					result, err = FromContext(ctx).{{ $n.Name }}.Query{{ $e.StructField }}({{ $r }}).Only(ctx)
 				}
 				return result, {{ if $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+			}
+
+			// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
+				return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx)
 			}
 		{{ end }}
 	{{ end }}

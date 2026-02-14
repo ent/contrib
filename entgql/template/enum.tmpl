@@ -12,10 +12,12 @@ in the LICENSE file in the root directory of this source tree.
 
 {{/*
 	model/additional/graphql-enum generates MarshalGQL/UnmarshalGQL methods on the
-	concrete (entity-prefixed) enum types defined in the internal package.
-	Called from internal_model.tmpl via the model/additional extend point.
+	concrete (entity-prefixed) enum types defined in the main package.
+	Skipped when split-packages is enabled because the enum types live in subpackages;
+	in that case, meta/additional/graphql-enum generates the methods instead.
 */}}
 {{ define "model/additional/graphql-enum" }}
+{{- if not ($.FeatureEnabled "split-packages") }}
 {{ range $f := $.EnumFields }}
 	{{ $enum := trimPackage $f.Type.String $.Package -}}
 	{{ $internalEnum := printf "%s%s" $.Name $enum -}}
@@ -56,12 +58,15 @@ in the LICENSE file in the root directory of this source tree.
 		}
 	{{- end }}
 {{ end }}
+{{- end }}
 {{ end }}
 
 {{/*
-	meta/additional/graphql-enum handles GoType enum interface assertions only.
-	Non-GoType enum MarshalGQL/UnmarshalGQL methods are generated in model/additional
-	on the concrete types in the internal package.
+	meta/additional/graphql-enum handles:
+	- GoType enum interface assertions (always).
+	- Non-GoType enum MarshalGQL/UnmarshalGQL methods when split-packages is enabled,
+	  since the enum types live in subpackages (e.g., agentlicensing.LicenseStatus)
+	  and methods must be defined in the same package as the type.
 */}}
 {{ define "meta/additional/graphql-enum" }}
 {{ range $f := $.EnumFields }}
@@ -73,6 +78,42 @@ in the LICENSE file in the root directory of this source tree.
 			// {{ $enum }} must implement graphql.Unmarshaler.
 			 _ graphql.Unmarshaler = (*{{ $enum }})(nil)
 		)
+	{{- end }}
+	{{- if and (not $f.HasGoType) ($.FeatureEnabled "split-packages") }}
+		{{ $fieldPrefix := pascal $f.Name -}}
+		// MarshalGQL implements graphql.Marshaler interface.
+		func (e {{ $enum }}) MarshalGQL(w io.Writer) {
+			switch string(e) {
+			{{- range $e := $f.Enums }}
+			case "{{ $e.Value }}":
+				io.WriteString(w, strconv.Quote("{{ trimPrefix $e.Name $fieldPrefix }}"))
+			{{- end }}
+			default:
+				io.WriteString(w, strconv.Quote(string(e)))
+			}
+		}
+
+		// UnmarshalGQL implements graphql.Unmarshaler interface.
+		func (e *{{ $enum }}) UnmarshalGQL(val interface{}) error {
+			str, ok := val.(string)
+			if !ok {
+				return fmt.Errorf("enum %T must be a string", val)
+			}
+			switch str {
+			{{- range $e := $f.Enums }}
+			{{- $gqlName := trimPrefix $e.Name $fieldPrefix }}
+			{{- if ne $gqlName $e.Value }}
+			case "{{ $gqlName }}":
+				*e = {{ $enum }}("{{ $e.Value }}")
+			{{- end }}
+			{{- end }}
+			case {{ range $i, $e := $f.Enums }}{{ if ne $i 0 }},{{ end }}"{{ $e.Value }}"{{ end }}:
+				*e = {{ $enum }}(str)
+			default:
+				return fmt.Errorf("%s is not a valid {{ $enum }}", str)
+			}
+			return nil
+		}
 	{{- end }}
 {{ end }}
 {{ end }}
