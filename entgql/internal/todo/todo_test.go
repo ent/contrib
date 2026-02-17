@@ -639,6 +639,96 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
 	})
 
+	s.Run("NestedEmptyAndFilter", func() {
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{and: [{}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "nested empty predicate in 'and' should not error")
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+
+	s.Run("NestedEmptyOrFilter", func() {
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{or: [{}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "nested empty predicate in 'or' should not error")
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+
+	s.Run("NestedEmptyNotFilter", func() {
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{not: {}}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "nested empty predicate in 'not' should not error")
+	})
+
+	s.Run("MixedEmptyAndFilter", func() {
+		// and: [{}, {status: COMPLETED}] — empty child should be skipped,
+		// status filter still applied
+		var (
+			rsp   response
+			query = `query($status: TodoStatus) {
+				todos(where:{and: [{}, {status: $status}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp, client.Var("status", "COMPLETED"))
+		s.NoError(err, "mixed empty + filter in 'and' should not error")
+		expected := s.ent.Todo.Query().Where(todo.StatusEQ(todo.StatusCompleted)).CountX(context.Background())
+		s.Equal(expected, rsp.Todos.TotalCount)
+	})
+
+	s.Run("MixedEmptyOrFilter", func() {
+		// or: [{}, {status: COMPLETED}] — empty child should be skipped,
+		// status filter still applied
+		var (
+			rsp   response
+			query = `query($status: TodoStatus) {
+				todos(where:{or: [{}, {status: $status}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp, client.Var("status", "COMPLETED"))
+		s.NoError(err, "mixed empty + filter in 'or' should not error")
+		expected := s.ent.Todo.Query().Where(todo.StatusEQ(todo.StatusCompleted)).CountX(context.Background())
+		s.Equal(expected, rsp.Todos.TotalCount)
+	})
+
+	s.Run("DeeplyNestedEmptyFilter", func() {
+		// and: [{and: [{}]}] — deeply nested empty should not error
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{and: [{and: [{}]}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "deeply nested empty predicate should not error")
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+
 	s.Run("Zero first", func() {
 		var (
 			rsp   response
