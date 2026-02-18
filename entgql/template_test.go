@@ -292,7 +292,7 @@ func TestPaginationSharedTemplateExecution(t *testing.T) {
 		"shared template should not generate per-entity TodoEdge type")
 	require.False(t, strings.Contains(output, "todoPager"),
 		"shared template should not generate per-entity todoPager type")
-	require.False(t, strings.Contains(output, "func (t *TodoQuery) Paginate"),
+	require.False(t, strings.Contains(output, "func (_m *TodoQuery) Paginate"),
 		"shared template should not generate per-entity Paginate method")
 }
 
@@ -480,15 +480,15 @@ func TestPaginationEntityTemplateExecution(t *testing.T) {
 	require.Contains(t, output, "DefaultTodoOrder")
 
 	// Verify per-entity methods are generated.
-	require.Contains(t, output, "func (t *TodoQuery) Paginate(")
-	require.Contains(t, output, "func (t *Todo) ToEdge(")
+	require.Contains(t, output, "func (_m *TodoQuery) Paginate(")
+	require.Contains(t, output, "func TodoToEdge(_m *Todo,")
 
 	// Verify the paginate helper is inlined (no template calls in output).
 	require.Contains(t, output, "validateFirstLast(first, last)")
 	require.Contains(t, output, "newTodoPager(opts, last != nil)")
-	require.Contains(t, output, "pager.applyFilter(t)")
-	require.Contains(t, output, "pager.applyCursors(t, after, before)")
-	require.Contains(t, output, "pager.applyOrder(t)")
+	require.Contains(t, output, "pager.applyFilter(_m)")
+	require.Contains(t, output, "pager.applyCursors(_m, after, before)")
+	require.Contains(t, output, "pager.applyOrder(_m)")
 
 	// Verify order fields are generated (Todo has OrderField annotations).
 	// VarName uses the field's StructField name, not the GQL order field name.
@@ -831,10 +831,10 @@ func TestEdgeEntityTemplateExecution(t *testing.T) {
 	// Verify the generated output contains the package declaration.
 	require.Contains(t, output, "package ent")
 
-	// Verify edge resolver methods are generated.
+	// Verify edge resolver standalone functions are generated.
 	// Todo has edges: parent, children, category, secret.
 	// Children is a Relay connection edge, so it should have pagination params.
-	require.Contains(t, output, "func (t *Todo)")
+	require.Contains(t, output, "func ResolveTodo")
 
 	// Verify import statements.
 	require.Contains(t, output, `"context"`)
@@ -882,8 +882,8 @@ func TestEdgeEntityTemplateNoWhereInput(t *testing.T) {
 	// Verify the generated output contains the package declaration.
 	require.Contains(t, output, "package ent")
 
-	// Verify edge resolver methods are generated.
-	require.Contains(t, output, "func (t *Todo)")
+	// Verify edge resolver standalone functions are generated.
+	require.Contains(t, output, "func ResolveTodo")
 
 	// Since HasWhereInputTemplate=false, the where input filter should not appear.
 	require.NotContains(t, output, "WhereInput",
@@ -936,13 +936,13 @@ func TestEdgeEntityTemplateMultipleEntities(t *testing.T) {
 	require.NoError(t, err)
 	catOutput := catBuf.String()
 
-	// Verify Todo output has Todo-specific methods.
-	require.Contains(t, todoOutput, "func (t *Todo)")
-	require.NotContains(t, todoOutput, "func (c *Category)")
+	// Verify Todo output has Todo-specific standalone functions.
+	require.Contains(t, todoOutput, "func ResolveTodo")
+	require.NotContains(t, todoOutput, "ResolveCategory")
 
-	// Verify Category output has Category-specific methods.
-	require.Contains(t, catOutput, "func (c *Category)")
-	require.NotContains(t, catOutput, "func (t *Todo)")
+	// Verify Category output has Category-specific standalone functions.
+	require.Contains(t, catOutput, "func ResolveCategory")
+	require.NotContains(t, catOutput, "ResolveTodo")
 }
 
 func TestNodeDescriptorSharedTemplateParsed(t *testing.T) {
@@ -968,7 +968,11 @@ func TestNodeDescriptorSharedTemplateContent(t *testing.T) {
 
 	// Verify Client.Node() method is present.
 	require.Contains(t, src, "func (c *Client) Node(")
-	require.Contains(t, src, "c.Noder(ctx, id)")
+	require.Contains(t, src, "c.noder(ctx, table, id)")
+
+	// Verify node descriptor registry is present.
+	require.Contains(t, src, "nodeDescriptors")
+	require.Contains(t, src, "registerNodeDescriptor")
 
 	// Verify NO per-entity code is present.
 	// Note: $.Nodes (plural) is expected in the shared template for filterNodes;
@@ -1010,13 +1014,17 @@ func TestNodeDescriptorSharedTemplateExecution(t *testing.T) {
 
 	// Verify Client.Node() method is generated.
 	require.Contains(t, output, "func (c *Client) Node(ctx context.Context, id int) (*Node, error)")
-	require.Contains(t, output, "c.Noder(ctx, id)")
+	require.Contains(t, output, "c.noder(ctx, table, id)")
+
+	// Verify node descriptor registry is generated.
+	require.Contains(t, output, "var nodeDescriptors")
+	require.Contains(t, output, "func registerNodeDescriptor(")
 
 	// Verify NO per-entity code is present.
-	require.False(t, strings.Contains(output, "func (bp *BillProduct) Node("),
-		"shared template should not generate per-entity BillProduct Node() method")
-	require.False(t, strings.Contains(output, "func (t *Todo) Node("),
-		"shared template should not generate per-entity Todo Node() method")
+	require.False(t, strings.Contains(output, "BillProductNode("),
+		"shared template should not generate per-entity BillProductNode() function")
+	require.False(t, strings.Contains(output, "TodoNode("),
+		"shared template should not generate per-entity TodoNode() function")
 	require.False(t, strings.Contains(output, "json.Marshal"),
 		"shared template should not contain json.Marshal (per-entity code)")
 }
@@ -1037,8 +1045,8 @@ func TestNodeDescriptorEntityTemplateContent(t *testing.T) {
 	require.NotNil(t, tmpl)
 	src := tmpl.Tree.Root.String()
 
-	// Verify per-entity Node() method is present.
-	require.Contains(t, src, "Noder interface")
+	// Verify per-entity node descriptor function is present.
+	require.Contains(t, src, "registerNodeDescriptor")
 	require.Contains(t, src, "json.Marshal")
 	require.Contains(t, src, "$.Node")
 
@@ -1083,19 +1091,22 @@ func TestNodeDescriptorEntityTemplateExecution(t *testing.T) {
 	// Verify the generated output contains the package declaration.
 	require.Contains(t, output, "package ent")
 
-	// Verify per-entity Node() method is generated for Todo.
-	require.Contains(t, output, "func (t *Todo) Node(ctx context.Context) (node *Node, err error)")
+	// Verify per-entity standalone node descriptor function is generated for Todo.
+	require.Contains(t, output, "func TodoNode(_m *Todo, ctx context.Context) (node *Node, err error)")
+
+	// Verify node descriptor registration.
+	require.Contains(t, output, "registerNodeDescriptor(todo.Table")
 
 	// Verify field serialization is present.
-	require.Contains(t, output, "json.Marshal(t.CreatedAt)")
-	require.Contains(t, output, "json.Marshal(t.Status)")
-	require.Contains(t, output, "json.Marshal(t.Priority)")
-	require.Contains(t, output, "json.Marshal(t.Text)")
+	require.Contains(t, output, "json.Marshal(_m.CreatedAt)")
+	require.Contains(t, output, "json.Marshal(_m.Status)")
+	require.Contains(t, output, "json.Marshal(_m.Priority)")
+	require.Contains(t, output, "json.Marshal(_m.Text)")
 
-	// Verify edge queries are present.
-	require.Contains(t, output, "t.QueryParent()")
-	require.Contains(t, output, "t.QueryChildren()")
-	require.Contains(t, output, "t.QueryCategory()")
+	// Verify edge queries use FromContext pattern.
+	require.Contains(t, output, "FromContext(ctx).Todo.QueryParent(_m)")
+	require.Contains(t, output, "FromContext(ctx).Todo.QueryChildren(_m)")
+	require.Contains(t, output, "FromContext(ctx).Todo.QueryCategory(_m)")
 
 	// Verify edge type imports.
 	require.Contains(t, output, `"entgo.io/contrib/entgql/internal/todo/ent/todo"`)
@@ -1152,22 +1163,22 @@ func TestNodeDescriptorEntityTemplateMultipleEntities(t *testing.T) {
 	require.NoError(t, err)
 	bpOutput := bpBuf.String()
 
-	// Verify Todo output has Todo-specific method.
-	require.Contains(t, todoOutput, "func (t *Todo) Node(ctx context.Context)")
-	require.NotContains(t, todoOutput, "func (bp *BillProduct) Node(")
+	// Verify Todo output has Todo-specific standalone function.
+	require.Contains(t, todoOutput, "func TodoNode(_m *Todo, ctx context.Context)")
+	require.NotContains(t, todoOutput, "BillProductNode(")
 
-	// Verify BillProduct output has BillProduct-specific method.
-	require.Contains(t, bpOutput, "func (bp *BillProduct) Node(ctx context.Context)")
-	require.NotContains(t, bpOutput, "func (t *Todo) Node(")
+	// Verify BillProduct output has BillProduct-specific standalone function.
+	require.Contains(t, bpOutput, "func BillProductNode(_m *BillProduct, ctx context.Context)")
+	require.NotContains(t, bpOutput, "TodoNode(")
 
 	// BillProduct has no edges, so no edge queries should appear.
 	require.NotContains(t, bpOutput, "QueryTodos")
 	require.NotContains(t, bpOutput, "QueryParent")
 
 	// BillProduct has fields: name, sku, quantity.
-	require.Contains(t, bpOutput, "json.Marshal(bp.Name)")
-	require.Contains(t, bpOutput, "json.Marshal(bp.Sku)")
-	require.Contains(t, bpOutput, "json.Marshal(bp.Quantity)")
+	require.Contains(t, bpOutput, "json.Marshal(_m.Name)")
+	require.Contains(t, bpOutput, "json.Marshal(_m.Sku)")
+	require.Contains(t, bpOutput, "json.Marshal(_m.Quantity)")
 }
 
 func TestNodeSharedTemplateParsed(t *testing.T) {
@@ -1216,11 +1227,9 @@ func TestNodeSharedTemplateContent(t *testing.T) {
 	require.NotContains(t, src, "$.Node.Name")
 	require.NotContains(t, src, "nodeImplementorsVar")
 
-	// Verify HasNodeDescriptorTemplate is used instead of hasTemplate.
+	// Verify no hasTemplate references.
 	require.NotContains(t, src, "hasTemplate",
-		"shared template should use $.HasNodeDescriptorTemplate instead of hasTemplate")
-	require.Contains(t, src, "HasNodeDescriptorTemplate",
-		"shared template should reference HasNodeDescriptorTemplate")
+		"shared template should not use hasTemplate")
 }
 
 func TestNodeSharedTemplateExecution(t *testing.T) {
@@ -1247,9 +1256,10 @@ func TestNodeSharedTemplateExecution(t *testing.T) {
 	// Verify the generated output contains the package declaration.
 	require.Contains(t, output, "package ent")
 
-	// Verify Noder interface is generated with Node() method when HasNodeDescriptorTemplate=true.
+	// Verify Noder interface is generated with IsNode() method.
 	require.Contains(t, output, "type Noder interface")
-	require.Contains(t, output, "Node(context.Context) (*Node, error)")
+	require.Contains(t, output, "IsNode()")
+	require.NotContains(t, output, "Node(context.Context) (*Node, error)")
 
 	// Verify shared infrastructure types are generated.
 	require.Contains(t, output, "var errNodeInvalidID")

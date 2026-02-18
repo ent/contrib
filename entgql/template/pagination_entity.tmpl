@@ -646,8 +646,8 @@ var {{ $defaultOrder }} = &{{ $order }}{
 	},
 }
 
-// ToEdge converts {{ $name }} into {{ $edge }}.
-func ({{ $r }} *{{ $name }}) ToEdge(order *{{ $order }}) *{{ $edge }} {
+// {{ $name }}ToEdge converts {{ $name }} into {{ $edge }}.
+func {{ $name }}ToEdge({{ $r }} *{{ $name }}, order *{{ $order }}) *{{ $edge }} {
 	if order == nil {
 		order = {{ $defaultOrder }}
 	}
