@@ -23,6 +23,15 @@ import (
 	"sync/atomic"
 
 	"entgo.io/contrib/entgql"
+	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
+	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
+	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
+	"entgo.io/contrib/entgql/internal/todo/ent/workspace"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
@@ -36,6 +45,54 @@ type Noder interface {
 	Node(context.Context) (*Node, error)
 	IsNode()
 }
+
+var billproductImplementors = []string{"BillProduct", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*BillProduct) IsNode() {}
+
+var categoryImplementors = []string{"Category", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Category) IsNode() {}
+
+var friendshipImplementors = []string{"Friendship", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Friendship) IsNode() {}
+
+var groupImplementors = []string{"Group", "Node", "NamedNode"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Group) IsNode() {}
+
+// IsNamedNode implements the NamedNode interface check for GQLGen.
+func (*Group) IsNamedNode() {}
+
+var onetomanyImplementors = []string{"OneToMany", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*OneToMany) IsNode() {}
+
+var projectImplementors = []string{"Project", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Project) IsNode() {}
+
+var todoImplementors = []string{"Todo", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Todo) IsNode() {}
+
+var userImplementors = []string{"User", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*User) IsNode() {}
+
+var workspaceImplementors = []string{"Organization", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Workspace) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -62,24 +119,6 @@ type nodeOptions struct {
 	nodeType func(context.Context, int) (string, error)
 }
 
-// nodeResolver holds the per-entity resolver functions for node lookup.
-type nodeResolver struct {
-	byID  func(ctx context.Context, c *Client, id int) (Noder, error)
-	byIDs func(ctx context.Context, c *Client, ids []int, idmap map[int][]*Noder) error
-}
-
-// nodeResolvers maps table names to their node resolver functions.
-// Each entity registers itself via init().
-var nodeResolvers = map[string]nodeResolver{}
-
-// registerNodeResolver registers a node resolver for a given table.
-// It panics if a resolver is already registered for the table.
-func registerNodeResolver(table string, r nodeResolver) {
-	if _, ok := nodeResolvers[table]; ok {
-		panic(fmt.Sprintf("entgql: duplicate node resolver for table %q", table))
-	}
-	nodeResolvers[table] = r
-}
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	nopts := &nodeOptions{}
 	for _, opt := range opts {
@@ -112,11 +151,91 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 }
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
-	resolver, ok := nodeResolvers[table]
-	if !ok {
+	switch table {
+	case billproduct.Table:
+		query := c.BillProduct.Query().
+			Where(billproduct.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, billproductImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case category.Table:
+		query := c.Category.Query().
+			Where(category.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, categoryImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, friendshipImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, groupImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case onetomany.Table:
+		query := c.OneToMany.Query().
+			Where(onetomany.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, onetomanyImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, projectImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case todo.Table:
+		query := c.Todo.Query().
+			Where(todo.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, todoImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case user.Table:
+		query := c.User.Query().
+			Where(user.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, userImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case workspace.Table:
+		query := c.Workspace.Query().
+			Where(workspace.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, workspaceImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	default:
 		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", table, errNodeInvalidID)
 	}
-	return resolver.byID(ctx, c, id)
 }
 
 func (c *Client) Noders(ctx context.Context, ids []int, opts ...NodeOption) ([]Noder, error) {
@@ -186,12 +305,153 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 	for i, id := range ids {
 		idmap[id] = append(idmap[id], &noders[i])
 	}
-	resolver, ok := nodeResolvers[table]
-	if !ok {
+	switch table {
+	case billproduct.Table:
+		query := c.BillProduct.Query().
+			Where(billproduct.IDIn(ids...))
+		query, err := query.CollectFields(ctx, billproductImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case category.Table:
+		query := c.Category.Query().
+			Where(category.IDIn(ids...))
+		query, err := query.CollectFields(ctx, categoryImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case friendship.Table:
+		query := c.Friendship.Query().
+			Where(friendship.IDIn(ids...))
+		query, err := query.CollectFields(ctx, friendshipImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case group.Table:
+		query := c.Group.Query().
+			Where(group.IDIn(ids...))
+		query, err := query.CollectFields(ctx, groupImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case onetomany.Table:
+		query := c.OneToMany.Query().
+			Where(onetomany.IDIn(ids...))
+		query, err := query.CollectFields(ctx, onetomanyImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.IDIn(ids...))
+		query, err := query.CollectFields(ctx, projectImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case todo.Table:
+		query := c.Todo.Query().
+			Where(todo.IDIn(ids...))
+		query, err := query.CollectFields(ctx, todoImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case user.Table:
+		query := c.User.Query().
+			Where(user.IDIn(ids...))
+		query, err := query.CollectFields(ctx, userImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case workspace.Table:
+		query := c.Workspace.Query().
+			Where(workspace.IDIn(ids...))
+		query, err := query.CollectFields(ctx, workspaceImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	default:
 		return nil, fmt.Errorf("cannot resolve noders from table %q: %w", table, errNodeInvalidID)
-	}
-	if err := resolver.byIDs(ctx, c, ids, idmap); err != nil {
-		return nil, err
 	}
 	return noders, nil
 }

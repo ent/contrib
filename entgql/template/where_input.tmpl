@@ -96,8 +96,8 @@ import (
         }
         p, err := i.P()
         if err != nil {
-            {{- /* Skip errors only for top-level empty predicates. The rest are invalid. */}}
-            if err == {{ $err }} {
+            {{- /* Skip empty predicate errors, including those wrapped by nested And/Or/Not clauses. */}}
+            if errors.Is(err, {{ $err }}) {
                return q, nil
             }
             return nil, err
@@ -115,45 +115,64 @@ import (
         if i.Not != nil {
             p, err := i.Not.P()
             if err != nil {
-                return nil, fmt.Errorf("%w: field 'not'", err)
+                if !errors.Is(err, {{ $err }}) {
+                    return nil, fmt.Errorf("%w: field 'not'", err)
+                }
+            } else {
+                predicates = append(predicates, {{ $n.Package }}.Not(p))
             }
-            predicates = append(predicates, {{ $n.Package }}.Not(p))
         }
         switch n := len(i.Or); {
         case n == 1:
             p, err := i.Or[0].P()
             if err != nil {
-                return nil, fmt.Errorf("%w: field 'or'", err)
+                if !errors.Is(err, {{ $err }}) {
+                    return nil, fmt.Errorf("%w: field 'or'", err)
+                }
+            } else {
+                predicates = append(predicates, p)
             }
-            predicates = append(predicates, p)
         case n > 1:
             or := make([]predicate.{{ $n.Name }}, 0, n)
             for _, w := range i.Or {
                 p, err := w.P()
                 if err != nil {
-                    return nil, fmt.Errorf("%w: field 'or'", err)
+                    if !errors.Is(err, {{ $err }}) {
+                        return nil, fmt.Errorf("%w: field 'or'", err)
+                    }
+                    continue
                 }
                 or = append(or, p)
             }
-            predicates = append(predicates, {{ $n.Package }}.Or(or...))
+            if len(or) > 0 {
+                predicates = append(predicates, {{ $n.Package }}.Or(or...))
+            }
         }
         switch n := len(i.And); {
         case n == 1:
             p, err := i.And[0].P()
             if err != nil {
-                return nil, fmt.Errorf("%w: field 'and'", err)
+                if !errors.Is(err, {{ $err }}) {
+                    return nil, fmt.Errorf("%w: field 'and'", err)
+                }
+            } else {
+                predicates = append(predicates, p)
             }
-            predicates = append(predicates, p)
         case n > 1:
             and := make([]predicate.{{ $n.Name }}, 0, n)
             for _, w := range i.And {
                 p, err := w.P()
                 if err != nil {
-                    return nil, fmt.Errorf("%w: field 'and'", err)
+                    if !errors.Is(err, {{ $err }}) {
+                        return nil, fmt.Errorf("%w: field 'and'", err)
+                    }
+                    continue
                 }
                 and = append(and, p)
             }
-            predicates = append(predicates, {{ $n.Package }}.And(and...))
+            if len(and) > 0 {
+                predicates = append(predicates, {{ $n.Package }}.And(and...))
+            }
         }
         predicates = append(predicates, i.Predicates...)
         {{- range $f := $comparableFields }}
