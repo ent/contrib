@@ -729,6 +729,72 @@ func (s *todoTestSuite) TestPaginationFiltering() {
 		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
 	})
 
+	s.Run("EdgePredicateWithEmptyAnd", func() {
+		// Combining edge predicate with empty and clause
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{and: [{hasParent: true}, {}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "edge predicate mixed with empty and should not error")
+		expected := s.ent.Todo.Query().Where(todo.HasParent()).CountX(context.Background())
+		s.Equal(expected, rsp.Todos.TotalCount)
+	})
+
+	s.Run("EdgePredicateWithEmptyOr", func() {
+		// Combining edge predicate with empty or clause
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{or: [{hasCategory: true}, {}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "edge predicate mixed with empty or should not error")
+		expected := s.ent.Todo.Query().Where(todo.HasCategory()).CountX(context.Background())
+		s.Equal(expected, rsp.Todos.TotalCount)
+	})
+
+	s.Run("MultipleEmptyNesting", func() {
+		// or: [{and: [{}]}, {not: {}}] — multiple nesting combinations
+		var (
+			rsp   response
+			query = `query {
+				todos(where:{or: [{and: [{}]}, {not: {}}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp)
+		s.NoError(err, "multiple empty nesting combinations should not error")
+		s.Equal(s.ent.Todo.Query().CountX(context.Background()), rsp.Todos.TotalCount)
+	})
+
+	s.Run("MixedEdgeAndFieldWithEmpty", func() {
+		// and: [{}, {status: COMPLETED}, {hasParent: true}] — empty + field + edge
+		var (
+			rsp   response
+			query = `query($status: TodoStatus) {
+				todos(where:{and: [{}, {status: $status}, {hasParent: true}]}) {
+					totalCount
+				}
+			}`
+		)
+		err := s.Post(query, &rsp, client.Var("status", "COMPLETED"))
+		s.NoError(err, "mixed empty + field + edge in 'and' should not error")
+		expected := s.ent.Todo.Query().Where(
+			todo.StatusEQ(todo.StatusCompleted),
+			todo.HasParent(),
+		).CountX(context.Background())
+		s.Equal(expected, rsp.Todos.TotalCount)
+	})
+
 	s.Run("Zero first", func() {
 		var (
 			rsp   response
