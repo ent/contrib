@@ -42,13 +42,13 @@ in the LICENSE file in the root directory of this source tree.
 	{{- if not $f.HasGoType }}
 		{{ $internalEnum := printf "%s%s" $.Name $enum }}
 		{{- if $useEnumNames }}
-			var {{ $f.Name }}GqlEnumToTypeMap = map[string]{{ $internalEnum }} {
+			var {{ $internalEnum }}GqlEnumToTypeMap = map[string]{{ $internalEnum }} {
 			{{- range $e := $f.Enums }}
 				"{{ trimPrefix $e.Name $f.StructField }}": {{ $internalEnum }}("{{ $e.Value }}"),
 			{{- end }}
 			}
 
-			var {{ $f.Name }}TypeToGqlEnum = map[{{ $internalEnum }}]string {
+			var {{ $internalEnum }}TypeToGqlEnum = map[{{ $internalEnum }}]string {
 			{{- range $e := $f.Enums }}
 				{{ $internalEnum }}("{{ $e.Value }}"): "{{ trimPrefix $e.Name $f.StructField }}",
 			{{- end }}
@@ -57,7 +57,7 @@ in the LICENSE file in the root directory of this source tree.
 		// MarshalGQL implements graphql.Marshaler interface.
 		func (e {{ $internalEnum }}) MarshalGQL(w io.Writer) {
 			{{- if $useEnumNames }}
-			io.WriteString(w, strconv.Quote({{ $f.Name }}TypeToGqlEnum[e]))
+			io.WriteString(w, strconv.Quote({{ $internalEnum }}TypeToGqlEnum[e]))
 			{{- else }}
 			io.WriteString(w, strconv.Quote(e.String()))
 			{{- end }}
@@ -70,11 +70,11 @@ in the LICENSE file in the root directory of this source tree.
 				return fmt.Errorf("enum %T must be a string", val)
 			}
 			{{- if $useEnumNames }}
-			{{ $f.Name }}, ok := {{ $f.Name }}GqlEnumToTypeMap[str]
+			{{ camel $internalEnum }}Val, ok := {{ $internalEnum }}GqlEnumToTypeMap[str]
 			if !ok {
 				return fmt.Errorf("%s is not a valid {{ $internalEnum }}", str)
 			}
-			*e = {{ $f.Name }}
+			*e = {{ camel $internalEnum }}Val
 			return nil
 			{{- else }}
 			*e = {{ $internalEnum }}(str)
