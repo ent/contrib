@@ -18,9 +18,8 @@ package category
 
 import (
 	"fmt"
-	"io"
-	"strconv"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/internal"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -34,8 +33,8 @@ const (
 	FieldText = "text"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// FieldConfig holds the string denoting the config field in the database.
-	FieldConfig = "config"
+	// FieldCategoryConfig holds the string denoting the category_config field in the database.
+	FieldCategoryConfig = "category_config"
 	// FieldTypes holds the string denoting the types field in the database.
 	FieldTypes = "types"
 	// FieldDuration holds the string denoting the duration field in the database.
@@ -66,7 +65,7 @@ var Columns = []string{
 	FieldID,
 	FieldText,
 	FieldStatus,
-	FieldConfig,
+	FieldCategoryConfig,
 	FieldTypes,
 	FieldDuration,
 	FieldCount,
@@ -98,18 +97,14 @@ var (
 	TextValidator func(string) error
 )
 
-// Status defines the type for the "status" enum field.
-type Status string
+// Status is an alias for the enum type defined in the internal package.
+type Status = internal.CategoryStatus
 
 // Status values.
 const (
 	StatusEnabled  Status = "ENABLED"
 	StatusDisabled Status = "DISABLED"
 )
-
-func (s Status) String() string {
-	return string(s)
-}
 
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
@@ -139,9 +134,9 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByConfig orders the results by the config field.
-func ByConfig(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldConfig, opts...).ToFunc()
+// ByCategoryConfig orders the results by the category_config field.
+func ByCategoryConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategoryConfig, opts...).ToFunc()
 }
 
 // ByDuration orders the results by the duration field.
@@ -194,22 +189,4 @@ func newSubCategoriesStep() *sqlgraph.Step {
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, SubCategoriesTable, SubCategoriesPrimaryKey...),
 	)
-}
-
-// MarshalGQL implements graphql.Marshaler interface.
-func (e Status) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(e.String()))
-}
-
-// UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *Status) UnmarshalGQL(val interface{}) error {
-	str, ok := val.(string)
-	if !ok {
-		return fmt.Errorf("enum %T must be a string", val)
-	}
-	*e = Status(str)
-	if err := StatusValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid Status", str)
-	}
-	return nil
 }

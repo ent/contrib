@@ -53,12 +53,12 @@ type Edge struct {
 {{- range $n := $gqlNodes }}
 	{{- $receiver := $n.Receiver }}
 	{{- $marshalID := and $idType.Mixed (gqlMarshaler $n.ID) }}
-	// Node implements Noder interface
-	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+	// {{ $n.Name }}Node returns the Node descriptor of a {{ $n.Name }}.
+	func {{ $n.Name }}Node({{ $receiver }} *{{ $n.Name }}, ctx context.Context) (node *Node, err error) {
 		{{- $fields := filterFields $n.Fields (skipMode "type") }}
 		{{- $edges := filterEdges $n.Edges (skipMode "type") }}
 		node = &Node{
-			ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
+			ID: {{ if $marshalID }}marshal{{ $n.Name }}ID({{ $receiver }}){{ else }}{{ $receiver }}.ID{{ end }},
 			Type: "{{ $n.Name }}",
 			Fields: make([]*Field, {{ len $fields }}),
 			Edges: make([]*Edge, {{ len $edges }}),
@@ -82,7 +82,7 @@ type Edge struct {
 					Type: "{{ $e.Type.Name }}",
 					Name: "{{ $e.Name }}",
 				}
-				err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+				err = FromContext(ctx).{{ $n.Name }}.{{ print "Query" (pascal $e.Name) }}({{ $receiver }}).
 					Select({{ $e.Type.Package }}.FieldID).
 					Scan(ctx, &node.Edges[{{ $i }}].IDs)
 				if err != nil {
@@ -104,6 +104,13 @@ func (c *Client) Node(ctx context.Context, id {{ $idType }}) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return n.Node(ctx)
+	switch v := n.(type) {
+	{{- range $n := $gqlNodes }}
+	case *{{ $n.Name }}:
+		return {{ $n.Name }}Node(v, ctx)
+	{{- end }}
+	default:
+		return nil, fmt.Errorf("cannot resolve node descriptor for type %T", n)
+	}
 }
 {{ end }}

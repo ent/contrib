@@ -26,7 +26,8 @@ import (
 				{{ template "gql_edge/helper/paginate" . }}
 			{{ end }}
 		{{ else if not $e.Unique }}
-			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (result []*{{ $e.Type.Name }}, err error) {
+			// Resolve{{ $n.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }} *{{ $n.Name }}, ctx context.Context) (result []*{{ $e.Type.Name }}, err error) {
 				if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 					result, err = {{ $r }}.Named{{ $e.StructField }}(graphql.GetFieldContext(ctx).Field.Alias)
 				} else {
@@ -34,17 +35,28 @@ import (
 					result, err = {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 				}
 				if IsNotLoaded(err) {
-					result, err = {{ $r }}.Query{{ $e.StructField }}().All(ctx)
+					result, err = FromContext(ctx).{{ $n.Name }}.Query{{ $e.StructField }}({{ $r }}).All(ctx)
 				}
 				return result, err
 			}
+
+			// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
+				return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx)
+			}
 		{{ else }}
-			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
+			// Resolve{{ $n.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }} *{{ $n.Name }}, ctx context.Context) (*{{ $e.Type.Name }}, error) {
 				result, err := {{ $r }}.Edges.{{ $e.StructField }}OrErr()
 				if IsNotLoaded(err) {
-					result, err = {{ $r }}.Query{{ $e.StructField }}().Only(ctx)
+					result, err = FromContext(ctx).{{ $n.Name }}.Query{{ $e.StructField }}({{ $r }}).Only(ctx)
 				}
 				return result, {{ if $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
+			}
+
+			// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+			func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
+				return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx)
 			}
 		{{ end }}
 	{{ end }}
@@ -66,7 +78,8 @@ import (
 	{{ $r := $n.Receiver }}
 	{{ $newPager := print "new" $names.Node "Pager" }}
 
-	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
+	// Resolve{{ $n.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+	func Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }} *{{ $n.Name }},
 		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
 		{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
 		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
@@ -81,7 +94,7 @@ import (
 		}
 		{{- /* May be nil if the totalCount was not loaded. */}}
 		alias := graphql.GetFieldContext(ctx).Field.Alias
-		totalCount, hasTotalCount := {{ $r }}.Edges.totalCount[{{ $i }}][alias]
+		totalCount, hasTotalCount := {{ $r }}.Edges.TotalCount[{{ $i }}][alias]
 		{{- /* Nodes were loaded, totalCount was loaded, or both. */}}
 		if nodes, err := {{ $r }}.Named{{ $e.StructField }}(alias); err == nil || hasTotalCount {
 			pager, err := {{ $newPager }}(opts, last != nil)
@@ -93,13 +106,25 @@ import (
 			conn.build(nodes, pager, after, first, before, last)
 			return conn, nil
 		}
-		return {{ $r }}.Query{{ $e.StructField }}().Paginate(ctx, after, first, before, last, opts...)
+		return FromContext(ctx).{{ $n.Name }}.Query{{ $e.StructField }}({{ $r }}).Paginate(ctx, after, first, before, last, opts...)
+	}
+
+	// {{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $n.Name }}.
+	func ({{ $r }} *{{ $n.Name }}) {{ $e.StructField }}(
+		ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
+		{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
+		{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
+	) (*{{ $conn }}, error) {
+		return Resolve{{ $n.Name }}{{ $e.StructField }}({{ $r }}, ctx, after, first, before, last,
+			{{- if orderFields $e.Type }} orderBy,{{ end }}
+			{{- if and (hasTemplate "gql_where_input") (hasWhereInput $e) }} where,{{ end }}
+		)
 	}
 {{ end }}
 
 {{ define "dialect/sql/model/edges/fields/additional/load_total" }}
 	{{- with filterEdges $.Edges (skipMode "type") }}
-		// totalCount holds the count of the edges above.
-		totalCount [{{ len . }}]map[string]int
+		// TotalCount holds the count of the edges above.
+		TotalCount [{{ len . }}]map[string]int
 	{{- end }}
 {{ end }}

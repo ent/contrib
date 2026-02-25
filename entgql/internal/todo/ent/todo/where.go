@@ -94,11 +94,6 @@ func CategoryID(v int) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldCategoryID, v))
 }
 
-// Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
-func Value(v int) predicate.Todo {
-	return predicate.Todo(sql.FieldEQ(FieldValue, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldCreatedAt, v))

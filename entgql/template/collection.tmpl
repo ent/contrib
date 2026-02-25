@@ -94,10 +94,10 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 									{{ $receiver }}.loadTotal = append({{ $receiver }}.loadTotal, func(_ context.Context, nodes []*{{ $node.Name }}) error {
 										for i := range nodes {
 											n := len(nodes[i].Edges.{{ $e.StructField }})
-											if nodes[i].Edges.totalCount[{{ $i }}] == nil {
-												nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
+											if nodes[i].Edges.TotalCount[{{ $i }}] == nil {
+												nodes[i].Edges.TotalCount[{{ $i }}] = make(map[string]int)
 											}
-											nodes[i].Edges.totalCount[{{ $i }}][alias] = n
+											nodes[i].Edges.TotalCount[{{ $i }}][alias] = n
 										}
 										return nil
 									})
@@ -390,10 +390,10 @@ Cond:
 			}
 			for i := range nodes {
 				n := m[nodes[i].{{ $node.ID.StructField }}]
-				if nodes[i].Edges.totalCount[{{ $i }}] == nil {
-					nodes[i].Edges.totalCount[{{ $i }}] = make(map[string]int)
+				if nodes[i].Edges.TotalCount[{{ $i }}] == nil {
+					nodes[i].Edges.TotalCount[{{ $i }}] = make(map[string]int)
 				}
-				nodes[i].Edges.totalCount[{{ $i }}][alias] = n
+				nodes[i].Edges.TotalCount[{{ $i }}][alias] = n
 			}
 		return nil
 	})

@@ -47,33 +47,24 @@ import (
 
 // Noder wraps the basic Node method.
 type Noder interface {
-{{- if hasTemplate "gql_node_descriptor" }}
-	Node(context.Context) (*Node, error)
-{{- end }}
 	IsNode()
 }
 
-{{/* loop over all types and add implement the Node interface. */}}
+{{/* loop over all types and add the implementors variable. */}}
 {{ range $n := $gqlNodes }}
 	{{ $names := nodePaginationNames $n -}}
 	var {{ nodeImplementorsVar $n }} = []string{"{{ $names.Node }}" {{ range $iface := nodeImplementors $n }},"{{ $iface }}"{{ end }} }
-	{{- range $iface := nodeImplementors $n }}
-		{{- $method := print "Is" $iface }}
-		// {{ $method }} implements the {{ $iface }} interface check for GQLGen.
-		func (*{{ $n.Name }}) {{ $method }}() {}
-	{{- end }}
 
 	{{- if and $idType.Mixed (gqlMarshaler $n.ID) }}
-		{{ $receiver := $n.Receiver }}
-		func ({{ $receiver }} {{ $n.Name }}) marshalID() string {
+		func marshal{{ $n.Name }}ID({{ $n.Receiver }} *{{ $n.Name }}) string {
 			var buf bytes.Buffer
-			{{ $receiver }}.ID.MarshalGQL(&buf)
+			{{ $n.Receiver }}.ID.MarshalGQL(&buf)
 			return buf.String()
 		}
 	{{- end }}
 {{ end }}
 
-var errNodeInvalidID = &NotFoundError{"node"}
+var errNodeInvalidID = &NotFoundError{label: "node"}
 
 // NodeOption allows configuring the Noder execution using functional options.
 type NodeOption func(*nodeOptions)
@@ -130,7 +121,7 @@ func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 					}
 					return t, nil
 				{{- else }}
-					return c.tables.nodeType(ctx, c.driver, id)
+					return c.tables.nodeType(ctx, c.Driver(), id)
 				{{- end }}
 			{{- else }}
 				return "", fmt.Errorf("cannot resolve noder (%v) without its type", id)
@@ -279,7 +270,7 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 				return nil, err
 			}
 			for _, node := range nodes {
-				for _, noder := range idmap[node.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }}] {
+				for _, noder := range idmap[{{ if $marshalID }}marshal{{ $n.Name }}ID(node){{ else }}node.ID{{ end }}] {
 					*noder = node
 				}
 			}
@@ -343,6 +334,20 @@ func (c *Client) noders(ctx context.Context, table string, ids []{{ $idType }}) 
 		return tables, sql.ScanSlice(rows, &tables)
 	}
 {{ end }}
+{{ end }}
+
+{{/*
+	model/additional/graphql-node generates IsNode/IsNamedNode marker methods
+	on the concrete entity types in the internal package. These methods are
+	inherited through type aliases at root.
+	Called from internal_model.tmpl via the model/additional extend point.
+*/}}
+{{ define "model/additional/graphql-node" }}
+{{- range $iface := nodeImplementors $ }}
+	{{- $method := print "Is" $iface }}
+	// {{ $method }} implements the {{ $iface }} interface check for GQLGen.
+	func (*{{ $.Name }}) {{ $method }}() {}
+{{- end }}
 {{ end }}
 
 {{ define "client/fields/additional" }}

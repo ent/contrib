@@ -27,6 +27,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
+	"entgo.io/contrib/entgql/internal/todo/ent/internal"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
@@ -93,7 +94,7 @@ var (
 )
 
 // checkColumn checks if the column exists in the given table.
-func checkColumn(table, column string) error {
+func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			billproduct.Table: billproduct.ValidColumn,
@@ -108,7 +109,7 @@ func checkColumn(table, column string) error {
 			workspace.Table:   workspace.ValidColumn,
 		})
 	})
-	return columnCheck(table, column)
+	return columnCheck(t, c)
 }
 
 // Asc applies the given fields in ASC order.
@@ -116,7 +117,7 @@ func Asc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
 		for _, f := range fields {
 			if err := checkColumn(s.TableName(), f); err != nil {
-				s.AddError(&ValidationError{Name: f, err: fmt.Errorf("ent: %w", err)})
+				s.AddError(&ValidationError{Name: f, Err: fmt.Errorf("ent: %w", err)})
 			}
 			s.OrderBy(sql.Asc(s.C(f)))
 		}
@@ -128,7 +129,7 @@ func Desc(fields ...string) func(*sql.Selector) {
 	return func(s *sql.Selector) {
 		for _, f := range fields {
 			if err := checkColumn(s.TableName(), f); err != nil {
-				s.AddError(&ValidationError{Name: f, err: fmt.Errorf("ent: %w", err)})
+				s.AddError(&ValidationError{Name: f, Err: fmt.Errorf("ent: %w", err)})
 			}
 			s.OrderBy(sql.Desc(s.C(f)))
 		}
@@ -160,7 +161,7 @@ func Count() AggregateFunc {
 func Max(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		if err := checkColumn(s.TableName(), field); err != nil {
-			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
+			s.AddError(&ValidationError{Name: field, Err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
 		return sql.Max(s.C(field))
@@ -171,7 +172,7 @@ func Max(field string) AggregateFunc {
 func Mean(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		if err := checkColumn(s.TableName(), field); err != nil {
-			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
+			s.AddError(&ValidationError{Name: field, Err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
 		return sql.Avg(s.C(field))
@@ -182,7 +183,7 @@ func Mean(field string) AggregateFunc {
 func Min(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		if err := checkColumn(s.TableName(), field); err != nil {
-			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
+			s.AddError(&ValidationError{Name: field, Err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
 		return sql.Min(s.C(field))
@@ -193,28 +194,21 @@ func Min(field string) AggregateFunc {
 func Sum(field string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		if err := checkColumn(s.TableName(), field); err != nil {
-			s.AddError(&ValidationError{Name: field, err: fmt.Errorf("ent: %w", err)})
+			s.AddError(&ValidationError{Name: field, Err: fmt.Errorf("ent: %w", err)})
 			return ""
 		}
 		return sql.Sum(s.C(field))
 	}
 }
 
-// ValidationError returns when validating a field or edge fails.
-type ValidationError struct {
-	Name string // Field or edge name.
-	err  error
-}
-
-// Error implements the error interface.
-func (e *ValidationError) Error() string {
-	return e.err.Error()
-}
-
-// Unwrap implements the errors.Wrapper interface.
-func (e *ValidationError) Unwrap() error {
-	return e.err
-}
+// Error type aliases from internal.
+type (
+	ValidationError  = internal.ValidationError
+	NotFoundError    = internal.NotFoundError
+	NotSingularError = internal.NotSingularError
+	NotLoadedError   = internal.NotLoadedError
+	ConstraintError  = internal.ConstraintError
+)
 
 // IsValidationError returns a boolean indicating whether the error is a validation error.
 func IsValidationError(err error) bool {
@@ -223,16 +217,6 @@ func IsValidationError(err error) bool {
 	}
 	var e *ValidationError
 	return errors.As(err, &e)
-}
-
-// NotFoundError returns when trying to fetch a specific entity and it was not found in the database.
-type NotFoundError struct {
-	label string
-}
-
-// Error implements the error interface.
-func (e *NotFoundError) Error() string {
-	return "ent: " + e.label + " not found"
 }
 
 // IsNotFound returns a boolean indicating whether the error is a not found error.
@@ -252,16 +236,6 @@ func MaskNotFound(err error) error {
 	return err
 }
 
-// NotSingularError returns when trying to fetch a singular entity and more then one was found in the database.
-type NotSingularError struct {
-	label string
-}
-
-// Error implements the error interface.
-func (e *NotSingularError) Error() string {
-	return "ent: " + e.label + " not singular"
-}
-
 // IsNotSingular returns a boolean indicating whether the error is a not singular error.
 func IsNotSingular(err error) bool {
 	if err == nil {
@@ -271,16 +245,6 @@ func IsNotSingular(err error) bool {
 	return errors.As(err, &e)
 }
 
-// NotLoadedError returns when trying to get a node that was not loaded by the query.
-type NotLoadedError struct {
-	edge string
-}
-
-// Error implements the error interface.
-func (e *NotLoadedError) Error() string {
-	return "ent: " + e.edge + " edge was not loaded"
-}
-
 // IsNotLoaded returns a boolean indicating whether the error is a not loaded error.
 func IsNotLoaded(err error) bool {
 	if err == nil {
@@ -288,24 +252,6 @@ func IsNotLoaded(err error) bool {
 	}
 	var e *NotLoadedError
 	return errors.As(err, &e)
-}
-
-// ConstraintError returns when trying to create/update one or more entities and
-// one or more of their constraints failed. For example, violation of edge or
-// field uniqueness.
-type ConstraintError struct {
-	msg  string
-	wrap error
-}
-
-// Error implements the error interface.
-func (e ConstraintError) Error() string {
-	return "ent: constraint failed: " + e.msg
-}
-
-// Unwrap implements the errors.Wrapper interface.
-func (e *ConstraintError) Unwrap() error {
-	return e.wrap
 }
 
 // IsConstraintError returns a boolean indicating whether the error is a constraint failure.
@@ -363,7 +309,7 @@ func (s *selector) String(ctx context.Context) (_ string, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{s.label}
+		err = &NotFoundError{Label: s.label}
 	default:
 		err = fmt.Errorf("ent: Strings returned %d results when one was expected", len(v))
 	}
@@ -410,7 +356,7 @@ func (s *selector) Int(ctx context.Context) (_ int, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{s.label}
+		err = &NotFoundError{Label: s.label}
 	default:
 		err = fmt.Errorf("ent: Ints returned %d results when one was expected", len(v))
 	}
@@ -457,7 +403,7 @@ func (s *selector) Float64(ctx context.Context) (_ float64, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{s.label}
+		err = &NotFoundError{Label: s.label}
 	default:
 		err = fmt.Errorf("ent: Float64s returned %d results when one was expected", len(v))
 	}
@@ -504,7 +450,7 @@ func (s *selector) Bool(ctx context.Context) (_ bool, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{s.label}
+		err = &NotFoundError{Label: s.label}
 	default:
 		err = fmt.Errorf("ent: Bools returned %d results when one was expected", len(v))
 	}
@@ -520,38 +466,12 @@ func (s *selector) BoolX(ctx context.Context) bool {
 	return v
 }
 
-// withHooks invokes the builder operation with the given hooks, if any.
-func withHooks[V Value, M any, PM interface {
+// WithHooks invokes the builder operation with the given hooks, if any.
+func WithHooks[V Value, M any, PM interface {
 	*M
 	Mutation
 }](ctx context.Context, exec func(context.Context) (V, error), mutation PM, hooks []Hook) (value V, err error) {
-	if len(hooks) == 0 {
-		return exec(ctx)
-	}
-	var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-		mutationT, ok := any(m).(PM)
-		if !ok {
-			return nil, fmt.Errorf("unexpected mutation type %T", m)
-		}
-		// Set the mutation to the builder.
-		*mutation = *mutationT
-		return exec(ctx)
-	})
-	for i := len(hooks) - 1; i >= 0; i-- {
-		if hooks[i] == nil {
-			return value, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-		}
-		mut = hooks[i](mut)
-	}
-	v, err := mut.Mutate(ctx, mutation)
-	if err != nil {
-		return value, err
-	}
-	nv, ok := v.(V)
-	if !ok {
-		return value, fmt.Errorf("unexpected node type %T returned from %T", v, mutation)
-	}
-	return nv, nil
+	return internal.WithHooks[V, M, PM](ctx, exec, mutation, hooks)
 }
 
 // setContextOp returns a new context with the given QueryContext attached (including its op) in case it does not exist.

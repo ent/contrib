@@ -24,15 +24,22 @@ import (
 	"context"
 	"encoding/json"
 
+	"{{ $.Config.Package }}/{{ $node.Package }}"
 	{{- range $e := $edges }}
 		"{{ $.Config.Package }}/{{ $e.Type.Package }}"
 	{{- end }}
 )
 
+func init() {
+	registerNodeDescriptor({{ $node.Package }}.Table, func(ctx context.Context, n Noder) (*Node, error) {
+		return {{ $node.Name }}Node(n.(*{{ $node.Name }}), ctx)
+	})
+}
+
 {{ $receiver := $node.Receiver }}
 {{ $marshalID := and $idType.Mixed (gqlMarshaler $node.ID) }}
-// Node implements Noder interface
-func ({{ $receiver }} *{{ $node.Name }}) Node(ctx context.Context) (node *Node, err error) {
+// {{ $node.Name }}Node returns the Node representation of a {{ $node.Name }}.
+func {{ $node.Name }}Node({{ $receiver }} *{{ $node.Name }}, ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID: {{ $receiver }}.{{ if $marshalID }}marshalID(){{ else }}ID{{ end }},
 		Type: "{{ $node.Name }}",
@@ -58,7 +65,7 @@ func ({{ $receiver }} *{{ $node.Name }}) Node(ctx context.Context) (node *Node, 
 				Type: "{{ $e.Type.Name }}",
 				Name: "{{ $e.Name }}",
 			}
-			err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+			err = FromContext(ctx).{{ $node.Name }}.{{ print "Query" (pascal $e.Name) }}({{ $receiver }}).
 				Select({{ $e.Type.Package }}.FieldID).
 				Scan(ctx, &node.Edges[{{ $i }}].IDs)
 			if err != nil {

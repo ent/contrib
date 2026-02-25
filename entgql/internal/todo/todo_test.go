@@ -37,8 +37,10 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/enttest"
+	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/migrate"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
+	"entgo.io/contrib/entgql/internal/todo/ent/user"
 	"entgo.io/ent/dialect"
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql"
@@ -846,7 +848,7 @@ func (s *todoTestSuite) TestFilteringWithCustomPredicate() {
 		SetStatus(todo.StatusCompleted).
 		SetText("test3").
 		SetCreatedAt(time.Now().Add(-48*time.Hour)).
-		AddChildren(td1, td2, td3).
+		AddChildIDs(td1.ID, td2.ID, td3.ID).
 		SaveX(ctx)
 
 	s.Run("createdToday true using interface", func() {
@@ -1459,21 +1461,33 @@ func TestNestedConnection(t *testing.T) {
 	srv := handler.NewDefaultServer(gen.NewSchema(ec))
 	gqlc := client.New(srv)
 
-	bulkG := make([]*ent.GroupCreate, 10)
+	bulkG := make([]*group.GroupCreate, 10)
 	for i := range bulkG {
 		bulkG[i] = ec.Group.Create().SetName(fmt.Sprintf("group-%d", i))
 	}
 	groups := ec.Group.CreateBulk(bulkG...).SaveX(ctx)
-	bulkU := make([]*ent.UserCreate, 10)
+	bulkU := make([]*user.UserCreate, 10)
 	for i := range bulkU {
+		groupIDs := make([]int, len(groups)-i)
+		for j := range groupIDs {
+			groupIDs[j] = groups[j].ID
+		}
 		bulkU[i] = ec.User.Create().
 			SetName(fmt.Sprintf("user-%d", i)).
-			AddGroups(groups[:len(groups)-i]...).
+			AddGroupIDs(groupIDs...).
 			SetRequiredMetadata(map[string]any{})
 	}
 	users := ec.User.CreateBulk(bulkU...).SaveX(ctx)
-	users[0].Update().AddFriends(users[1:]...).SaveX(ctx) // user 0 is friends with all
-	users[1].Update().AddFriends(users[2:]...).SaveX(ctx) // user 1 is friends with all
+	friendIDs0 := make([]int, len(users)-1)
+	for i, u := range users[1:] {
+		friendIDs0[i] = u.ID
+	}
+	ec.User.UpdateOne(users[0]).AddFriendIDs(friendIDs0...).SaveX(ctx) // user 0 is friends with all
+	friendIDs1 := make([]int, len(users)-2)
+	for i, u := range users[2:] {
+		friendIDs1[i] = u.ID
+	}
+	ec.User.UpdateOne(users[1]).AddFriendIDs(friendIDs1...).SaveX(ctx) // user 1 is friends with all
 
 	t.Run("After Cursor", func(t *testing.T) {
 		var (
@@ -1870,27 +1884,27 @@ func TestEdgesFiltering(t *testing.T) {
 	).SaveX(ctx)
 
 	child := ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.1").SetParentID(root[0].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted),
 	).SaveX(ctx)
 
 	grandchild := ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t2.1").SetParent(child[0]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t2.2").SetParent(child[0]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t2.3").SetParent(child[0]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t2.4").SetParent(child[1]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t2.5").SetParent(child[1]).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t2.1").SetParentID(child[0].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t2.2").SetParentID(child[0].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t2.3").SetParentID(child[0].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t2.4").SetParentID(child[1].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t2.5").SetParentID(child[1].ID).SetStatus(todo.StatusInProgress),
 	).SaveX(ctx)
 
 	ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t3.1").SetParent(grandchild[0]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t3.2").SetParent(grandchild[0]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t3.3").SetParent(grandchild[0]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t3.4").SetParent(grandchild[1]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t3.5").SetParent(grandchild[1]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t3.6").SetParent(grandchild[1]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t3.7").SetParent(grandchild[1]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t3.1").SetParentID(grandchild[0].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.2").SetParentID(grandchild[0].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.3").SetParentID(grandchild[0].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t3.4").SetParentID(grandchild[1].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.5").SetParentID(grandchild[1].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t3.6").SetParentID(grandchild[1].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t3.7").SetParentID(grandchild[1].ID).SetStatus(todo.StatusCompleted),
 	).ExecX(ctx)
 
 	query := `query todos($id: ID!, $lv2Status: TodoStatus!) {
@@ -2122,11 +2136,11 @@ func TestMutation_ClearChildren(t *testing.T) {
 	ctx := context.Background()
 	root := ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusInProgress).SaveX(ctx)
 	ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1.1").SetParent(root).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t1.2").SetParent(root).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t1.3").SetParent(root).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.1").SetParentID(root.ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParentID(root.ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParentID(root.ID).SetStatus(todo.StatusCompleted),
 	).ExecX(ctx)
-	require.True(t, root.QueryChildren().ExistX(ctx))
+	require.True(t, ec.Todo.QueryChildren(root).ExistX(ctx))
 
 	var rsp struct {
 		UpdateTodo struct {
@@ -2142,7 +2156,7 @@ func TestMutation_ClearChildren(t *testing.T) {
 	`, &rsp, client.Var("id", root.ID))
 	require.NoError(t, err)
 	require.Equal(t, strconv.Itoa(root.ID), rsp.UpdateTodo.ID)
-	require.False(t, root.QueryChildren().ExistX(ctx))
+	require.False(t, ec.Todo.QueryChildren(root).ExistX(ctx))
 }
 
 func TestMutation_ClearFriend(t *testing.T) {
@@ -2156,11 +2170,11 @@ func TestMutation_ClearFriend(t *testing.T) {
 
 	ctx := context.Background()
 	user := ec.User.Create().SetRequiredMetadata(map[string]any{}).SaveX(ctx)
-	friend := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriends(user).SaveX(ctx)
-	friendship := user.QueryFriendships().FirstX(ctx)
+	friend := ec.User.Create().SetRequiredMetadata(map[string]any{}).AddFriendIDs(user.ID).SaveX(ctx)
+	friendship := ec.User.QueryFriendships(user).FirstX(ctx)
 
-	require.True(t, user.QueryFriends().ExistX(ctx))
-	require.True(t, friend.QueryFriends().ExistX(ctx))
+	require.True(t, ec.User.QueryFriends(user).ExistX(ctx))
+	require.True(t, ec.User.QueryFriends(friend).ExistX(ctx))
 
 	var rsp struct {
 		UpdateFriendship struct {
@@ -2511,8 +2525,8 @@ func TestReduceQueryComplexity(t *testing.T) {
 				}
 			}
 		}`
-	ec.Todo.Create().SetText("t0").SetStatus(todo.StatusInProgress).AddChildren(t1).SaveX(ctx)
-	ec.Category.Create().AddTodos(t1).SetText("c0").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.Create().SetText("t0").SetStatus(todo.StatusInProgress).AddChildIDs(t1.ID).SaveX(ctx)
+	ec.Category.Create().AddTodoIDs(t1.ID).SetText("c0").SetStatus(category.StatusEnabled).SaveX(ctx)
 	rec.reset()
 	require.NoError(t, gqlc.Post(query, new(any), client.Var("id", t1.ID)))
 	require.Equal(t, []string{
@@ -2587,9 +2601,9 @@ func TestFieldSelection(t *testing.T) {
 		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted),
 	).SaveX(ctx)
 	ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress),
-		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted),
-		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.1").SetParentID(root[0].ID).SetStatus(todo.StatusInProgress),
+		ec.Todo.Create().SetText("t1.2").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted),
+		ec.Todo.Create().SetText("t1.3").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted),
 	).SaveX(ctx)
 	var (
 		// language=GraphQL
@@ -2637,9 +2651,9 @@ func TestFieldSelection(t *testing.T) {
 	}, rec.queries)
 
 	ec.Category.CreateBulk(
-		ec.Category.Create().AddTodos(root[0]).SetText("c0").SetStatus(category.StatusEnabled),
-		ec.Category.Create().AddTodos(root[1]).SetText("c1").SetStatus(category.StatusEnabled),
-		ec.Category.Create().AddTodos(root[2]).SetText("c2").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodoIDs(root[0].ID).SetText("c0").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodoIDs(root[1].ID).SetText("c1").SetStatus(category.StatusEnabled),
+		ec.Category.Create().AddTodoIDs(root[2].ID).SetText("c2").SetStatus(category.StatusEnabled),
 	).SaveX(ctx)
 	var (
 		// language=GraphQL
@@ -2747,9 +2761,9 @@ func TestFieldSelection(t *testing.T) {
 		ec.OneToMany.Create().SetName("t0.3"),
 	).SaveX(ctx)
 	ec.OneToMany.CreateBulk(
-		ec.OneToMany.Create().SetName("t1.1").SetParent(rootO2M[0]),
-		ec.OneToMany.Create().SetName("t1.2").SetParent(rootO2M[0]),
-		ec.OneToMany.Create().SetName("t1.3").SetParent(rootO2M[0]),
+		ec.OneToMany.Create().SetName("t1.1").SetParentID(rootO2M[0].ID),
+		ec.OneToMany.Create().SetName("t1.2").SetParentID(rootO2M[0].ID),
+		ec.OneToMany.Create().SetName("t1.3").SetParentID(rootO2M[0].ID),
 	).SaveX(ctx)
 	var (
 		// language=GraphQL
@@ -2803,17 +2817,17 @@ func TestOrderByEdgeCount(t *testing.T) {
 		ec.Category.Create().SetText("children").SetStatus(category.StatusEnabled),
 	).SaveX(ctx)
 	root := ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusPending).SetCategory(cats[0]),
-		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress).SetCategory(cats[0]),
-		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted).SetCategory(cats[0]),
+		ec.Todo.Create().SetText("t0.1").SetStatus(todo.StatusPending).SetCategoryID(cats[0].ID),
+		ec.Todo.Create().SetText("t0.2").SetStatus(todo.StatusInProgress).SetCategoryID(cats[0].ID),
+		ec.Todo.Create().SetText("t0.3").SetStatus(todo.StatusCompleted).SetCategoryID(cats[0].ID),
 	).SaveX(ctx)
 	ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1.1").SetParent(root[0]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
-		ec.Todo.Create().SetText("t1.2").SetParent(root[0]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
-		ec.Todo.Create().SetText("t1.3").SetParent(root[0]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
-		ec.Todo.Create().SetText("t2.1").SetParent(root[1]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
-		ec.Todo.Create().SetText("t2.2").SetParent(root[1]).SetStatus(todo.StatusCompleted).SetCategory(cats[1]),
-		ec.Todo.Create().SetText("t3.1").SetParent(root[2]).SetStatus(todo.StatusInProgress).SetCategory(cats[1]),
+		ec.Todo.Create().SetText("t1.1").SetParentID(root[0].ID).SetStatus(todo.StatusInProgress).SetCategoryID(cats[1].ID),
+		ec.Todo.Create().SetText("t1.2").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted).SetCategoryID(cats[1].ID),
+		ec.Todo.Create().SetText("t1.3").SetParentID(root[0].ID).SetStatus(todo.StatusCompleted).SetCategoryID(cats[1].ID),
+		ec.Todo.Create().SetText("t2.1").SetParentID(root[1].ID).SetStatus(todo.StatusInProgress).SetCategoryID(cats[1].ID),
+		ec.Todo.Create().SetText("t2.2").SetParentID(root[1].ID).SetStatus(todo.StatusCompleted).SetCategoryID(cats[1].ID),
+		ec.Todo.Create().SetText("t3.1").SetParentID(root[2].ID).SetStatus(todo.StatusInProgress).SetCategoryID(cats[1].ID),
 	).SaveX(ctx)
 
 	t.Run("ChildrenCount", func(t *testing.T) {
@@ -2994,9 +3008,9 @@ func TestSatisfiesFragments(t *testing.T) {
 	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
 	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
 	todos := ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategory(cat),
-		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat),
-		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategory(cat),
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategoryID(cat.ID),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategoryID(cat.ID),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategoryID(cat.ID),
 	).SaveX(ctx)
 	var (
 		// language=GraphQL
@@ -3064,9 +3078,9 @@ func TestSatisfiesDeeperFragments(t *testing.T) {
 	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
 	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
 	todos := ec.Todo.CreateBulk(
-		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategory(cat),
-		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat),
-		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategory(cat),
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusPending).SetCategoryID(cat.ID),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategoryID(cat.ID),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusCompleted).SetCategoryID(cat.ID),
 	).SaveX(ctx)
 	var (
 		// language=GraphQL

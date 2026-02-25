@@ -55,7 +55,7 @@ func (Category) Fields() []ent.Field {
 				entgql.Type("CategoryStatus"),
 				entgql.OrderField("STATUS"),
 			),
-		field.Other("config", &schematype.CategoryConfig{}).
+		field.Other("category_config", &schematype.CategoryConfig{}).
 			SchemaType(map[string]string{
 				dialect.SQLite: "json",
 			}).

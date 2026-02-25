@@ -541,13 +541,13 @@ func TestEdgeEntityFile(t *testing.T) {
 
 	require.Contains(t, contentStr, "package ent")
 	// Todo has Parent, Children, and Category edges.
-	require.Contains(t, contentStr, "func (t *Todo) Parent(")
-	require.Contains(t, contentStr, "func (t *Todo) Children(")
-	require.Contains(t, contentStr, "func (t *Todo) Category(")
+	require.Contains(t, contentStr, "func ResolveTodoParent(")
+	require.Contains(t, contentStr, "func ResolveTodoChildren(")
+	require.Contains(t, contentStr, "func ResolveTodoCategory(")
 
-	// Should NOT contain other entity edge methods.
-	require.NotContains(t, contentStr, "func (c *Category)")
-	require.NotContains(t, contentStr, "func (u *User)")
+	// Should NOT contain other entity edge resolvers.
+	require.NotContains(t, contentStr, "ResolveCategory")
+	require.NotContains(t, contentStr, "ResolveUser")
 }
 
 func TestEdgeEntityFile_HasWhereInputTemplate(t *testing.T) {
@@ -633,8 +633,8 @@ func TestGenerateSplitNodeDescriptor(t *testing.T) {
 	sharedStr := string(sharedContent)
 	require.Contains(t, sharedStr, "package ent")
 	// Shared content should NOT contain per-entity Node() methods.
-	require.NotContains(t, sharedStr, "func (t *Todo) Node(")
-	require.NotContains(t, sharedStr, "func (c *Category) Node(")
+	require.NotContains(t, sharedStr, "func (_m *Todo) Node(")
+	require.NotContains(t, sharedStr, "func (_m *Category) Node(")
 
 	// Verify per-entity node descriptor files are created.
 	nodeNames := nonSkippedNodes(t, graph)
@@ -646,7 +646,7 @@ func TestGenerateSplitNodeDescriptor(t *testing.T) {
 		require.NoError(t, err, "node descriptor entity file should exist for %s", name)
 		contentStr := string(content)
 		require.Contains(t, contentStr, "package ent")
-		require.Contains(t, contentStr, "Node(ctx context.Context)")
+		require.Contains(t, contentStr, "registerNodeDescriptor(")
 	}
 
 	// Verify skipped types do NOT get per-entity files.
@@ -685,8 +685,8 @@ func TestNodeDescriptorSharedFile(t *testing.T) {
 	require.Contains(t, contentStr, "func (c *Client) Node(")
 
 	// Shared content should NOT contain per-entity Node() methods.
-	require.NotContains(t, contentStr, "func (t *Todo) Node(")
-	require.NotContains(t, contentStr, "func (bp *BillProduct) Node(")
+	require.NotContains(t, contentStr, "func (_m *Todo) Node(")
+	require.NotContains(t, contentStr, "func (_m *BillProduct) Node(")
 }
 
 func TestNodeDescriptorEntityFile(t *testing.T) {
@@ -721,11 +721,12 @@ func TestNodeDescriptorEntityFile(t *testing.T) {
 	contentStr := string(content)
 
 	require.Contains(t, contentStr, "package ent")
-	require.Contains(t, contentStr, "func (t *Todo) Node(ctx context.Context)")
+	require.Contains(t, contentStr, "func TodoNode(_m *Todo, ctx context.Context)")
+	require.Contains(t, contentStr, "registerNodeDescriptor(todo.Table")
 
-	// Should NOT contain other entity Node() methods.
-	require.NotContains(t, contentStr, "func (c *Category) Node(")
-	require.NotContains(t, contentStr, "func (bp *BillProduct) Node(")
+	// Should NOT contain other entity node descriptor functions.
+	require.NotContains(t, contentStr, "CategoryNode(")
+	require.NotContains(t, contentStr, "BillProductNode(")
 	// Should NOT contain shared types.
 	require.NotContains(t, contentStr, "Node struct")
 	require.NotContains(t, contentStr, "Field struct")
@@ -815,7 +816,7 @@ func TestNodeSharedFile(t *testing.T) {
 	require.Contains(t, contentStr, "registerNodeResolver")
 
 	// Shared content should NOT contain per-entity code.
-	require.NotContains(t, contentStr, "func (t *Todo)")
+	require.NotContains(t, contentStr, "func (_m *Todo)")
 	require.NotContains(t, contentStr, "todoImplementors")
 	require.NotContains(t, contentStr, "case todo.Table")
 }
@@ -842,8 +843,9 @@ func TestNodeSharedFile_WithNodeDescriptor(t *testing.T) {
 	require.NoError(t, err)
 	contentStr := string(content)
 
-	// With NodeDescriptor enabled, the Noder interface should include Node().
-	require.Contains(t, contentStr, "Node(context.Context) (*Node, error)")
+	// Noder interface should only have IsNode() (Node() was removed for split-package compat).
+	require.Contains(t, contentStr, "IsNode()")
+	require.NotContains(t, contentStr, "Node(context.Context) (*Node, error)")
 }
 
 func TestNodeEntityFile(t *testing.T) {

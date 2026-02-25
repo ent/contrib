@@ -20,7 +20,6 @@ package {{ $pkg }}
 {{- $entityNode := index $inputs 0 }}
 
 import (
-    "entgo.io/contrib/entgql"
     "{{ $.Config.Package }}/{{ $entityNode.Type.Package }}"
 )
 
@@ -121,10 +120,15 @@ import (
     }
 
     {{- range $b := $n.Builders }}
-    // SetInput applies the change-set in the {{ $input }} on the {{ $b }} builder.
-    func(c *{{ $b }}) SetInput(i {{ $input }}) *{{ $b }} {
+    // Set{{ $b }}Input applies the change-set in the {{ $input }} on the {{ $b }} builder.
+    func Set{{ $b }}Input(c *{{ $b }}, i {{ $input }}) *{{ $b }} {
         i.Mutate(c.Mutation())
         return c
+    }
+
+    // SetInput applies the change-set in the {{ $input }} on the {{ $b }} builder.
+    func (c *{{ $b }}) SetInput(i {{ $input }}) *{{ $b }} {
+        return Set{{ $b }}Input(c, i)
     }
     {{- end}}
 {{- end }}

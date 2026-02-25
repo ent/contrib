@@ -17,101 +17,12 @@
 package ent
 
 import (
-	"fmt"
-	"strings"
-
-	"entgo.io/contrib/entgql/internal/todoglobalid/ent/verysecret"
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
+	"entgo.io/contrib/entgql/internal/todoglobalid/ent/internal"
 )
 
-// VerySecret is the model entity for the VerySecret schema.
-type VerySecret struct {
-	config `json:"-"`
-	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// Password holds the value of the "password" field.
-	Password     string `json:"password,omitempty"`
-	selectValues sql.SelectValues
-}
-
-// scanValues returns the types for scanning values from sql.Rows.
-func (*VerySecret) scanValues(columns []string) ([]any, error) {
-	values := make([]any, len(columns))
-	for i := range columns {
-		switch columns[i] {
-		case verysecret.FieldID:
-			values[i] = new(sql.NullInt64)
-		case verysecret.FieldPassword:
-			values[i] = new(sql.NullString)
-		default:
-			values[i] = new(sql.UnknownType)
-		}
-	}
-	return values, nil
-}
-
-// assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the VerySecret fields.
-func (vs *VerySecret) assignValues(columns []string, values []any) error {
-	if m, n := len(values), len(columns); m < n {
-		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
-	}
-	for i := range columns {
-		switch columns[i] {
-		case verysecret.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			vs.ID = int(value.Int64)
-		case verysecret.FieldPassword:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field password", values[i])
-			} else if value.Valid {
-				vs.Password = value.String
-			}
-		default:
-			vs.selectValues.Set(columns[i], values[i])
-		}
-	}
-	return nil
-}
-
-// Value returns the ent.Value that was dynamically selected and assigned to the VerySecret.
-// This includes values selected through modifiers, order, etc.
-func (vs *VerySecret) Value(name string) (ent.Value, error) {
-	return vs.selectValues.Get(name)
-}
-
-// Update returns a builder for updating this VerySecret.
-// Note that you need to call VerySecret.Unwrap() before calling this method if this VerySecret
-// was returned from a transaction, and the transaction was committed or rolled back.
-func (vs *VerySecret) Update() *VerySecretUpdateOne {
-	return NewVerySecretClient(vs.config).UpdateOne(vs)
-}
-
-// Unwrap unwraps the VerySecret entity that was returned from a transaction after it was closed,
-// so that all future queries will be executed through the driver which created the transaction.
-func (vs *VerySecret) Unwrap() *VerySecret {
-	_tx, ok := vs.config.driver.(*txDriver)
-	if !ok {
-		panic("ent: VerySecret is not a transactional entity")
-	}
-	vs.config.driver = _tx.drv
-	return vs
-}
-
-// String implements the fmt.Stringer.
-func (vs *VerySecret) String() string {
-	var builder strings.Builder
-	builder.WriteString("VerySecret(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", vs.ID))
-	builder.WriteString("password=")
-	builder.WriteString(vs.Password)
-	builder.WriteByte(')')
-	return builder.String()
-}
-
-// VerySecrets is a parsable slice of VerySecret.
-type VerySecrets []*VerySecret
+// Model type aliases from internal.
+// Guardrail: aliasing is one-way (root -> internal), and methods belong to the type definition site.
+// Do not attach root-only methods to alias models; add model methods on internal types instead.
+// Keep the internal package free of root query/client imports to avoid import cycles.
+type VerySecret = internal.VerySecret
+type VerySecrets = internal.VerySecrets

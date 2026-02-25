@@ -1,17 +1,3 @@
-// Copyright 2019-present Facebook
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package todo
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
@@ -46,23 +32,17 @@ func (r *categoryResolver) TodosCount(ctx context.Context, obj *ent.Category) (*
 
 // CreateCategory is the resolver for the createCategory field.
 func (r *mutationResolver) CreateCategory(ctx context.Context, input ent.CreateCategoryInput) (*ent.Category, error) {
-	return ent.FromContext(ctx).Category.Create().SetInput(input).Save(ctx)
+	return ent.SetCategoryCreateInput(ent.FromContext(ctx).Category.Create(), input).Save(ctx)
 }
 
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error) {
-	return ent.FromContext(ctx).Todo.
-		Create().
-		SetInput(input).
-		Save(ctx)
+	return ent.SetTodoCreateInput(ent.FromContext(ctx).Todo.Create(), input).Save(ctx)
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
 func (r *mutationResolver) UpdateTodo(ctx context.Context, id int, input ent.UpdateTodoInput) (*ent.Todo, error) {
-	return ent.FromContext(ctx).Todo.
-		UpdateOneID(id).
-		SetInput(input).
-		Save(ctx)
+	return ent.SetTodoUpdateOneInput(ent.FromContext(ctx).Todo.UpdateOneID(id), input).Save(ctx)
 }
 
 // ClearTodos is the resolver for the clearTodos field.
@@ -75,10 +55,7 @@ func (r *mutationResolver) ClearTodos(ctx context.Context) (int, error) {
 
 // UpdateFriendship is the resolver for the updateFriendship field.
 func (r *mutationResolver) UpdateFriendship(ctx context.Context, id int, input ent.UpdateFriendshipInput) (*ent.Friendship, error) {
-	return r.client.Friendship.
-		UpdateOneID(id).
-		SetInput(input).
-		Save(ctx)
+	return ent.SetFriendshipUpdateOneInput(r.client.Friendship.UpdateOneID(id), input).Save(ctx)
 }
 
 // Ping is the resolver for the ping field.
@@ -110,17 +87,13 @@ func (r *todoResolver) ExtendedField(ctx context.Context, obj *ent.Todo) (*strin
 // CreateTodos is the resolver for the createTodos field.
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	e := ent.FromContext(ctx)
-	builders := make([]*ent.TodoCreate, len(data))
-	for i, input := range data {
-		builders[i] = e.Todo.Create().SetInput(*input)
-	}
-	todos, err := e.Todo.CreateBulk(builders...).Save(ctx)
-	if err != nil {
-		return err
-	}
-	ids := make([]int, len(todos))
-	for i := range todos {
-		ids[i] = todos[i].ID
+	var ids []int
+	for _, input := range data {
+		t, err := ent.SetTodoCreateInput(e.Todo.Create(), *input).Save(ctx)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, t.ID)
 	}
 	obj.TodoIDs = append(obj.TodoIDs, ids...)
 	return nil

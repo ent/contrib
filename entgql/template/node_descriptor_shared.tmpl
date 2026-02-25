@@ -18,11 +18,21 @@ package {{ $pkg }}
 
 import (
 	"context"
+	"fmt"
 
 	{{- with $package := $idType.PkgPath }}
 		"{{ $package }}"
 	{{- end }}
 )
+
+// nodeDescriptor maps table names to functions that convert a Noder to a Node descriptor.
+// Each entity registers itself via init() in its node_descriptor_entity file.
+var nodeDescriptors = map[string]func(context.Context, Noder) (*Node, error){}
+
+// registerNodeDescriptor registers a node descriptor function for a given table.
+func registerNodeDescriptor(table string, fn func(context.Context, Noder) (*Node, error)) {
+	nodeDescriptors[table] = fn
+}
 
 // Node in the graph.
 type Node struct {
@@ -52,10 +62,18 @@ type Edge struct {
 // This API helpful in case you want to build
 // an administrator tool to browser all types in system.
 func (c *Client) Node(ctx context.Context, id {{ $idType }}) (*Node, error) {
-	n, err := c.Noder(ctx, id)
+	table, err := c.newNodeOpts(nil).nodeType(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return n.Node(ctx)
+	n, err := c.noder(ctx, table, id)
+	if err != nil {
+		return nil, err
+	}
+	fn, ok := nodeDescriptors[table]
+	if !ok {
+		return nil, fmt.Errorf("cannot resolve node descriptor for table %q: %w", table, errNodeInvalidID)
+	}
+	return fn(ctx, n)
 }
 {{ end }}

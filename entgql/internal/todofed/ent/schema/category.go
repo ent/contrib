@@ -44,7 +44,7 @@ func (Category) Fields() []ent.Field {
 				"Enabled", "ENABLED",
 				"Disabled", "DISABLED",
 			),
-		field.Other("config", &schematype.CategoryConfig{}).
+		field.Other("category_config", &schematype.CategoryConfig{}).
 			SchemaType(map[string]string{
 				dialect.SQLite: "json",
 			}).
