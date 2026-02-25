@@ -30,7 +30,7 @@ require (
 	google.golang.org/protobuf v1.36.5
 )
 
-replace entgo.io/ent => /var/home/smoothbrain/dev/matthewsreis/ent-worktrees/moar-pakidge-again
+replace entgo.io/ent => github.com/MatthewsREIS/ent v0.0.0-20260222202802-528a6080deb9
 
 require github.com/golang/protobuf v1.5.4 // indirect
 
