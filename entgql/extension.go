@@ -31,6 +31,15 @@ import (
 	"golang.org/x/tools/imports"
 )
 
+// ExtensionAnnotation carries graph-level entgql configuration for code generation.
+// It is injected into gen.Graph.Annotations so templates can access the values.
+type ExtensionAnnotation struct {
+	MaxPageSize int
+}
+
+// Name implements the ent.Annotation interface.
+func (ExtensionAnnotation) Name() string { return "EntGQLExtension" }
+
 type (
 	// Extension implements the entc.Extension for providing GraphQL integration.
 	Extension struct {
@@ -42,6 +51,8 @@ type (
 		schemaDir               string // directory for split schema output
 		splitGoFiles            bool   // split generated Go files into per-entity files
 		parallelWhereInputFiles bool   // opt-in parallel generation for where-input split files
+		importsDir              string // real target dir for imports.Process path resolution during split generation
+		maxPageSize             int    // server-side default and cap for connection pagination
 	}
 
 	// ExtensionOption allows for managing the Extension configuration
@@ -247,6 +258,20 @@ func WithSchemaGenerator() ExtensionOption {
 	}
 }
 
+// WithMax sets a global default and cap for connection pagination.
+// When a query omits `first`/`last`, this value is used as the default limit.
+// When a query provides a value exceeding this, it is silently capped.
+// A value of 0 (default) disables enforcement, preserving the original behavior.
+func WithMax(n int) ExtensionOption {
+	return func(ex *Extension) error {
+		if n < 0 {
+			return fmt.Errorf("entgql: WithMax value must be non-negative, got %d", n)
+		}
+		ex.maxPageSize = n
+		return nil
+	}
+}
+
 // WithMapScalarFunc allows users to provide a custom function that
 // maps an ent.Field (*gen.Field) into its GraphQL scalar type. If the
 // function returns an empty string, the extension fallbacks to its
@@ -322,6 +347,14 @@ func (e *Extension) genSchemaHook() gen.Hook {
 		return gen.GenerateFunc(func(g *gen.Graph) (err error) {
 			resetSafeOpsCache()
 			defer resetSafeOpsCache()
+			// Inject max page size into graph annotations before template rendering
+			// so that pagination templates can read it via $.Annotations.
+			if e.maxPageSize > 0 {
+				if g.Annotations == nil {
+					g.Annotations = make(gen.Annotations)
+				}
+				g.Annotations[ExtensionAnnotation{}.Name()] = ExtensionAnnotation{MaxPageSize: e.maxPageSize}
+			}
 			if err = next.Generate(g); err != nil {
 				return err
 			}

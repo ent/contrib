@@ -9,6 +9,10 @@ in the LICENSE file in the root directory of this source tree.
 {{ define "gql_pagination" }}
 {{ template "header" $ }}
 
+{{- $maxPageSize := 0 }}
+{{- $extAnn := index $.Annotations "EntGQLExtension" }}
+{{- if $extAnn }}{{- $maxPageSize = $extAnn.MaxPageSize }}{{- end }}
+
 {{- if ne $.Storage.Name "sql" }}
 	{{ fail "pagination requires SQL storage" }}
 {{- end }}
@@ -108,12 +112,20 @@ const (
 )
 
 func paginateLimit(first, last *int) int {
+{{- if gt $maxPageSize 0 }}
+	const _maxPageSize = {{ $maxPageSize }}
+{{- end }}
 	var limit int
 	if first != nil {
 		limit = *first+1
 	} else if last != nil {
 		limit = *last+1
 	}
+{{- if gt $maxPageSize 0 }}
+	if limit == 0 || limit > _maxPageSize+1 {
+		limit = _maxPageSize + 1
+	}
+{{- end }}
 	return limit
 }
 
