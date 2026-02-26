@@ -14,12 +14,21 @@ in the LICENSE file in the root directory of this source tree.
 {{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
 
 import (
+	"encoding/json"
+	"reflect"
+
 	"entgo.io/contrib/entgql"
 	"github.com/99designs/gqlgen/graphql"
 	{{- range $n := $gqlNodes }}
 		"{{ $.Config.Package }}/{{ $n.Package }}"
 	{{- end }}
 )
+
+type gqlInputUnmarshaler interface {
+	UnmarshalGQL(any) error
+}
+
+var gqlInputUnmarshalerType = reflect.TypeOf((*gqlInputUnmarshaler)(nil)).Elem()
 
 {{ range $node := $gqlNodes -}}
 {{- $query := $node.QueryName -}}
@@ -318,10 +327,71 @@ func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map
 	if v, ok := args[whereField]; ok && whereInput != nil {
 		if err := graphql.UnmarshalInputFromContext(ctx, v, whereInput); err == nil {
 			args[whereField] = whereInput
+		} else if rawJSON, marshalErr := json.Marshal(v); marshalErr == nil {
+			if unmarshalErr := json.Unmarshal(rawJSON, whereInput); unmarshalErr == nil {
+				if normalizeErr := normalizeInputEnums(reflect.ValueOf(whereInput)); normalizeErr == nil {
+					args[whereField] = whereInput
+				}
+			}
 		}
 	}
 
 	return args
+}
+
+func normalizeInputEnums(v reflect.Value) error {
+	if !v.IsValid() {
+		return nil
+	}
+
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil
+		}
+		if v.Type().Implements(gqlInputUnmarshalerType) {
+			u := v.Interface().(gqlInputUnmarshaler)
+			if v.Elem().Kind() == reflect.String {
+				return u.UnmarshalGQL(v.Elem().String())
+			}
+		}
+		return normalizeInputEnums(v.Elem())
+	}
+
+	if reflect.PointerTo(v.Type()).Implements(gqlInputUnmarshalerType) {
+		if v.Kind() == reflect.String {
+			ptr := reflect.New(v.Type())
+			ptr.Elem().Set(v)
+			u := ptr.Interface().(gqlInputUnmarshaler)
+			if err := u.UnmarshalGQL(v.String()); err != nil {
+				return err
+			}
+			if v.CanSet() {
+				v.Set(ptr.Elem())
+			}
+			return nil
+		}
+	}
+
+	switch v.Kind() {
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if !field.CanSet() && field.Kind() != reflect.Ptr {
+				continue
+			}
+			if err := normalizeInputEnums(field); err != nil {
+				return err
+			}
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			if err := normalizeInputEnums(v.Index(i)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // mayAddCondition appends another type condition to the satisfies list
