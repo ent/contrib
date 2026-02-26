@@ -332,6 +332,7 @@ func TestCollectionSharedTemplateContent(t *testing.T) {
 	// Verify shared functions are present.
 	require.Contains(t, src, "func fieldArgs")
 	require.Contains(t, src, "func unmarshalArgs")
+	require.Contains(t, src, "func normalizeInputEnums")
 	require.Contains(t, src, "func mayAddCondition")
 
 	// Verify NO per-entity code is present.
@@ -377,7 +378,13 @@ func TestCollectionSharedTemplateExecution(t *testing.T) {
 	// Verify shared functions are generated.
 	require.Contains(t, output, "func fieldArgs(")
 	require.Contains(t, output, "func unmarshalArgs(")
+	require.Contains(t, output, "func normalizeInputEnums(")
 	require.Contains(t, output, "func mayAddCondition(")
+
+	// Verify where-input fallback unmarshaling is generated.
+	require.Contains(t, output, "json.Marshal(v)")
+	require.Contains(t, output, "json.Unmarshal(rawJSON, whereInput)")
+	require.Contains(t, output, "normalizeInputEnums(reflect.ValueOf(whereInput))")
 
 	// Verify NO per-entity code is present.
 	require.False(t, strings.Contains(output, "CollectFields"),
@@ -408,9 +415,9 @@ func TestPaginationEntityTemplateContent(t *testing.T) {
 
 	// Verify per-entity types are present (template source uses {{$edge}}, {{$conn}} etc.).
 	// In the parsed tree, template vars are rendered as {{$varname}}.
-	require.Contains(t, src, "}} struct")       // Edge/Connection struct declarations
-	require.Contains(t, src, "PaginateOption")  // PaginateOption type
-	require.Contains(t, src, "OrderField")      // OrderField struct
+	require.Contains(t, src, "}} struct")      // Edge/Connection struct declarations
+	require.Contains(t, src, "PaginateOption") // PaginateOption type
+	require.Contains(t, src, "OrderField")     // OrderField struct
 
 	// Verify per-entity methods are present.
 	require.Contains(t, src, "Paginate")
