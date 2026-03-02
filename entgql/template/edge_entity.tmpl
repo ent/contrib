@@ -65,16 +65,6 @@ import (
 			return FromContext(ctx).{{ $node.Name }}.Query{{ $e.StructField }}({{ $r }}).Paginate(ctx, after, first, before, last, opts...)
 		}
 
-		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(
-			ctx context.Context, after *Cursor, first *int, before *Cursor, last *int,
-			{{- if orderFields $e.Type }}orderBy {{ if $multiOrder }}[]{{ end }}*{{ $order }},{{ end }}
-			{{- if and $.HasWhereInputTemplate (hasWhereInput $e) }}where *{{ $whereInput }},{{ end }}
-		) (*{{ $conn }}, error) {
-			return Resolve{{ $node.Name }}{{ $e.StructField }}({{ $r }}, ctx, after, first, before, last,
-				{{- if orderFields $e.Type }}orderBy,{{ end }}
-				{{- if and $.HasWhereInputTemplate (hasWhereInput $e) }}where,{{ end }}
-			)
-		}
 	{{ else if not $e.Unique }}
 		// Resolve{{ $node.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $node.Name }}.
 		func Resolve{{ $node.Name }}{{ $e.StructField }}({{ $r }} *{{ $node.Name }}, ctx context.Context) (result []*{{ $e.Type.Name }}, err error) {
@@ -90,9 +80,6 @@ import (
 			return result, err
 		}
 
-		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
-			return Resolve{{ $node.Name }}{{ $e.StructField }}({{ $r }}, ctx)
-		}
 	{{ else }}
 		// Resolve{{ $node.Name }}{{ $e.StructField }} resolves the {{ $e.Name }} edge of a {{ $node.Name }}.
 		func Resolve{{ $node.Name }}{{ $e.StructField }}({{ $r }} *{{ $node.Name }}, ctx context.Context) (*{{ $e.Type.Name }}, error) {
@@ -103,9 +90,6 @@ import (
 			return result, {{ if $e.Optional }}MaskNotFound(err){{ else }}err{{ end }}
 		}
 
-		func ({{ $r }} *{{ $node.Name }}) {{ $e.StructField }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
-			return Resolve{{ $node.Name }}{{ $e.StructField }}({{ $r }}, ctx)
-		}
 	{{ end }}
 {{ end }}
 

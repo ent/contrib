@@ -336,7 +336,7 @@ func TestCollectionSharedTemplateContent(t *testing.T) {
 	require.Contains(t, src, "func mayAddCondition")
 
 	// Verify NO per-entity code is present.
-	require.NotContains(t, src, "CollectFields")
+	require.NotContains(t, src, "CollectFields tells the query-builder")
 	require.NotContains(t, src, "collectField")
 	require.NotContains(t, src, "PaginateArgs")
 	require.NotContains(t, src, "newPaginateArg")
@@ -377,9 +377,14 @@ func TestCollectionSharedTemplateExecution(t *testing.T) {
 
 	// Verify shared functions are generated.
 	require.Contains(t, output, "func fieldArgs(")
+	require.Contains(t, output, "func parsedFieldArgs(")
+	require.Contains(t, output, "func cloneArgsMap(")
 	require.Contains(t, output, "func unmarshalArgs(")
 	require.Contains(t, output, "func normalizeInputEnums(")
 	require.Contains(t, output, "func mayAddCondition(")
+	require.Contains(t, output, "parsedFieldArgs(ctx, path...)")
+	require.Contains(t, output, "child, err := fc.Child(ctx, field)")
+	require.Contains(t, output, "return cloneArgsMap(fc.Args)")
 
 	// Verify where-input fallback unmarshaling is generated.
 	require.Contains(t, output, "json.Marshal(v)")
@@ -387,7 +392,7 @@ func TestCollectionSharedTemplateExecution(t *testing.T) {
 	require.Contains(t, output, "normalizeInputEnums(reflect.ValueOf(whereInput))")
 
 	// Verify NO per-entity code is present.
-	require.False(t, strings.Contains(output, "CollectFields"),
+	require.False(t, strings.Contains(output, "CollectFields tells the query-builder"),
 		"shared template should not generate per-entity CollectFields method")
 	require.False(t, strings.Contains(output, "collectField"),
 		"shared template should not generate per-entity collectField method")
