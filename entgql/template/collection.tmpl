@@ -63,7 +63,7 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 						var (
 							alias = field.Alias
 							path  = append(path, alias)
-							query = (&{{ $e.Type.ClientName }}{config: {{ $receiver }}.config}).Query()
+							query = (&{{ $e.Type.ClientName }}{Config: {{ $receiver }}.Config}).Query()
 						)
 						{{- if isRelayConn $e }}
 							{{- $tnames := nodePaginationNames $e.Type }}
@@ -284,13 +284,65 @@ const (
 )
 
 func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	if args := parsedFieldArgs(ctx, path...); args != nil {
+		return unmarshalArgs(ctx, whereInput, args)
+	}
 	field := collectedField(ctx, path...)
 	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
+	if oc == nil {
+		return nil
+	}
 	args := field.ArgumentMap(oc.Variables)
 	return unmarshalArgs(ctx, whereInput, args)
+}
+
+func parsedFieldArgs(ctx context.Context, path ...string) map[string]any {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return nil
+	}
+	if len(path) == 0 {
+		return cloneArgsMap(fc.Args)
+	}
+	oc := graphql.GetOperationContext(ctx)
+	if oc == nil {
+		return nil
+	}
+
+walk:
+	for _, name := range path {
+		if fc.Child == nil {
+			return nil
+		}
+		for _, field := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
+			if field.Alias != name {
+				continue
+			}
+			child, err := fc.Child(ctx, field)
+			if err != nil || child == nil {
+				return nil
+			}
+			fc = child
+			continue walk
+		}
+		return nil
+	}
+
+	return cloneArgsMap(fc.Args)
+}
+
+func cloneArgsMap(args map[string]any) map[string]any {
+	if args == nil {
+		return nil
+	}
+	cloned := make(map[string]any, len(args))
+	for k, v := range args {
+		cloned[k] = v
+	}
+	return cloned
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.

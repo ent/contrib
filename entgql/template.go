@@ -74,6 +74,11 @@ var (
 	// Initialized in init() to avoid initialization order issues.
 	MutationInputEntityTemplate *template.Template
 
+	// MutationInputSubpkgTemplate generates SetInput methods in the entity sub-package to avoid
+	// circular imports between the root gen package and entity sub-packages (used in split mode).
+	// Initialized in init() to avoid initialization order issues.
+	MutationInputSubpkgTemplate *template.Template
+
 	// PaginationEntityTemplate generates pagination code for a single entity (used in split mode).
 	// Initialized in init() to avoid initialization order issues.
 	PaginationEntityTemplate *template.Template
@@ -169,6 +174,7 @@ func init() {
 	// Initialize entity templates after all vars are set up
 	WhereInputEntityTemplate = parseEntityTemplate("template/where_input_entity.tmpl", "gql_where_input_entity")
 	MutationInputEntityTemplate = parseEntityTemplate("template/mutation_input_entity.tmpl", "gql_mutation_input_entity")
+	MutationInputSubpkgTemplate = parseEntityTemplate("template/mutation_input_subpkg.tmpl", "gql_mutation_input_subpkg")
 	PaginationEntityTemplate = parseEntityTemplate("template/pagination_entity.tmpl", "gql_pagination_entity")
 	PaginationSharedTemplate = parseEntityTemplate("template/pagination_shared.tmpl", "gql_pagination_shared")
 	CollectionSharedTemplate = parseEntityTemplate("template/collection_shared.tmpl", "gql_collection_shared")

@@ -593,6 +593,9 @@ func (e *Extension) generateSplitGoFiles(g *gen.Graph) error {
 			name := name
 			entityInputs := entityInputs
 			fns = append(fns, func() error { return e.generateMutationInputFile(&staged, name, entityInputs) })
+			// Also generate SetInput methods in the entity sub-package to avoid circular imports.
+			// Uses the real g (not staged) since sub-package dirs are created by ent, not the staging system.
+			fns = append(fns, func() error { return e.generateMutationInputSubpkgFile(g, name, entityInputs) })
 		}
 	}
 
@@ -860,6 +863,41 @@ func (e *Extension) generateWhereInputFile(g *gen.Graph, n *gen.Type) error {
 	content, err := e.processImports(path, buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("entgql: format where_input for %s: %w", n.Name, err)
+	}
+
+	return os.WriteFile(path, content, 0644)
+}
+
+// generateMutationInputSubpkgFile generates SetInput methods in the entity's sub-package
+// (e.g., src/ent/gen/agentlicensing/gql_mutation_input.go). These methods must live in the
+// sub-package because Go does not allow method declarations on types from other packages.
+// A local interface breaks the circular import that would arise if the sub-package imported
+// the root gen package for the concrete input types.
+func (e *Extension) generateMutationInputSubpkgFile(g *gen.Graph, name string, inputs []*MutationDescriptor) error {
+	if len(inputs) == 0 {
+		return nil
+	}
+	entityType := inputs[0].Type
+	subPkgDir := filepath.Join(g.Target, entityType.Package())
+	if _, err := os.Stat(subPkgDir); os.IsNotExist(err) {
+		return nil // sub-package doesn't exist, skip
+	}
+
+	path := filepath.Join(subPkgDir, "gql_mutation_input.go")
+
+	tmpl := MutationInputSubpkgTemplate
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		*gen.Graph
+		EntityName string
+		Inputs     []*MutationDescriptor
+	}{g, name, inputs}); err != nil {
+		return fmt.Errorf("entgql: execute mutation_input_subpkg template for %s: %w", name, err)
+	}
+
+	content, err := e.processImports(path, buf.Bytes())
+	if err != nil {
+		return fmt.Errorf("entgql: format mutation_input_subpkg for %s: %w", name, err)
 	}
 
 	return os.WriteFile(path, content, 0644)

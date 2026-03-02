@@ -1,0 +1,31 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "gql_mutation_input_subpkg" }}
+
+{{- /*gotype: entgo.io/contrib/entgql.mutationInputEntityData*/ -}}
+
+{{ $.Config.Header }}
+
+package {{ (index $.Inputs 0).Type.Package }}
+
+// mutationInput is a local interface to avoid circular imports between this
+// sub-package and the root gen package which holds the concrete input types.
+type mutationInput interface {
+	Mutate(*{{ (index $.Inputs 0).MutationName }})
+}
+
+{{- range $n := $.Inputs }}
+{{- range $b := $n.Builders }}
+// SetInput applies the change-set in the {{ $n.Input }} on the {{ $b }} builder.
+func (c *{{ $b }}) SetInput(i mutationInput) *{{ $b }} {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+{{- end}}
+{{- end }}
+{{ end }}

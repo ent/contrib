@@ -335,7 +335,7 @@ func TestCollectionSharedTemplateContent(t *testing.T) {
 	require.Contains(t, src, "func mayAddCondition")
 
 	// Verify NO per-entity code is present.
-	require.NotContains(t, src, "CollectFields")
+	require.NotContains(t, src, "CollectFields tells the query-builder")
 	require.NotContains(t, src, "collectField")
 	require.NotContains(t, src, "PaginateArgs")
 	require.NotContains(t, src, "newPaginateArg")
@@ -376,11 +376,16 @@ func TestCollectionSharedTemplateExecution(t *testing.T) {
 
 	// Verify shared functions are generated.
 	require.Contains(t, output, "func fieldArgs(")
+	require.Contains(t, output, "func parsedFieldArgs(")
+	require.Contains(t, output, "func cloneArgsMap(")
 	require.Contains(t, output, "func unmarshalArgs(")
 	require.Contains(t, output, "func mayAddCondition(")
+	require.Contains(t, output, "parsedFieldArgs(ctx, path...)")
+	require.Contains(t, output, "child, err := fc.Child(ctx, field)")
+	require.Contains(t, output, "return cloneArgsMap(fc.Args)")
 
 	// Verify NO per-entity code is present.
-	require.False(t, strings.Contains(output, "CollectFields"),
+	require.False(t, strings.Contains(output, "CollectFields tells the query-builder"),
 		"shared template should not generate per-entity CollectFields method")
 	require.False(t, strings.Contains(output, "collectField"),
 		"shared template should not generate per-entity collectField method")
@@ -408,9 +413,9 @@ func TestPaginationEntityTemplateContent(t *testing.T) {
 
 	// Verify per-entity types are present (template source uses {{$edge}}, {{$conn}} etc.).
 	// In the parsed tree, template vars are rendered as {{$varname}}.
-	require.Contains(t, src, "}} struct")       // Edge/Connection struct declarations
-	require.Contains(t, src, "PaginateOption")  // PaginateOption type
-	require.Contains(t, src, "OrderField")      // OrderField struct
+	require.Contains(t, src, "}} struct")      // Edge/Connection struct declarations
+	require.Contains(t, src, "PaginateOption") // PaginateOption type
+	require.Contains(t, src, "OrderField")     // OrderField struct
 
 	// Verify per-entity methods are present.
 	require.Contains(t, src, "Paginate")

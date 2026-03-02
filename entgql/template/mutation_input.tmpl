@@ -64,7 +64,7 @@ import (
     }
 
     // Mutate applies the {{ $input }} on the {{ $n.MutationName }} builder.
-    func (i *{{ $input }}) Mutate(m *{{ $n.MutationName }}) {
+    func (i {{ $input }}) Mutate(m *{{ $n.MutationName }}) {
         {{- /* The order of the operators is purposefully sorted: Clear, Set and Append */}}
         {{- range $f := $fields }}
             {{- if $f.ClearOp }}
@@ -126,7 +126,7 @@ import (
 
     {{- range $b := $n.Builders }}
     // Set{{ $b }}Input applies the change-set in the {{ $input }} on the {{ $b }} builder.
-    func Set{{ $b }}Input(c *{{ $b }}, i {{ $input }}) *{{ $b }} {
+    func Set{{ $b }}Input(c *{{ $n.Package }}.{{ $b }}, i {{ $input }}) *{{ $n.Package }}.{{ $b }} {
         i.Mutate(c.Mutation())
         return c
     }
