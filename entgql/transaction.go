@@ -105,7 +105,7 @@ func (t Transactioner) MutateOperationContext(_ context.Context, oc *graphql.Ope
 
 // InterceptResponse runs graphql mutations under a transaction.
 func (t Transactioner) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	if t.skipTx(graphql.GetOperationContext(ctx).Operation) {
+	if !graphql.HasOperationContext(ctx) || t.skipTx(graphql.GetOperationContext(ctx).Operation) {
 		return next(ctx)
 	}
 	txCtx, tx, err := t.OpenTx(ctx)
