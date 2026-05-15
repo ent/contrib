@@ -27,6 +27,11 @@ type (
 	Annotation struct {
 		// OrderField is the ordering field as defined in graphql schema.
 		OrderField []string `json:"OrderField,omitempty"`
+		// OrderFieldExpr is an optional SQL expression used in ORDER BY and cursor
+		// predicates instead of the raw column. When set, generated code uses
+		// this expression so a matching expression index can be used by the planner
+		// (e.g. left("name", 256) for a (left("name", 256), id) btree).
+		OrderFieldExpr string `json:"OrderFieldExpr,omitempty"`
 		// MultiOrder indicates that orderBy should accept a list of OrderField terms.
 		MultiOrder bool `json:"MultiOrder,omitempty"`
 		// Unbind implies the edge field name in GraphQL schema is not equivalent
@@ -143,6 +148,24 @@ func (Annotation) Name() string {
 //		)
 func OrderField(fields ...string) Annotation {
 	return Annotation{OrderField: fields}
+}
+
+// OrderFieldExpr attaches a SQL expression to an ordering field so generated
+// ORDER BY and cursor predicates emit the expression instead of the raw column.
+// Pair it with OrderField on the same schema field:
+//
+//	field.String("name").
+//		SchemaType(map[string]string{dialect.Postgres: "text"}).
+//		Annotations(
+//			entgql.OrderField("NAME"),
+//			entgql.OrderFieldExpr(`left("name", 256)`),
+//		)
+//
+// This matches a composite index of the form (left("name", 256), id) and lets
+// the planner use it for cursor-based pagination on unbounded text columns
+// that would otherwise overflow the btree max tuple size.
+func OrderFieldExpr(expr string) Annotation {
+	return Annotation{OrderFieldExpr: expr}
 }
 
 // MultiOrder indicates that orderBy should accept a list of OrderField terms.
@@ -464,6 +487,9 @@ func (a Annotation) Merge(other schema.Annotation) schema.Annotation {
 	}
 	if len(ant.OrderField) > 0 {
 		a.OrderField = ant.OrderField
+	}
+	if ant.OrderFieldExpr != "" {
+		a.OrderFieldExpr = ant.OrderFieldExpr
 	}
 	if ant.MultiOrder {
 		a.MultiOrder = true

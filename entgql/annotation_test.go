@@ -38,6 +38,25 @@ func TestAnnotation(t *testing.T) {
 	require.ElementsMatch(t, names, annotation.Mapping)
 }
 
+func TestOrderFieldExpr(t *testing.T) {
+	t.Parallel()
+	a := entgql.OrderFieldExpr(`left("name", 256)`)
+	require.Equal(t, `left("name", 256)`, a.OrderFieldExpr)
+	require.Empty(t, a.OrderField, "OrderFieldExpr should not set OrderField on its own")
+}
+
+func TestOrderFieldExprMerge(t *testing.T) {
+	t.Parallel()
+	// Pair OrderField with OrderFieldExpr on the same field via Merge,
+	// matching how schema callers attach them: two annotations in the
+	// same .Annotations(...) call.
+	merged := entgql.OrderField("NAME").Merge(entgql.OrderFieldExpr(`left("name", 256)`))
+	ann, ok := merged.(entgql.Annotation)
+	require.True(t, ok, "merged annotation should be entgql.Annotation, got %T", merged)
+	require.Equal(t, []string{"NAME"}, ann.OrderField)
+	require.Equal(t, `left("name", 256)`, ann.OrderFieldExpr)
+}
+
 func TestAnnotationDecode(t *testing.T) {
 	ann := &entgql.Annotation{}
 	err := ann.Decode(map[string]interface{}{})

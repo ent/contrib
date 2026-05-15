@@ -512,6 +512,16 @@ type OrderTerm struct {
 	Edge *gen.Edge
 	// True if it is a count field.
 	Count bool
+	// Expression, if non-empty, is a raw SQL expression substituted for the
+	// raw column name in ORDER BY and cursor predicate emission. Only valid
+	// for IsFieldTerm orderings.
+	Expression string
+}
+
+// HasExpression reports whether the term carries a SQL expression override
+// for ORDER BY and cursor predicates.
+func (o *OrderTerm) HasExpression() bool {
+	return o.Expression != ""
 }
 
 // IsFieldTerm returns true if the order term is a type field term.
@@ -586,10 +596,11 @@ func orderFields(n *gen.Type) ([]*OrderTerm, error) {
 			}
 			if len(ant.OrderField) == 1 {
 				terms = append(terms, &OrderTerm{
-					Owner: n,
-					GQL:   ant.OrderField[0],
-					Type:  n,
-					Field: f,
+					Owner:      n,
+					GQL:        ant.OrderField[0],
+					Type:       n,
+					Field:      f,
+					Expression: ant.OrderFieldExpr,
 				})
 			}
 		}

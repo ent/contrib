@@ -332,7 +332,13 @@ func (p *{{ $pager }}) applyCursors(query *{{ $query }}, after, before *Cursor) 
 		if p.reverse {
 			direction = direction.Reverse()
 		}
-		for _, predicate := range entgql.CursorsPredicate(after, before, {{ $defaultOrder }}.Field.column, p.order.Field.column, direction) {
+		var predicates []func(s *sql.Selector)
+		if p.order.Field.expression != "" {
+			predicates = entgql.CursorsPredicateExpr(after, before, {{ $defaultOrder }}.Field.column, p.order.Field.expression, direction)
+		} else {
+			predicates = entgql.CursorsPredicate(after, before, {{ $defaultOrder }}.Field.column, p.order.Field.column, direction)
+		}
+		for _, predicate := range predicates {
 			query = query.Where(predicate)
 		}
 	{{- end }}
@@ -449,7 +455,12 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 					direction = direction.Reverse()
 					nullsDirection = nullsDirection.Reverse()
 				}
-				b.Ident(o.Field.column).Pad().WriteString(string(direction))
+				if o.Field.expression != "" {
+					b.WriteString(o.Field.expression)
+				} else {
+					b.Ident(o.Field.column)
+				}
+				b.Pad().WriteString(string(direction))
 				b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 				b.Comma()
 			}
@@ -485,7 +496,12 @@ func (p *{{ $pager }}) orderExpr(query *{{ $node.QueryName }}) sql.Querier {
 			}
 		{{- end }}
 		return sql.ExprFunc(func(b *sql.Builder) {
-			b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+			if p.order.Field.expression != "" {
+				b.WriteString(p.order.Field.expression)
+			} else {
+				b.Ident(p.order.Field.column)
+			}
+			b.Pad().WriteString(string(direction))
 			b.Pad().WriteString("NULLS").Pad().WriteString(string(nullsDirection))
 			if p.order.Field != {{ $defaultOrder }}.Field {
 				b.Comma().Ident({{ $defaultOrder }}.Field.column).Pad().WriteString(string(direction))
@@ -524,7 +540,27 @@ func ({{ $r }} *{{ $query }}) Paginate(
 				},
 				{{- if $f.IsFieldTerm }}
 					column: {{ $node.Package }}.{{ $f.Field.Constant }},
+					{{- if $f.HasExpression }}
+					expression: `{{ $f.Expression }}`,
+					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
+						o := sql.NewOrderTermOptions(opts...)
+						return func(s *sql.Selector) {
+							s.OrderExprFunc(func(b *sql.Builder) {
+								b.WriteString(`{{ $f.Expression }}`)
+								if o.Desc {
+									b.WriteString(" DESC")
+								}
+								if o.NullsFirst {
+									b.WriteString(" NULLS FIRST")
+								} else if o.NullsLast {
+									b.WriteString(" NULLS LAST")
+								}
+							})
+						}
+					},
+					{{- else }}
 					toTerm: {{ $node.Package }}.{{ $f.Field.OrderName }},
+					{{- end }}
         {{- else if $f.IsNonUniqueEdgeFieldTerm }}
 					column: {{ $f.VarField }},
 					toTerm: func(opts ...sql.OrderTermOption) {{ $node.Package }}.OrderOption {
@@ -660,10 +696,16 @@ func ({{ $r }} *{{ $query }}) Paginate(
 // {{ $orderField }} defines the ordering field of {{ $node.Name }}.
 type {{ $orderField }} struct {
 	// Value extracts the ordering value from the given {{ $node.Name }}.
-	Value    func(*{{ $name }}) (ent.Value, error)
-	column   string // field or computed.
-	toTerm   func(...sql.OrderTermOption) {{ $node.Package }}.OrderOption
-	toCursor func(*{{ $name }}) Cursor
+	Value func(*{{ $name }}) (ent.Value, error)
+	// column is the raw column name. Used for SELECT field inclusion so the
+	// cursor value can be read back from each row.
+	column string
+	// expression, when non-empty, is a SQL expression used in ORDER BY and
+	// cursor comparisons instead of column (e.g. `left("name", 256)`).
+	// See entgql.OrderFieldExpr.
+	expression string
+	toTerm     func(...sql.OrderTermOption) {{ $node.Package }}.OrderOption
+	toCursor   func(*{{ $name }}) Cursor
 }
 
 // {{ $order }} defines the ordering of {{ $node.Name }}.

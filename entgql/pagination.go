@@ -219,6 +219,60 @@ func CursorsPredicate[T any](after, before *Cursor[T], idField, field string, di
 	return predicates
 }
 
+// CursorsPredicateExpr is the expression-aware variant of CursorsPredicate.
+// The expr argument is a raw SQL expression (e.g. `left("name", 256)`) that
+// substitutes for the ordering column in the cursor comparison, so an
+// expression-based composite index like (left("name", 256), id) can be used.
+//
+// The idField is still passed as a column name and qualified with the
+// selector's table alias. The cursor predicate emitted is logically:
+//
+//	expr > cursor.Value OR (expr = cursor.Value AND id > cursor.ID)
+//
+// (with `<` for descending). For cursors with no value, only the ID
+// comparison is emitted, identical to CursorsPredicate.
+func CursorsPredicateExpr[T any](after, before *Cursor[T], idField, expr string, direction OrderDirection) []func(s *sql.Selector) {
+	var predicates []func(s *sql.Selector)
+	for _, cursor := range []*Cursor[T]{after, before} {
+		if cursor == nil {
+			continue
+		}
+		if cursor.Value != nil {
+			cmp := ">"
+			if direction != OrderDirectionAsc {
+				cmp = "<"
+			}
+			// Scope the cursor of the current iteration because it is used
+			// in the closure below.
+			cursor := cursor
+			predicates = append(predicates, func(s *sql.Selector) {
+				s.Where(sql.P(func(b *sql.Builder) {
+					b.WriteString("(").
+						WriteString(expr).
+						WriteString(" ").WriteString(cmp).WriteString(" ").
+						Arg(cursor.Value).
+						WriteString(" OR (").
+						WriteString(expr).
+						WriteString(" = ").
+						Arg(cursor.Value).
+						WriteString(" AND ").
+						Ident(s.C(idField)).
+						WriteString(" ").WriteString(cmp).WriteString(" ").
+						Arg(cursor.ID).
+						WriteString("))")
+				}))
+			})
+		} else {
+			if direction == OrderDirectionAsc {
+				predicates = append(predicates, sql.FieldGT(idField, cursor.ID))
+			} else {
+				predicates = append(predicates, sql.FieldLT(idField, cursor.ID))
+			}
+		}
+	}
+	return predicates
+}
+
 // MultiCursorOptions are the options for building the cursor predicates.
 type MultiCursorsOptions struct {
 	FieldID         string           // ID field name.
