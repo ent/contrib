@@ -113,6 +113,11 @@ var nodeTypes = func () map[int]string {
 	return m
 }()
 
+{{ if $idType.Numeric -}}
+func (c *Client) TableName(ctx context.Context, id int, opts ...NodeOption) (string, error) {
+	return c.newNodeOpts(opts).nodeType(ctx, id)
+}
+{{ end }}
 {{- end }}
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	nopts := &nodeOptions{}

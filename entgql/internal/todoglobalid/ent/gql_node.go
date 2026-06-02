@@ -130,6 +130,10 @@ var nodeTypes = func() map[int]string {
 	return m
 }()
 
+func (c *Client) TableName(ctx context.Context, id int, opts ...NodeOption) (string, error) {
+	return c.newNodeOpts(opts).nodeType(ctx, id)
+}
+
 func (c *Client) newNodeOpts(opts []NodeOption) *nodeOptions {
 	nopts := &nodeOptions{}
 	for _, opt := range opts {

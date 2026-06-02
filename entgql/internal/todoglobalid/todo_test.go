@@ -3092,3 +3092,15 @@ func TestPrivateFieldSelectionForPagination(t *testing.T) {
 		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`status` FROM `todos` LEFT JOIN `categories` AS `t1` ON `todos`.`category_id` = `t1`.`id` WHERE `todos`.`status` < ? OR (`todos`.`status` = ? AND `todos`.`id` > ?) GROUP BY `todos`.`id` ORDER BY `todos`.`status` DESC, `todos`.`id` LIMIT 3",
 	}, rec.queries)
 }
+
+func TestTableName(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(t, dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	for i, s := range []string{"bill_products", "categories", "friendships", "groups", "one_to_manies", "projects"} {
+		for j := 0; j < 25; j++ {
+			tb, err := ec.TableName(ctx, i<<32+j)
+			require.NoError(t, err)
+			require.Equal(t, s, tb)
+		}
+	}
+}
