@@ -20,10 +20,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
-
-	"golang.org/x/exp/slices"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

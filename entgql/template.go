@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -30,7 +31,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/ast"
-	"golang.org/x/exp/slices"
 )
 
 var (
@@ -437,8 +437,8 @@ func fieldCollectorCases(fields []*gen.Field) ([]*fieldCollectorCase, error) {
 		slices.Sort(c.Mapping)
 		collect = append(collect, c)
 	}
-	slices.SortFunc(collect, func(a, b *fieldCollectorCase) bool {
-		return strings.Compare(a.Mapping[0], b.Mapping[0]) < 0
+	slices.SortFunc(collect, func(a, b *fieldCollectorCase) int {
+		return strings.Compare(a.Mapping[0], b.Mapping[0])
 	})
 	return collect, nil
 }
