@@ -83,6 +83,16 @@ func (r *todoResolver) Status(ctx context.Context, obj *ent.Todo) (todo.Status, 
 	panic(fmt.Errorf("not implemented"))
 }
 
+// FirstName is the resolver for the firstName field.
+func (r *userResolver) FirstName(ctx context.Context, obj *ent.User) (*string, error) {
+	panic(fmt.Errorf("not implemented: FirstName - firstName"))
+}
+
+// LastName is the resolver for the lastName field.
+func (r *userResolver) LastName(ctx context.Context, obj *ent.User) (*string, error) {
+	panic(fmt.Errorf("not implemented: LastName - lastName"))
+}
+
 // Username is the resolver for the username field.
 func (r *userResolver) Username(ctx context.Context, obj *ent.User) (string, error) {
 	panic(fmt.Errorf("not implemented"))
@@ -146,6 +156,156 @@ func (r *updateCategoryInputResolver) Types(ctx context.Context, obj *ent.Update
 // Status is the resolver for the status field.
 func (r *updateTodoInputResolver) Status(ctx context.Context, obj *ent.UpdateTodoInput, data *todo.Status) error {
 	panic(fmt.Errorf("not implemented"))
+}
+
+// FirstName is the resolver for the firstName field.
+func (r *userWhereInputResolver) FirstName(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstName - firstName"))
+}
+
+// FirstNameNeq is the resolver for the firstNameNEQ field.
+func (r *userWhereInputResolver) FirstNameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameNeq - firstNameNEQ"))
+}
+
+// FirstNameIn is the resolver for the firstNameIn field.
+func (r *userWhereInputResolver) FirstNameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: FirstNameIn - firstNameIn"))
+}
+
+// FirstNameNotIn is the resolver for the firstNameNotIn field.
+func (r *userWhereInputResolver) FirstNameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: FirstNameNotIn - firstNameNotIn"))
+}
+
+// FirstNameGt is the resolver for the firstNameGT field.
+func (r *userWhereInputResolver) FirstNameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameGt - firstNameGT"))
+}
+
+// FirstNameGte is the resolver for the firstNameGTE field.
+func (r *userWhereInputResolver) FirstNameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameGte - firstNameGTE"))
+}
+
+// FirstNameLt is the resolver for the firstNameLT field.
+func (r *userWhereInputResolver) FirstNameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameLt - firstNameLT"))
+}
+
+// FirstNameLte is the resolver for the firstNameLTE field.
+func (r *userWhereInputResolver) FirstNameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameLte - firstNameLTE"))
+}
+
+// FirstNameContains is the resolver for the firstNameContains field.
+func (r *userWhereInputResolver) FirstNameContains(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameContains - firstNameContains"))
+}
+
+// FirstNameHasPrefix is the resolver for the firstNameHasPrefix field.
+func (r *userWhereInputResolver) FirstNameHasPrefix(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameHasPrefix - firstNameHasPrefix"))
+}
+
+// FirstNameHasSuffix is the resolver for the firstNameHasSuffix field.
+func (r *userWhereInputResolver) FirstNameHasSuffix(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameHasSuffix - firstNameHasSuffix"))
+}
+
+// FirstNameIsNil is the resolver for the firstNameIsNil field.
+func (r *userWhereInputResolver) FirstNameIsNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error {
+	panic(fmt.Errorf("not implemented: FirstNameIsNil - firstNameIsNil"))
+}
+
+// FirstNameNotNil is the resolver for the firstNameNotNil field.
+func (r *userWhereInputResolver) FirstNameNotNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error {
+	panic(fmt.Errorf("not implemented: FirstNameNotNil - firstNameNotNil"))
+}
+
+// FirstNameEqualFold is the resolver for the firstNameEqualFold field.
+func (r *userWhereInputResolver) FirstNameEqualFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameEqualFold - firstNameEqualFold"))
+}
+
+// FirstNameContainsFold is the resolver for the firstNameContainsFold field.
+func (r *userWhereInputResolver) FirstNameContainsFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: FirstNameContainsFold - firstNameContainsFold"))
+}
+
+// LastName is the resolver for the lastName field.
+func (r *userWhereInputResolver) LastName(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastName - lastName"))
+}
+
+// LastNameNeq is the resolver for the lastNameNEQ field.
+func (r *userWhereInputResolver) LastNameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameNeq - lastNameNEQ"))
+}
+
+// LastNameIn is the resolver for the lastNameIn field.
+func (r *userWhereInputResolver) LastNameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: LastNameIn - lastNameIn"))
+}
+
+// LastNameNotIn is the resolver for the lastNameNotIn field.
+func (r *userWhereInputResolver) LastNameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: LastNameNotIn - lastNameNotIn"))
+}
+
+// LastNameGt is the resolver for the lastNameGT field.
+func (r *userWhereInputResolver) LastNameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameGt - lastNameGT"))
+}
+
+// LastNameGte is the resolver for the lastNameGTE field.
+func (r *userWhereInputResolver) LastNameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameGte - lastNameGTE"))
+}
+
+// LastNameLt is the resolver for the lastNameLT field.
+func (r *userWhereInputResolver) LastNameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameLt - lastNameLT"))
+}
+
+// LastNameLte is the resolver for the lastNameLTE field.
+func (r *userWhereInputResolver) LastNameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameLte - lastNameLTE"))
+}
+
+// LastNameContains is the resolver for the lastNameContains field.
+func (r *userWhereInputResolver) LastNameContains(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameContains - lastNameContains"))
+}
+
+// LastNameHasPrefix is the resolver for the lastNameHasPrefix field.
+func (r *userWhereInputResolver) LastNameHasPrefix(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameHasPrefix - lastNameHasPrefix"))
+}
+
+// LastNameHasSuffix is the resolver for the lastNameHasSuffix field.
+func (r *userWhereInputResolver) LastNameHasSuffix(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameHasSuffix - lastNameHasSuffix"))
+}
+
+// LastNameIsNil is the resolver for the lastNameIsNil field.
+func (r *userWhereInputResolver) LastNameIsNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error {
+	panic(fmt.Errorf("not implemented: LastNameIsNil - lastNameIsNil"))
+}
+
+// LastNameNotNil is the resolver for the lastNameNotNil field.
+func (r *userWhereInputResolver) LastNameNotNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error {
+	panic(fmt.Errorf("not implemented: LastNameNotNil - lastNameNotNil"))
+}
+
+// LastNameEqualFold is the resolver for the lastNameEqualFold field.
+func (r *userWhereInputResolver) LastNameEqualFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameEqualFold - lastNameEqualFold"))
+}
+
+// LastNameContainsFold is the resolver for the lastNameContainsFold field.
+func (r *userWhereInputResolver) LastNameContainsFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LastNameContainsFold - lastNameContainsFold"))
 }
 
 // Username is the resolver for the username field.

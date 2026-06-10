@@ -114,6 +114,12 @@ func (r *todoResolver) UppercaseName(ctx context.Context, obj *ent.Todo) (*strin
 	return &v, nil
 }
 
+// FullName is the resolver for the fullName field.
+func (r *userResolver) FullName(ctx context.Context, obj *ent.User) (*string, error) {
+	v := strings.TrimSpace(obj.FirstName + " " + obj.LastName)
+	return &v, nil
+}
+
 // CreateTodos is the resolver for the createTodos field.
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	e := ent.FromContext(ctx)

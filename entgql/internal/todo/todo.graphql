@@ -35,6 +35,10 @@ extend type Todo {
   uppercaseName: String
 }
 
+extend type User {
+  fullName: String
+}
+
 extend type Query {
   """
   This field is an example of extending the built-in Query type from Ent.

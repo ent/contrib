@@ -235,10 +235,13 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
+		FirstName        func(childComplexity int) int
 		Friends          func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) int
 		Friendships      func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.FriendshipWhereInput) int
+		FullName         func(childComplexity int) int
 		Groups           func(childComplexity int, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.GroupWhereInput) int
 		ID               func(childComplexity int) int
+		LastName         func(childComplexity int) int
 		Metadata         func(childComplexity int) int
 		Name             func(childComplexity int) int
 		RequiredMetadata func(childComplexity int) int
@@ -291,12 +294,16 @@ type TodoResolver interface {
 	UppercaseName(ctx context.Context, obj *ent.Todo) (*string, error)
 }
 type UserResolver interface {
+	FirstName(ctx context.Context, obj *ent.User) (*string, error)
+	LastName(ctx context.Context, obj *ent.User) (*string, error)
+
 	Username(ctx context.Context, obj *ent.User) (string, error)
 	RequiredMetadata(ctx context.Context, obj *ent.User) (map[string]any, error)
 	Metadata(ctx context.Context, obj *ent.User) (map[string]any, error)
 
 	Friends(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *ent.UserOrder, where *ent.UserWhereInput) (*ent.UserConnection, error)
 	Friendships(ctx context.Context, obj *ent.User, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *ent.FriendshipWhereInput) (*ent.FriendshipConnection, error)
+	FullName(ctx context.Context, obj *ent.User) (*string, error)
 }
 
 type CreateCategoryInputResolver interface {
@@ -322,6 +329,37 @@ type UpdateTodoInputResolver interface {
 	Status(ctx context.Context, obj *ent.UpdateTodoInput, data *todo.Status) error
 }
 type UserWhereInputResolver interface {
+	FirstName(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error
+	FirstNameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error
+	FirstNameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameContains(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameHasPrefix(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameHasSuffix(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameIsNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error
+	FirstNameNotNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error
+	FirstNameEqualFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	FirstNameContainsFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastName(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error
+	LastNameNotIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error
+	LastNameGt(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameGte(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameLt(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameLte(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameContains(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameHasPrefix(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameHasSuffix(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameIsNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error
+	LastNameNotNil(ctx context.Context, obj *ent.UserWhereInput, data *bool) error
+	LastNameEqualFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+	LastNameContainsFold(ctx context.Context, obj *ent.UserWhereInput, data *string) error
+
 	Username(ctx context.Context, obj *ent.UserWhereInput, data *string) error
 	UsernameNeq(ctx context.Context, obj *ent.UserWhereInput, data *string) error
 	UsernameIn(ctx context.Context, obj *ent.UserWhereInput, data []string) error
@@ -1108,6 +1146,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TodoEdge.Node(childComplexity), true
 
+	case "User.firstName":
+		if e.complexity.User.FirstName == nil {
+			break
+		}
+
+		return e.complexity.User.FirstName(childComplexity), true
+
 	case "User.friends":
 		if e.complexity.User.Friends == nil {
 			break
@@ -1132,6 +1177,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Friendships(childComplexity, args["after"].(*entgql.Cursor[string]), args["first"].(*int), args["before"].(*entgql.Cursor[string]), args["last"].(*int), args["where"].(*ent.FriendshipWhereInput)), true
 
+	case "User.fullName":
+		if e.complexity.User.FullName == nil {
+			break
+		}
+
+		return e.complexity.User.FullName(childComplexity), true
+
 	case "User.groups":
 		if e.complexity.User.Groups == nil {
 			break
@@ -1150,6 +1202,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.ID(childComplexity), true
+
+	case "User.lastName":
+		if e.complexity.User.LastName == nil {
+			break
+		}
+
+		return e.complexity.User.LastName(childComplexity), true
 
 	case "User.metadata":
 		if e.complexity.User.Metadata == nil {
@@ -1376,6 +1435,10 @@ extend type Category {
 extend type Todo {
   extendedField: String
   uppercaseName: String
+}
+
+extend type User {
+  fullName: String
 }
 
 extend type Query {
@@ -1757,6 +1820,8 @@ CreateUserInput is used for create User object.
 Input was generated by ent.
 """
 input CreateUserInput {
+  firstName: String
+  lastName: String
   name: String
   username: UUID
   password: String
@@ -2684,6 +2749,10 @@ UpdateUserInput is used for update User object.
 Input was generated by ent.
 """
 input UpdateUserInput {
+  firstName: String
+  clearFirstName: Boolean
+  lastName: String
+  clearLastName: Boolean
   name: String
   username: UUID
   password: String
@@ -2700,6 +2769,8 @@ input UpdateUserInput {
 }
 type User implements Node {
   id: ID!
+  firstName: String
+  lastName: String
   name: String!
   username: UUID!
   requiredMetadata: Map!
@@ -2856,6 +2927,42 @@ input UserWhereInput {
   idGTE: ID
   idLT: ID
   idLTE: ID
+  """
+  first_name field predicates
+  """
+  firstName: String
+  firstNameNEQ: String
+  firstNameIn: [String!]
+  firstNameNotIn: [String!]
+  firstNameGT: String
+  firstNameGTE: String
+  firstNameLT: String
+  firstNameLTE: String
+  firstNameContains: String
+  firstNameHasPrefix: String
+  firstNameHasSuffix: String
+  firstNameIsNil: Boolean
+  firstNameNotNil: Boolean
+  firstNameEqualFold: String
+  firstNameContainsFold: String
+  """
+  last_name field predicates
+  """
+  lastName: String
+  lastNameNEQ: String
+  lastNameIn: [String!]
+  lastNameNotIn: [String!]
+  lastNameGT: String
+  lastNameGTE: String
+  lastNameLT: String
+  lastNameLTE: String
+  lastNameContains: String
+  lastNameHasPrefix: String
+  lastNameHasSuffix: String
+  lastNameIsNil: Boolean
+  lastNameNotNil: Boolean
+  lastNameEqualFold: String
+  lastNameContainsFold: String
   """
   name field predicates
   """
@@ -6515,6 +6622,10 @@ func (ec *executionContext) fieldContext_Friendship_user(_ context.Context, fiel
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_User_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_User_lastName(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
@@ -6529,6 +6640,8 @@ func (ec *executionContext) fieldContext_Friendship_user(_ context.Context, fiel
 				return ec.fieldContext_User_friends(ctx, field)
 			case "friendships":
 				return ec.fieldContext_User_friendships(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6577,6 +6690,10 @@ func (ec *executionContext) fieldContext_Friendship_friend(_ context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_User_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_User_lastName(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
@@ -6591,6 +6708,8 @@ func (ec *executionContext) fieldContext_Friendship_friend(_ context.Context, fi
 				return ec.fieldContext_User_friends(ctx, field)
 			case "friendships":
 				return ec.fieldContext_User_friendships(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -10352,6 +10471,88 @@ func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphq
 	return fc, nil
 }
 
+func (ec *executionContext) _User_firstName(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_firstName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().FirstName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_firstName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_lastName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().LastName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_lastName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_name(ctx, field)
 	if err != nil {
@@ -10714,6 +10915,47 @@ func (ec *executionContext) fieldContext_User_friendships(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _User_fullName(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_fullName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().FullName(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_fullName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserConnection_edges(ctx, field)
 	if err != nil {
@@ -10897,6 +11139,10 @@ func (ec *executionContext) fieldContext_UserEdge_node(_ context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
+			case "firstName":
+				return ec.fieldContext_User_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_User_lastName(ctx, field)
 			case "name":
 				return ec.fieldContext_User_name(ctx, field)
 			case "username":
@@ -10911,6 +11157,8 @@ func (ec *executionContext) fieldContext_UserEdge_node(_ context.Context, field 
 				return ec.fieldContext_User_friends(ctx, field)
 			case "friendships":
 				return ec.fieldContext_User_friendships(ctx, field)
+			case "fullName":
+				return ec.fieldContext_User_fullName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -13987,13 +14235,27 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "username", "password", "requiredMetadata", "metadata", "groupIDs", "friendIDs"}
+	fieldsInOrder := [...]string{"firstName", "lastName", "name", "username", "password", "requiredMetadata", "metadata", "groupIDs", "friendIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "firstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirstName = data
+		case "lastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastName = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -16020,13 +16282,41 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "username", "password", "clearPassword", "requiredMetadata", "metadata", "clearMetadata", "addGroupIDs", "removeGroupIDs", "clearGroups", "addFriendIDs", "removeFriendIDs", "clearFriends"}
+	fieldsInOrder := [...]string{"firstName", "clearFirstName", "lastName", "clearLastName", "name", "username", "password", "clearPassword", "requiredMetadata", "metadata", "clearMetadata", "addGroupIDs", "removeGroupIDs", "clearGroups", "addFriendIDs", "removeFriendIDs", "clearFriends"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "firstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirstName = data
+		case "clearFirstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearFirstName"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearFirstName = data
+		case "lastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastName = data
+		case "clearLastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearLastName"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearLastName = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -16169,7 +16459,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "hasGroups", "hasGroupsWith", "hasFriends", "hasFriendsWith", "hasFriendships", "hasFriendshipsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "firstName", "firstNameNEQ", "firstNameIn", "firstNameNotIn", "firstNameGT", "firstNameGTE", "firstNameLT", "firstNameLTE", "firstNameContains", "firstNameHasPrefix", "firstNameHasSuffix", "firstNameIsNil", "firstNameNotNil", "firstNameEqualFold", "firstNameContainsFold", "lastName", "lastNameNEQ", "lastNameIn", "lastNameNotIn", "lastNameGT", "lastNameGTE", "lastNameLT", "lastNameLTE", "lastNameContains", "lastNameHasPrefix", "lastNameHasSuffix", "lastNameIsNil", "lastNameNotNil", "lastNameEqualFold", "lastNameContainsFold", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "hasGroups", "hasGroupsWith", "hasFriends", "hasFriendsWith", "hasFriendships", "hasFriendshipsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16253,6 +16543,276 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.IDLTE = data
+		case "firstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstName(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameNeq(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameIn(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameNotIn(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameGt(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameGte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameLt(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameLte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameContains(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameHasPrefix(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameHasSuffix(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameIsNil(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameNotNil(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameEqualFold(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "firstNameContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstNameContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().FirstNameContainsFold(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastName(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameNeq(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameIn(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameNotIn(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameGt(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameGte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameLt(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameLte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameContains(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameHasPrefix(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameHasSuffix(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameIsNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameIsNil(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameNotNil"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameNotNil(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameEqualFold(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "lastNameContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastNameContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UserWhereInput().LastNameContainsFold(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -18399,6 +18959,72 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "firstName":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_firstName(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "lastName":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_lastName(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -18594,6 +19220,39 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "fullName":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_fullName(ctx, field, obj)
 				return res
 			}
 
@@ -20772,7 +21431,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v any) (map[string]interface{}, error) {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v any) (map[string]any, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -20780,7 +21439,7 @@ func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v any) (map[s
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

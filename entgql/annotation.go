@@ -194,6 +194,15 @@ func MapsTo(names ...string) Annotation {
 //
 // When `uppercaseName` is queried, the `name` field will be automatically fetched,
 // ensuring `unknownSeen` remains false and the field is available in the resolver.
+//
+// Multiple ent fields can be collected for the same GraphQL field by annotating each
+// of them with the same CollectedFor name. For example, a `fullName` resolver that
+// depends on both `first_name` and `last_name`:
+//
+//	field.String("first_name").
+//		Annotations(entgql.CollectedFor("fullName"))
+//	field.String("last_name").
+//		Annotations(entgql.CollectedFor("fullName"))
 func CollectedFor(names ...string) Annotation {
 	return Annotation{
 		CollectedFor: names,

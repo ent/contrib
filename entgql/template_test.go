@@ -187,6 +187,82 @@ func TestFieldCollections(t *testing.T) {
 	require.Errorf(t, err, "bind and mapping annotations are mutually exclusive")
 }
 
+func TestFieldCollectorCases(t *testing.T) {
+	t.Parallel()
+	nameField := &gen.Field{
+		Name: "name",
+	}
+	firstNameField := &gen.Field{
+		Name: "first_name",
+		Annotations: map[string]interface{}{
+			annotationName: map[string]interface{}{
+				"CollectedFor": []string{"fullName"},
+			},
+		},
+	}
+	lastNameField := &gen.Field{
+		Name: "last_name",
+		Annotations: map[string]interface{}{
+			annotationName: map[string]interface{}{
+				"CollectedFor": []string{"fullName"},
+			},
+		},
+	}
+	nameWithCollectedFor := &gen.Field{
+		Name: "name",
+		Annotations: map[string]interface{}{
+			annotationName: map[string]interface{}{
+				"CollectedFor": []string{"uppercaseName"},
+			},
+		},
+	}
+	categoryField := &gen.Field{
+		Name: "category_id",
+		Annotations: map[string]interface{}{
+			annotationName: map[string]interface{}{
+				"Unbind":  true,
+				"Mapping": []string{"categoryID", "category_id", "categoryX"},
+			},
+		},
+	}
+
+	cases, err := fieldCollectorCases([]*gen.Field{
+		nameWithCollectedFor,
+		categoryField,
+	})
+	require.NoError(t, err)
+	require.Equal(t, []*fieldCollectorCase{
+		{
+			Mapping: []string{"categoryID", "categoryX", "category_id"},
+			Fields:  []*gen.Field{categoryField},
+		},
+		{
+			Mapping: []string{"name", "uppercaseName"},
+			Fields:  []*gen.Field{nameWithCollectedFor},
+		},
+	}, cases)
+
+	multiCases, err := fieldCollectorCases([]*gen.Field{firstNameField, lastNameField})
+	require.NoError(t, err)
+	require.Equal(t, []*fieldCollectorCase{
+		{
+			Mapping: []string{"firstName"},
+			Fields:  []*gen.Field{firstNameField},
+		},
+		{
+			Mapping: []string{"fullName"},
+			Fields:  []*gen.Field{firstNameField, lastNameField},
+		},
+		{
+			Mapping: []string{"lastName"},
+			Fields:  []*gen.Field{lastNameField},
+		},
+	}, multiCases)
+
+	_, err = fieldCollectorCases([]*gen.Field{nameField})
+	require.NoError(t, err)
+}
+
 func TestFilterFields(t *testing.T) {
 	fields, err := filterFields([]*gen.Field{
 		{

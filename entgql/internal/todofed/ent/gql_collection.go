@@ -59,35 +59,35 @@ func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 			cq.WithNamedTodos(alias, func(wq *TodoQuery) {
 				*wq = *query
 			})
-		case "text":
-			if _, ok := fieldSeen[category.FieldText]; !ok {
-				selectedFields = append(selectedFields, category.FieldText)
-				fieldSeen[category.FieldText] = struct{}{}
-			}
-		case "status":
-			if _, ok := fieldSeen[category.FieldStatus]; !ok {
-				selectedFields = append(selectedFields, category.FieldStatus)
-				fieldSeen[category.FieldStatus] = struct{}{}
-			}
 		case "config":
 			if _, ok := fieldSeen[category.FieldConfig]; !ok {
 				selectedFields = append(selectedFields, category.FieldConfig)
 				fieldSeen[category.FieldConfig] = struct{}{}
-			}
-		case "duration":
-			if _, ok := fieldSeen[category.FieldDuration]; !ok {
-				selectedFields = append(selectedFields, category.FieldDuration)
-				fieldSeen[category.FieldDuration] = struct{}{}
 			}
 		case "count":
 			if _, ok := fieldSeen[category.FieldCount]; !ok {
 				selectedFields = append(selectedFields, category.FieldCount)
 				fieldSeen[category.FieldCount] = struct{}{}
 			}
+		case "duration":
+			if _, ok := fieldSeen[category.FieldDuration]; !ok {
+				selectedFields = append(selectedFields, category.FieldDuration)
+				fieldSeen[category.FieldDuration] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[category.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, category.FieldStatus)
+				fieldSeen[category.FieldStatus] = struct{}{}
+			}
 		case "strings":
 			if _, ok := fieldSeen[category.FieldStrings]; !ok {
 				selectedFields = append(selectedFields, category.FieldStrings)
 				fieldSeen[category.FieldStrings] = struct{}{}
+			}
+		case "text":
+			if _, ok := fieldSeen[category.FieldText]; !ok {
+				selectedFields = append(selectedFields, category.FieldText)
+				fieldSeen[category.FieldText] = struct{}{}
 			}
 		case "id":
 		case "__typename":
@@ -205,30 +205,30 @@ func (tq *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				return err
 			}
 			tq.withCategory = query
+		case "blob":
+			if _, ok := fieldSeen[todo.FieldBlob]; !ok {
+				selectedFields = append(selectedFields, todo.FieldBlob)
+				fieldSeen[todo.FieldBlob] = struct{}{}
+			}
 		case "createdAt":
 			if _, ok := fieldSeen[todo.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, todo.FieldCreatedAt)
 				fieldSeen[todo.FieldCreatedAt] = struct{}{}
-			}
-		case "status":
-			if _, ok := fieldSeen[todo.FieldStatus]; !ok {
-				selectedFields = append(selectedFields, todo.FieldStatus)
-				fieldSeen[todo.FieldStatus] = struct{}{}
 			}
 		case "priority":
 			if _, ok := fieldSeen[todo.FieldPriority]; !ok {
 				selectedFields = append(selectedFields, todo.FieldPriority)
 				fieldSeen[todo.FieldPriority] = struct{}{}
 			}
+		case "status":
+			if _, ok := fieldSeen[todo.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, todo.FieldStatus)
+				fieldSeen[todo.FieldStatus] = struct{}{}
+			}
 		case "text":
 			if _, ok := fieldSeen[todo.FieldText]; !ok {
 				selectedFields = append(selectedFields, todo.FieldText)
 				fieldSeen[todo.FieldText] = struct{}{}
-			}
-		case "blob":
-			if _, ok := fieldSeen[todo.FieldBlob]; !ok {
-				selectedFields = append(selectedFields, todo.FieldBlob)
-				fieldSeen[todo.FieldBlob] = struct{}{}
 			}
 		case "id":
 		case "__typename":

@@ -85,6 +85,11 @@ func (r *todoResolver) UppercaseName(ctx context.Context, obj *ent.Todo) (*strin
 	panic(fmt.Errorf("not implemented: UppercaseName - uppercaseName"))
 }
 
+// FullName is the resolver for the fullName field.
+func (r *userResolver) FullName(ctx context.Context, obj *ent.User) (*string, error) {
+	panic(fmt.Errorf("not implemented: FullName - fullName"))
+}
+
 // CreateTodos is the resolver for the createTodos field.
 func (r *createCategoryInputResolver) CreateTodos(ctx context.Context, obj *ent.CreateCategoryInput, data []*ent.CreateTodoInput) error {
 	panic(fmt.Errorf("not implemented"))

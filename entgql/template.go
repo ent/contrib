@@ -78,6 +78,7 @@ var (
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
 		"fieldCollections":    fieldCollections,
+		"fieldCollectorCases": fieldCollectorCases,
 		"fieldMapping":        fieldMapping,
 		"fieldCollectedFor":   fieldCollectedFor,
 		"filterEdges":         filterEdges,
@@ -378,6 +379,68 @@ func fieldCollectedFor(f *gen.Field) ([]string, error) {
 		return nil, err
 	}
 	return ant.CollectedFor, nil
+}
+
+type fieldCollectorCase struct {
+	Mapping []string
+	Fields  []*gen.Field
+}
+
+// fieldCollectorCases groups ent fields by the GraphQL field names that should trigger their collection.
+// GraphQL names that collect the same set of ent fields are grouped into a single switch case.
+func fieldCollectorCases(fields []*gen.Field) ([]*fieldCollectorCase, error) {
+	collectorNames := func(f *gen.Field) ([]string, error) {
+		mapping, err := fieldMapping(f)
+		if err != nil {
+			return nil, err
+		}
+		collectedFor, err := fieldCollectedFor(f)
+		if err != nil {
+			return nil, err
+		}
+		names := append([]string(nil), mapping...)
+		for _, name := range collectedFor {
+			if !slices.Contains(names, name) {
+				names = append(names, name)
+			}
+		}
+		return names, nil
+	}
+	fieldSetKey := func(fs []*gen.Field) string {
+		constants := make([]string, len(fs))
+		for i, f := range fs {
+			constants[i] = f.Constant()
+		}
+		return strings.Join(constants, "|")
+	}
+	byGQL := make(map[string][]*gen.Field)
+	for _, f := range fields {
+		names, err := collectorNames(f)
+		if err != nil {
+			return nil, err
+		}
+		for _, name := range names {
+			byGQL[name] = append(byGQL[name], f)
+		}
+	}
+	groups := make(map[string]*fieldCollectorCase)
+	for name, fs := range byGQL {
+		key := fieldSetKey(fs)
+		if g := groups[key]; g != nil {
+			g.Mapping = append(g.Mapping, name)
+		} else {
+			groups[key] = &fieldCollectorCase{Fields: fs, Mapping: []string{name}}
+		}
+	}
+	collect := make([]*fieldCollectorCase, 0, len(groups))
+	for _, c := range groups {
+		slices.Sort(c.Mapping)
+		collect = append(collect, c)
+	}
+	slices.SortFunc(collect, func(a, b *fieldCollectorCase) bool {
+		return strings.Compare(a.Mapping[0], b.Mapping[0]) < 0
+	})
+	return collect, nil
 }
 
 // OrderTerm is a struct that represents a single GraphQL order term.

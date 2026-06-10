@@ -150,20 +150,14 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 							}
 						{{- end }}
 				{{- end }}
-				{{- range $f := $fields }}
-					{{- $mapping := fieldMapping $f }}
-					{{- range fieldCollectedFor $f }}
-						{{- if eq (indexOf $mapping .) -1 }}
-							{{- $mapping = append $mapping . }}
+				{{- range $c := fieldCollectorCases $fields }}
+					case {{ range $i, $m := $c.Mapping }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
+						{{- range $f := $c.Fields }}
+						if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
+							selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})
+							fieldSeen[{{ $node.Package }}.{{ $f.Constant }}] = struct{}{}
+						}
 						{{- end }}
-					{{- end }}
-					{{- with $mapping }}
-						case {{ range $i, $m := . }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:
-							if _, ok := fieldSeen[{{ $node.Package }}.{{ $f.Constant }}]; !ok {
-								selectedFields = append(selectedFields, {{ $node.Package }}.{{ $f.Constant }})
-								fieldSeen[{{ $node.Package }}.{{ $f.Constant }}] = struct{}{}
-							}
-					{{- end }}
 				{{- end }}
 				{{- if $fields }}
 					{{- if $node.HasOneFieldID -}}

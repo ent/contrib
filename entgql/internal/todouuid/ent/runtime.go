@@ -107,11 +107,11 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
-	userDescName := userMixinFields0[0].Descriptor()
+	userDescName := userMixinFields0[2].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userMixinFields0[1].Descriptor()
+	userDescUsername := userMixinFields0[3].Descriptor()
 	// user.DefaultUsername holds the default value on creation for the username field.
 	user.DefaultUsername = userDescUsername.Default.(func() uuid.UUID)
 	// userDescID is the schema descriptor for id field.

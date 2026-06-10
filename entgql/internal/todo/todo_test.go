@@ -2667,6 +2667,53 @@ func TestFieldSelection(t *testing.T) {
 	require.Equal(t, "HELLO", *rsp5.Todos.Edges[0].Node.UppercaseName)
 }
 
+func TestCollectedForMultipleFields(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	ec.User.Create().
+		SetFirstName("John").
+		SetLastName("Doe").
+		SetRequiredMetadata(map[string]any{}).
+		SaveX(ctx)
+
+	var (
+		// language=GraphQL
+		query = `query {
+			users {
+				edges {
+					node {
+						fullName
+					}
+				}
+			}
+		}`
+		rsp struct {
+			Users struct {
+				Edges []struct {
+					Node struct {
+						FullName *string
+					}
+				}
+			}
+		}
+	)
+	rec.reset()
+	client.New(handler.NewDefaultServer(gen.NewSchema(ec))).
+		MustPost(query, &rsp)
+	require.Equal(t, []string{
+		"SELECT `users`.`id`, `users`.`first_name`, `users`.`last_name` FROM `users` ORDER BY `users`.`id`",
+	}, rec.queries)
+	require.Len(t, rsp.Users.Edges, 1)
+	require.NotNil(t, rsp.Users.Edges[0].Node.FullName)
+	require.Equal(t, "John Doe", *rsp.Users.Edges[0].Node.FullName)
+}
+
 func TestOrderByEdgeCount(t *testing.T) {
 	ctx := context.Background()
 	ec := enttest.Open(
