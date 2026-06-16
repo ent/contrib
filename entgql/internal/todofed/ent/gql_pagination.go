@@ -96,6 +96,25 @@ func hasCollectedField(ctx context.Context, path ...string) bool {
 	return collectedField(ctx, path...) != nil
 }
 
+func collectedFieldFrom(parent graphql.CollectedField, oc *graphql.OperationContext, satisfies []string, path ...string) *graphql.CollectedField {
+	field := parent
+walk:
+	for _, name := range path {
+		for _, f := range graphql.CollectFields(oc, field.Selections, satisfies) {
+			if f.Alias == name {
+				field = f
+				continue walk
+			}
+		}
+		return nil
+	}
+	return &field
+}
+
+func hasCollectedFieldFrom(parent graphql.CollectedField, oc *graphql.OperationContext, satisfies []string, path ...string) bool {
+	return collectedFieldFrom(parent, oc, satisfies, path...) != nil
+}
+
 const (
 	edgesField      = "edges"
 	nodeField       = "node"

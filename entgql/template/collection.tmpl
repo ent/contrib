@@ -80,8 +80,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 							if query, err = pager.applyFilter(query); err != nil {
 								return err
 							}
-							ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-							if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+							ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+							if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 								{{- /* Only add loadTotal query when needs */}}
 								hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 								if hasPagination || ignoredEdges {
@@ -110,8 +110,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 								return err
 							}
 							path = append(path, edgesField, nodeField)
-							if field := collectedField(ctx, path...); field != nil {
-								if err := query.collectField(ctx, {{ $oneNode }}, opCtx, *field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+							if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+								if err := query.collectField(ctx, {{ $oneNode }}, opCtx, *edgesNode, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
 									return err
 								}
 							}

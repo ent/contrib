@@ -150,8 +150,8 @@ func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+			if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
@@ -203,8 +203,8 @@ func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 				return err
 			}
 			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
+			if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+				if err := query.collectField(ctx, false, opCtx, *edgesNode, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 					return err
 				}
 			}
@@ -239,8 +239,8 @@ func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+			if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
@@ -296,8 +296,8 @@ func (cq *CategoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 				return err
 			}
 			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, categoryImplementors)...); err != nil {
+			if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+				if err := query.collectField(ctx, false, opCtx, *edgesNode, path, mayAddCondition(satisfies, categoryImplementors)...); err != nil {
 					return err
 				}
 			}
@@ -564,8 +564,8 @@ func (gq *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+			if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
@@ -621,8 +621,8 @@ func (gq *GroupQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 				return err
 			}
 			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+			if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+				if err := query.collectField(ctx, false, opCtx, *edgesNode, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
 					return err
 				}
 			}
@@ -802,8 +802,8 @@ func (tq *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+			if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
@@ -855,8 +855,8 @@ func (tq *TodoQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				return err
 			}
 			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
+			if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+				if err := query.collectField(ctx, false, opCtx, *edgesNode, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
 					return err
 				}
 			}
@@ -1046,8 +1046,8 @@ func (uq *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 			if query, err = pager.applyFilter(query); err != nil {
 				return err
 			}
-			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
-			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+			ignoredEdges := !hasCollectedFieldFrom(field, opCtx, satisfies, edgesField)
+			if hasCollectedFieldFrom(field, opCtx, satisfies, totalCountField) || hasCollectedFieldFrom(field, opCtx, satisfies, pageInfoField) {
 				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
 				if hasPagination || ignoredEdges {
 					query := query.Clone()
@@ -1103,8 +1103,8 @@ func (uq *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				return err
 			}
 			path = append(path, edgesField, nodeField)
-			if field := collectedField(ctx, path...); field != nil {
-				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, groupImplementors)...); err != nil {
+			if edgesNode := collectedFieldFrom(field, opCtx, satisfies, edgesField, nodeField); edgesNode != nil {
+				if err := query.collectField(ctx, false, opCtx, *edgesNode, path, mayAddCondition(satisfies, groupImplementors)...); err != nil {
 					return err
 				}
 			}
