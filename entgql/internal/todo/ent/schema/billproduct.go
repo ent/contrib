@@ -38,6 +38,7 @@ func (BillProduct) Fields() []ent.Field {
 // Annotations returns BillProduct annotations.
 func (BillProduct) Annotations() []schema.Annotation {
 	return []schema.Annotation{
+		entgql.Description("BillProduct represents a product in a bill."),
 		entgql.QueryField(),
 	}
 }

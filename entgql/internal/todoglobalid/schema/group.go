@@ -49,7 +49,8 @@ func (Group) Edges() []ent.Edge {
 func (Group) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.RelayConnection(),
-		entgql.QueryField(),
+		entgql.QueryField().
+			Description("The groups of the user"),
 		entgql.Directives(
 			annotation.HasPermissions([]string{"ADMIN", "MODERATOR"}),
 		),

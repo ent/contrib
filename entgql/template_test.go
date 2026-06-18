@@ -28,7 +28,9 @@ func TestFilterNodes(t *testing.T) {
 		{
 			Name: "Type1",
 			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{},
+				annotationName: map[string]interface{}{
+					"Description": "This is a test description",
+				},
 			},
 		},
 		{
@@ -47,7 +49,9 @@ func TestFilterNodes(t *testing.T) {
 		{
 			Name: "Type1",
 			Annotations: map[string]interface{}{
-				annotationName: map[string]interface{}{},
+				annotationName: map[string]interface{}{
+					"Description": "This is a test description",
+				},
 			},
 		},
 		{
