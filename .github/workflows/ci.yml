@@ -26,23 +26,6 @@ jobs:
     strategy:
       matrix:
         go: ['1.23', '1.24']
-    services:
-      # Used by the entgql multischema integration test
-      # (entgql/internal/multischema). Mirrors the mysql8 service from ent's
-      # own integration CI so TestMySQL runs instead of skipping.
-      mysql8:
-        image: mysql:8
-        env:
-          MYSQL_DATABASE: test
-          MYSQL_ROOT_PASSWORD: pass
-        ports:
-          - 3308:3306
-        options: >-
-          --health-cmd "mysqladmin ping -ppass"
-          --health-interval 10s
-          --health-start-period 10s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5

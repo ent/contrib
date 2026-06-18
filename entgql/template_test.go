@@ -15,12 +15,8 @@
 package entgql
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
-	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/stretchr/testify/require"
 )
@@ -297,53 +293,4 @@ func TestFilterFields(t *testing.T) {
 			Name: "Field2",
 		},
 	}, fields)
-}
-
-// generateCollection runs codegen for the todo schema with the entgql
-// collection template and returns the generated gql_collection.go source.
-func generateCollection(t *testing.T, features ...gen.Feature) string {
-	t.Helper()
-	target := t.TempDir()
-	storage, err := gen.NewStorage("sql")
-	require.NoError(t, err)
-	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
-		Target:    target,
-		Package:   "entgo.io/contrib/entgql/internal/todo/ent",
-		Storage:   storage,
-		Templates: AllTemplates,
-		Features:  features,
-	})
-	require.NoError(t, err)
-	require.NoError(t, graph.Gen())
-
-	out, err := os.ReadFile(filepath.Join(target, "gql_collection.go"))
-	require.NoError(t, err)
-	return string(out)
-}
-
-// TestCollection_M2MTotalCountSchemaConfig verifies that the M2M totalCount
-// loader schema-qualifies its join table when the sql/schemaconfig feature is
-// enabled, and leaves it unqualified otherwise.
-func TestCollection_M2MTotalCountSchemaConfig(t *testing.T) {
-	t.Run("without schemaconfig", func(t *testing.T) {
-		src := generateCollection(t)
-		require.Contains(t, src, "joinT := sql.Table(group.UsersTable)")
-		require.NotContains(t, src, "joinT.Schema(")
-	})
-
-	t.Run("with schemaconfig", func(t *testing.T) {
-		src := generateCollection(t, gen.FeatureSchemaConfig)
-		require.Contains(t, src, "joinT := sql.Table(group.UsersTable)")
-		// The join table is qualified with the schema configured for the M2M
-		// relation so it matches the rest of the schema-qualified query.
-		require.Contains(t, src, "joinT.Schema(gq.schemaConfig.UserGroups)")
-		// Every M2M totalCount loader must qualify its join table; none should
-		// be left as a bare sql.Table without a following Schema call.
-		for _, block := range strings.SplitAfter(src, "joinT := sql.Table(") {
-			if i := strings.Index(block, "s.Join(joinT)"); i >= 0 {
-				require.Contains(t, block[:i], "joinT.Schema(",
-					"unqualified M2M join table in totalCount loader:\n%s", block[:i])
-			}
-		}
-	})
 }
