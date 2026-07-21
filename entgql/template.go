@@ -101,6 +101,7 @@ var (
 		"isRelayConn":                  isRelayConn,
 		"isSkipMode":                   isSkipMode,
 		"mutationInputs":               mutationInputs,
+		"nodeGQLType":                  nodeGQLType,
 		"nodeImplementors":             nodeImplementors,
 		"nodeImplementorsVar":          nodeImplementorsVar,
 		"nodePaginationNames":          nodePaginationNames,
@@ -394,7 +395,7 @@ type interfaceView struct {
 	// The paginated view rows are resolved to these types (batched per type).
 	Implementors []*gen.Type
 	// Discriminator is the Go struct field of the column marking the concrete-type
-	// discriminator (entgql.MapsTo("__typename")); its value is the ent type name.
+	// discriminator (entgql.MapsTo("__typename")); its value is the GraphQL type name.
 	Discriminator string
 	// Synth are the view columns mirroring shared interface fields; a selection
 	// touching only these (plus __typename) is served from the view rows.
@@ -1194,6 +1195,13 @@ func nodePaginationNames(t *gen.Type) (*PaginationNames, error) {
 	}
 
 	return paginationNames(node), nil
+}
+
+// nodeGQLType returns the GraphQL type name for the node, respecting any
+// entgql.Type() annotation that renames the type.
+func nodeGQLType(t *gen.Type) (string, error) {
+	gqlType, _, err := gqlTypeFromNode(t)
+	return gqlType, err
 }
 
 func paginationNames(node string) *PaginationNames {
