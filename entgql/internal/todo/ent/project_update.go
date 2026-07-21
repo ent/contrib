@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/predicate"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
@@ -43,6 +44,40 @@ func (pu *ProjectUpdate) Where(ps ...predicate.Project) *ProjectUpdate {
 	return pu
 }
 
+// SetText sets the "text" field.
+func (pu *ProjectUpdate) SetText(s string) *ProjectUpdate {
+	pu.mutation.SetText(s)
+	return pu
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableText(s *string) *ProjectUpdate {
+	if s != nil {
+		pu.SetText(*s)
+	}
+	return pu
+}
+
+// SetName sets the "name" field.
+func (pu *ProjectUpdate) SetName(s string) *ProjectUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableName(s *string) *ProjectUpdate {
+	if s != nil {
+		pu.SetName(*s)
+	}
+	return pu
+}
+
+// ClearName clears the value of the "name" field.
+func (pu *ProjectUpdate) ClearName() *ProjectUpdate {
+	pu.mutation.ClearName()
+	return pu
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (pu *ProjectUpdate) AddTodoIDs(ids ...int) *ProjectUpdate {
 	pu.mutation.AddTodoIDs(ids...)
@@ -56,6 +91,25 @@ func (pu *ProjectUpdate) AddTodos(t ...*Todo) *ProjectUpdate {
 		ids[i] = t[i].ID
 	}
 	return pu.AddTodoIDs(ids...)
+}
+
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (pu *ProjectUpdate) SetCategoryID(id int) *ProjectUpdate {
+	pu.mutation.SetCategoryID(id)
+	return pu
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableCategoryID(id *int) *ProjectUpdate {
+	if id != nil {
+		pu = pu.SetCategoryID(*id)
+	}
+	return pu
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pu *ProjectUpdate) SetCategory(c *Category) *ProjectUpdate {
+	return pu.SetCategoryID(c.ID)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -82,6 +136,12 @@ func (pu *ProjectUpdate) RemoveTodos(t ...*Todo) *ProjectUpdate {
 		ids[i] = t[i].ID
 	}
 	return pu.RemoveTodoIDs(ids...)
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (pu *ProjectUpdate) ClearCategory() *ProjectUpdate {
+	pu.mutation.ClearCategory()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -111,6 +171,16 @@ func (pu *ProjectUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (pu *ProjectUpdate) check() error {
+	if v, ok := pu.mutation.Text(); ok {
+		if err := project.TextValidator(v); err != nil {
+			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Project.text": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdate {
 	pu.modifiers = append(pu.modifiers, modifiers...)
@@ -118,6 +188,9 @@ func (pu *ProjectUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Projec
 }
 
 func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := pu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -125,6 +198,15 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := pu.mutation.Text(); ok {
+		_spec.SetField(project.FieldText, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if pu.mutation.NameCleared() {
+		_spec.ClearField(project.FieldName, field.TypeString)
 	}
 	if pu.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -171,6 +253,35 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   project.CategoryTable,
+			Columns: []string{project.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   project.CategoryTable,
+			Columns: []string{project.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(pu.modifiers...)
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -193,6 +304,40 @@ type ProjectUpdateOne struct {
 	modifiers []func(*sql.UpdateBuilder)
 }
 
+// SetText sets the "text" field.
+func (puo *ProjectUpdateOne) SetText(s string) *ProjectUpdateOne {
+	puo.mutation.SetText(s)
+	return puo
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableText(s *string) *ProjectUpdateOne {
+	if s != nil {
+		puo.SetText(*s)
+	}
+	return puo
+}
+
+// SetName sets the "name" field.
+func (puo *ProjectUpdateOne) SetName(s string) *ProjectUpdateOne {
+	puo.mutation.SetName(s)
+	return puo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableName(s *string) *ProjectUpdateOne {
+	if s != nil {
+		puo.SetName(*s)
+	}
+	return puo
+}
+
+// ClearName clears the value of the "name" field.
+func (puo *ProjectUpdateOne) ClearName() *ProjectUpdateOne {
+	puo.mutation.ClearName()
+	return puo
+}
+
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
 func (puo *ProjectUpdateOne) AddTodoIDs(ids ...int) *ProjectUpdateOne {
 	puo.mutation.AddTodoIDs(ids...)
@@ -206,6 +351,25 @@ func (puo *ProjectUpdateOne) AddTodos(t ...*Todo) *ProjectUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return puo.AddTodoIDs(ids...)
+}
+
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (puo *ProjectUpdateOne) SetCategoryID(id int) *ProjectUpdateOne {
+	puo.mutation.SetCategoryID(id)
+	return puo
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableCategoryID(id *int) *ProjectUpdateOne {
+	if id != nil {
+		puo = puo.SetCategoryID(*id)
+	}
+	return puo
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (puo *ProjectUpdateOne) SetCategory(c *Category) *ProjectUpdateOne {
+	return puo.SetCategoryID(c.ID)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -232,6 +396,12 @@ func (puo *ProjectUpdateOne) RemoveTodos(t ...*Todo) *ProjectUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return puo.RemoveTodoIDs(ids...)
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (puo *ProjectUpdateOne) ClearCategory() *ProjectUpdateOne {
+	puo.mutation.ClearCategory()
+	return puo
 }
 
 // Where appends a list predicates to the ProjectUpdate builder.
@@ -274,6 +444,16 @@ func (puo *ProjectUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (puo *ProjectUpdateOne) check() error {
+	if v, ok := puo.mutation.Text(); ok {
+		if err := project.TextValidator(v); err != nil {
+			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Project.text": %w`, err)}
+		}
+	}
+	return nil
+}
+
 // Modify adds a statement modifier for attaching custom logic to the UPDATE statement.
 func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *ProjectUpdateOne {
 	puo.modifiers = append(puo.modifiers, modifiers...)
@@ -281,6 +461,9 @@ func (puo *ProjectUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Pr
 }
 
 func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err error) {
+	if err := puo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(project.Table, project.Columns, sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
@@ -305,6 +488,15 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := puo.mutation.Text(); ok {
+		_spec.SetField(project.FieldText, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+	}
+	if puo.mutation.NameCleared() {
+		_spec.ClearField(project.FieldName, field.TypeString)
 	}
 	if puo.mutation.TodosCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -344,6 +536,35 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   project.CategoryTable,
+			Columns: []string{project.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   project.CategoryTable,
+			Columns: []string{project.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

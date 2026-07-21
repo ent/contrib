@@ -28,6 +28,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/project"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/user"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/verysecret"
@@ -99,6 +100,7 @@ func checkColumn(table, column string) error {
 			friendship.Table:  friendship.ValidColumn,
 			group.Table:       group.ValidColumn,
 			pet.Table:         pet.ValidColumn,
+			project.Table:     project.ValidColumn,
 			todo.Table:        todo.ValidColumn,
 			user.Table:        user.ValidColumn,
 			verysecret.Table:  verysecret.ValidColumn,

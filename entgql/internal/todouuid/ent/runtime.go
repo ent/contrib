@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/project"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/schema"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
@@ -76,6 +77,19 @@ func init() {
 	groupDescID := groupFields[0].Descriptor()
 	// group.DefaultID holds the default value on creation for the id field.
 	group.DefaultID = groupDescID.Default.(func() uuid.UUID)
+	projectMixin := schema.Project{}.Mixin()
+	projectMixinFields0 := projectMixin[0].Fields()
+	_ = projectMixinFields0
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescText is the schema descriptor for text field.
+	projectDescText := projectMixinFields0[0].Descriptor()
+	// project.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	project.TextValidator = projectDescText.Validators[0].(func(string) error)
+	// projectDescID is the schema descriptor for id field.
+	projectDescID := projectFields[0].Descriptor()
+	// project.DefaultID holds the default value on creation for the id field.
+	project.DefaultID = projectDescID.Default.(func() uuid.UUID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

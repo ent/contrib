@@ -25,6 +25,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todo/ent/bookmark"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -385,6 +386,255 @@ func (bp *BillProduct) ToEdge(order *BillProductOrder) *BillProductEdge {
 	return &BillProductEdge{
 		Node:   bp,
 		Cursor: order.Field.toCursor(bp),
+	}
+}
+
+// BookmarkEdge is the edge representation of Bookmark.
+type BookmarkEdge struct {
+	Node   *Bookmark `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// BookmarkConnection is the connection containing edges to Bookmark.
+type BookmarkConnection struct {
+	Edges      []*BookmarkEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+func (c *BookmarkConnection) build(nodes []*Bookmark, pager *bookmarkPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Bookmark
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Bookmark {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Bookmark {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*BookmarkEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &BookmarkEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// BookmarkPaginateOption enables pagination customization.
+type BookmarkPaginateOption func(*bookmarkPager) error
+
+// WithBookmarkOrder configures pagination ordering.
+func WithBookmarkOrder(order *BookmarkOrder) BookmarkPaginateOption {
+	if order == nil {
+		order = DefaultBookmarkOrder
+	}
+	o := *order
+	return func(pager *bookmarkPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultBookmarkOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithBookmarkFilter configures pagination filter.
+func WithBookmarkFilter(filter func(*BookmarkQuery) (*BookmarkQuery, error)) BookmarkPaginateOption {
+	return func(pager *bookmarkPager) error {
+		if filter == nil {
+			return errors.New("BookmarkQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type bookmarkPager struct {
+	reverse bool
+	order   *BookmarkOrder
+	filter  func(*BookmarkQuery) (*BookmarkQuery, error)
+}
+
+func newBookmarkPager(opts []BookmarkPaginateOption, reverse bool) (*bookmarkPager, error) {
+	pager := &bookmarkPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultBookmarkOrder
+	}
+	return pager, nil
+}
+
+func (p *bookmarkPager) applyFilter(query *BookmarkQuery) (*BookmarkQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *bookmarkPager) toCursor(b *Bookmark) Cursor {
+	return p.order.Field.toCursor(b)
+}
+
+func (p *bookmarkPager) applyCursors(query *BookmarkQuery, after, before *Cursor) (*BookmarkQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultBookmarkOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *bookmarkPager) applyOrder(query *BookmarkQuery) *BookmarkQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultBookmarkOrder.Field {
+		query = query.Order(DefaultBookmarkOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *bookmarkPager) orderExpr(query *BookmarkQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultBookmarkOrder.Field {
+			b.Comma().Ident(DefaultBookmarkOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Bookmark.
+func (b *BookmarkQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...BookmarkPaginateOption,
+) (*BookmarkConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newBookmarkPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if b, err = pager.applyFilter(b); err != nil {
+		return nil, err
+	}
+	conn := &BookmarkConnection{Edges: []*BookmarkEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := b.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if b, err = pager.applyCursors(b, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		b.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := b.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	b = pager.applyOrder(b)
+	nodes, err := b.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// BookmarkOrderField defines the ordering field of Bookmark.
+type BookmarkOrderField struct {
+	// Value extracts the ordering value from the given Bookmark.
+	Value    func(*Bookmark) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) bookmark.OrderOption
+	toCursor func(*Bookmark) Cursor
+}
+
+// BookmarkOrder defines the ordering of Bookmark.
+type BookmarkOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *BookmarkOrderField `json:"field"`
+}
+
+// DefaultBookmarkOrder is the default ordering of Bookmark.
+var DefaultBookmarkOrder = &BookmarkOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &BookmarkOrderField{
+		Value: func(b *Bookmark) (ent.Value, error) {
+			return b.ID, nil
+		},
+		column: bookmark.FieldID,
+		toTerm: bookmark.ByID,
+		toCursor: func(b *Bookmark) Cursor {
+			return Cursor{ID: b.ID}
+		},
+	},
+}
+
+// ToEdge converts Bookmark into BookmarkEdge.
+func (b *Bookmark) ToEdge(order *BookmarkOrder) *BookmarkEdge {
+	if order == nil {
+		order = DefaultBookmarkOrder
+	}
+	return &BookmarkEdge{
+		Node:   b,
+		Cursor: order.Field.toCursor(b),
 	}
 }
 

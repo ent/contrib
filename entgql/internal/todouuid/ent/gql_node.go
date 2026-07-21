@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/project"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
 	"github.com/99designs/gqlgen/graphql"
@@ -60,15 +61,46 @@ func (*Group) IsNode() {}
 // IsNamedNode implements the NamedNode interface check for GQLGen.
 func (*Group) IsNamedNode() {}
 
-var todoImplementors = []string{"Todo", "Node"}
+var projectImplementors = []string{"Project", "Node", "BookmarkItem"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Project) IsNode() {}
+
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Project) IsBookmarkItem() {}
+
+var todoImplementors = []string{"Todo", "Node", "BookmarkItem"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Todo) IsNode() {}
+
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Todo) IsBookmarkItem() {}
 
 var userImplementors = []string{"User", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*User) IsNode() {}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (pr *Project) Owner(ctx context.Context) (*Category, error) {
+	result, err := pr.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (t *Todo) Owner(ctx context.Context) (*Category, error) {
+	result, err := t.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -160,6 +192,15 @@ func (c *Client) noder(ctx context.Context, table string, id uuid.UUID) (Noder, 
 			Where(group.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, groupImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, projectImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -307,6 +348,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []uuid.UUID) ([]N
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
 		query, err := query.CollectFields(ctx, groupImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.IDIn(ids...))
+		query, err := query.CollectFields(ctx, projectImplementors...)
 		if err != nil {
 			return nil, err
 		}

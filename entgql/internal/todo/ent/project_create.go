@@ -18,8 +18,10 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -31,6 +33,26 @@ type ProjectCreate struct {
 	config
 	mutation *ProjectMutation
 	hooks    []Hook
+}
+
+// SetText sets the "text" field.
+func (pc *ProjectCreate) SetText(s string) *ProjectCreate {
+	pc.mutation.SetText(s)
+	return pc
+}
+
+// SetName sets the "name" field.
+func (pc *ProjectCreate) SetName(s string) *ProjectCreate {
+	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pc *ProjectCreate) SetNillableName(s *string) *ProjectCreate {
+	if s != nil {
+		pc.SetName(*s)
+	}
+	return pc
 }
 
 // AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
@@ -46,6 +68,25 @@ func (pc *ProjectCreate) AddTodos(t ...*Todo) *ProjectCreate {
 		ids[i] = t[i].ID
 	}
 	return pc.AddTodoIDs(ids...)
+}
+
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (pc *ProjectCreate) SetCategoryID(id int) *ProjectCreate {
+	pc.mutation.SetCategoryID(id)
+	return pc
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (pc *ProjectCreate) SetNillableCategoryID(id *int) *ProjectCreate {
+	if id != nil {
+		pc = pc.SetCategoryID(*id)
+	}
+	return pc
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pc *ProjectCreate) SetCategory(c *Category) *ProjectCreate {
+	return pc.SetCategoryID(c.ID)
 }
 
 // Mutation returns the ProjectMutation object of the builder.
@@ -82,6 +123,14 @@ func (pc *ProjectCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProjectCreate) check() error {
+	if _, ok := pc.mutation.Text(); !ok {
+		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "Project.text"`)}
+	}
+	if v, ok := pc.mutation.Text(); ok {
+		if err := project.TextValidator(v); err != nil {
+			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Project.text": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -108,6 +157,14 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		_node = &Project{config: pc.config}
 		_spec = sqlgraph.NewCreateSpec(project.Table, sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt))
 	)
+	if value, ok := pc.mutation.Text(); ok {
+		_spec.SetField(project.FieldText, field.TypeString, value)
+		_node.Text = value
+	}
+	if value, ok := pc.mutation.Name(); ok {
+		_spec.SetField(project.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
 	if nodes := pc.mutation.TodosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -122,6 +179,23 @@ func (pc *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   project.CategoryTable,
+			Columns: []string{project.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.category_projects = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

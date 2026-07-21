@@ -35,6 +35,33 @@ var (
 		Columns:    BillProductsColumns,
 		PrimaryKey: []*schema.Column{BillProductsColumns[0]},
 	}
+	// BookmarksColumns holds the columns for the "bookmarks" table.
+	BookmarksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "bookmark_todo", Type: field.TypeInt, Nullable: true},
+		{Name: "bookmark_project", Type: field.TypeInt, Nullable: true},
+	}
+	// BookmarksTable holds the schema information for the "bookmarks" table.
+	BookmarksTable = &schema.Table{
+		Name:       "bookmarks",
+		Columns:    BookmarksColumns,
+		PrimaryKey: []*schema.Column{BookmarksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "bookmarks_todos_todo",
+				Columns:    []*schema.Column{BookmarksColumns[2]},
+				RefColumns: []*schema.Column{TodosColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "bookmarks_projects_project",
+				Columns:    []*schema.Column{BookmarksColumns[3]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -121,12 +148,23 @@ var (
 	// ProjectsColumns holds the columns for the "projects" table.
 	ProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "category_projects", Type: field.TypeInt, Nullable: true},
 	}
 	// ProjectsTable holds the schema information for the "projects" table.
 	ProjectsTable = &schema.Table{
 		Name:       "projects",
 		Columns:    ProjectsColumns,
 		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "projects_categories_projects",
+				Columns:    []*schema.Column{ProjectsColumns[3]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
@@ -270,6 +308,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BillProductsTable,
+		BookmarksTable,
 		CategoriesTable,
 		FriendshipsTable,
 		GroupsTable,
@@ -285,9 +324,12 @@ var (
 )
 
 func init() {
+	BookmarksTable.ForeignKeys[0].RefTable = TodosTable
+	BookmarksTable.ForeignKeys[1].RefTable = ProjectsTable
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
 	OneToManiesTable.ForeignKeys[0].RefTable = OneToManiesTable
+	ProjectsTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
 	TodosTable.ForeignKeys[2].RefTable = TodosTable

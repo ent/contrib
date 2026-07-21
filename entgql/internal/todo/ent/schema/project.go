@@ -17,7 +17,9 @@ package schema
 import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 )
 
 // Project holds the schema definition for the GroupTodo entity.
@@ -25,12 +27,33 @@ type Project struct {
 	ent.Schema
 }
 
-// Note, this schema intentionally does not have any fields.
+// Fields of the Project. "text" and "name" mirror the fields on Todo so they are
+// exposed as shared fields on the BookmarkItem interface.
+func (Project) Fields() []ent.Field {
+	return []ent.Field{
+		field.Text("text").
+			NotEmpty(),
+		field.String("name").
+			Optional(),
+	}
+}
 
 // Edges of the Project.
 func (Project) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("todos", Todo.Type).
 			Annotations(entgql.RelayConnection()),
+		edge.From("category", Category.Type).
+			Ref("projects").
+			Unique().
+			Annotations(entgql.InterfaceField("owner")),
+	}
+}
+
+// Annotations returns Project annotations.
+func (Project) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.RelayConnection(),
+		entgql.Implements("BookmarkItem"),
 	}
 }

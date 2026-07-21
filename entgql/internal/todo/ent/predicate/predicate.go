@@ -23,6 +23,12 @@ import (
 // BillProduct is the predicate function for billproduct builders.
 type BillProduct func(*sql.Selector)
 
+// Bookmark is the predicate function for bookmark builders.
+type Bookmark func(*sql.Selector)
+
+// BookmarkItemView is the predicate function for bookmarkitemview builders.
+type BookmarkItemView func(*sql.Selector)
+
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 

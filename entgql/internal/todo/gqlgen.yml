@@ -38,6 +38,15 @@ models:
   Node:
     model:
       - entgo.io/contrib/entgql/internal/todo/ent.Noder
+  BookmarkItem:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent.BookmarkItem
+  BookmarkItemConnection:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent.BookmarkItemConnection
+  BookmarkItemEdge:
+    model:
+      - entgo.io/contrib/entgql/internal/todo/ent.BookmarkItemEdge
   # Custom mapping from GraphQL `CategoryConfig` and
   # `CategoryConfigInput` to `schematype.CategoryConfig`.
   CategoryConfig:

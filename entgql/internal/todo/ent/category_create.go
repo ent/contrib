@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema/schematype"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -113,6 +114,21 @@ func (cc *CategoryCreate) AddTodos(t ...*Todo) *CategoryCreate {
 		ids[i] = t[i].ID
 	}
 	return cc.AddTodoIDs(ids...)
+}
+
+// AddProjectIDs adds the "projects" edge to the Project entity by IDs.
+func (cc *CategoryCreate) AddProjectIDs(ids ...int) *CategoryCreate {
+	cc.mutation.AddProjectIDs(ids...)
+	return cc
+}
+
+// AddProjects adds the "projects" edges to the Project entity.
+func (cc *CategoryCreate) AddProjects(p ...*Project) *CategoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return cc.AddProjectIDs(ids...)
 }
 
 // AddSubCategoryIDs adds the "sub_categories" edge to the Category entity by IDs.
@@ -249,6 +265,22 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   category.ProjectsTable,
+			Columns: []string{category.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(project.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -53,6 +53,16 @@ func (r *queryResolver) BillProducts(ctx context.Context) ([]*ent.BillProduct, e
 	return r.client.BillProduct.Query().All(ctx)
 }
 
+// Bookmarks is the resolver for the bookmarks field.
+func (r *queryResolver) Bookmarks(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, where *BookmarkWhereInput) (*BookmarkConnection, error) {
+	panic(fmt.Errorf("not implemented: Bookmarks - bookmarks"))
+}
+
+// BookmarkItems is the resolver for the bookmarkItems field.
+func (r *queryResolver) BookmarkItems(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy *BookmarkItemOrder, where *BookmarkItemWhereInput) (*BookmarkItemConnection, error) {
+	panic(fmt.Errorf("not implemented: BookmarkItems - bookmarkItems"))
+}
+
 // Categories is the resolver for the categories field.
 func (r *queryResolver) Categories(ctx context.Context, after *entgql.Cursor[string], first *int, before *entgql.Cursor[string], last *int, orderBy []*ent.CategoryOrder, where *ent.CategoryWhereInput) (*ent.CategoryConnection, error) {
 	panic(fmt.Errorf("not implemented"))

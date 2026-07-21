@@ -27,6 +27,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todouuid/ent/category"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/group"
+	"entgo.io/contrib/entgql/internal/todouuid/ent/project"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/user"
 	"entgo.io/contrib/entgql/internal/todouuid/ent/verysecret"
@@ -97,6 +98,7 @@ func checkColumn(table, column string) error {
 			category.Table:    category.ValidColumn,
 			friendship.Table:  friendship.ValidColumn,
 			group.Table:       group.ValidColumn,
+			project.Table:     project.ValidColumn,
 			todo.Table:        todo.ValidColumn,
 			user.Table:        user.ValidColumn,
 			verysecret.Table:  verysecret.ValidColumn,

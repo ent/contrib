@@ -108,6 +108,27 @@ var (
 		Columns:    PetsColumns,
 		PrimaryKey: []*schema.Column{PetsColumns[0]},
 	}
+	// ProjectsColumns holds the columns for the "projects" table.
+	ProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "category_projects", Type: field.TypeString, Nullable: true},
+	}
+	// ProjectsTable holds the schema information for the "projects" table.
+	ProjectsTable = &schema.Table{
+		Name:       "projects",
+		Columns:    ProjectsColumns,
+		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "projects_categories_projects",
+				Columns:    []*schema.Column{ProjectsColumns[3]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -122,6 +143,7 @@ var (
 		{Name: "customp", Type: field.TypeJSON, Nullable: true},
 		{Name: "value", Type: field.TypeInt, Default: 0},
 		{Name: "category_id", Type: field.TypeString, Nullable: true},
+		{Name: "project_todos", Type: field.TypeString, Nullable: true},
 		{Name: "todo_children", Type: field.TypeString, Nullable: true},
 		{Name: "todo_secret", Type: field.TypeString, Nullable: true},
 	}
@@ -138,14 +160,20 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "todos_todos_children",
+				Symbol:     "todos_projects_todos",
 				Columns:    []*schema.Column{TodosColumns[12]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "todos_todos_children",
+				Columns:    []*schema.Column{TodosColumns[13]},
 				RefColumns: []*schema.Column{TodosColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "todos_very_secrets_secret",
-				Columns:    []*schema.Column{TodosColumns[13]},
+				Columns:    []*schema.Column{TodosColumns[14]},
 				RefColumns: []*schema.Column{VerySecretsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -230,6 +258,7 @@ var (
 		FriendshipsTable,
 		GroupsTable,
 		PetsTable,
+		ProjectsTable,
 		TodosTable,
 		UsersTable,
 		VerySecretsTable,
@@ -241,9 +270,11 @@ var (
 func init() {
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
+	ProjectsTable.ForeignKeys[0].RefTable = CategoriesTable
 	TodosTable.ForeignKeys[0].RefTable = CategoriesTable
-	TodosTable.ForeignKeys[1].RefTable = TodosTable
-	TodosTable.ForeignKeys[2].RefTable = VerySecretsTable
+	TodosTable.ForeignKeys[1].RefTable = ProjectsTable
+	TodosTable.ForeignKeys[2].RefTable = TodosTable
+	TodosTable.ForeignKeys[3].RefTable = VerySecretsTable
 	CategorySubCategoriesTable.ForeignKeys[0].RefTable = CategoriesTable
 	CategorySubCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 	UserGroupsTable.ForeignKeys[0].RefTable = UsersTable

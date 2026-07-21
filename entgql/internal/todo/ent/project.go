@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -27,24 +28,31 @@ import (
 
 // Project is the model entity for the Project schema.
 type Project struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// Text holds the value of the "text" field.
+	Text string `json:"text,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
-	Edges        ProjectEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges             ProjectEdges `json:"edges"`
+	category_projects *int
+	selectValues      sql.SelectValues
 }
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
 type ProjectEdges struct {
 	// Todos holds the value of the todos edge.
 	Todos []*Todo `json:"todos,omitempty"`
+	// Category holds the value of the category edge.
+	Category *Category `json:"category,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
 	namedTodos map[string][]*Todo
 }
@@ -58,12 +66,27 @@ func (e ProjectEdges) TodosOrErr() ([]*Todo, error) {
 	return nil, &NotLoadedError{edge: "todos"}
 }
 
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) CategoryOrErr() (*Category, error) {
+	if e.Category != nil {
+		return e.Category, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: category.Label}
+	}
+	return nil, &NotLoadedError{edge: "category"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Project) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
 		case project.FieldID:
+			values[i] = new(sql.NullInt64)
+		case project.FieldText, project.FieldName:
+			values[i] = new(sql.NullString)
+		case project.ForeignKeys[0]: // category_projects
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -86,6 +109,25 @@ func (pr *Project) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pr.ID = int(value.Int64)
+		case project.FieldText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field text", values[i])
+			} else if value.Valid {
+				pr.Text = value.String
+			}
+		case project.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				pr.Name = value.String
+			}
+		case project.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field category_projects", value)
+			} else if value.Valid {
+				pr.category_projects = new(int)
+				*pr.category_projects = int(value.Int64)
+			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
 		}
@@ -102,6 +144,11 @@ func (pr *Project) Value(name string) (ent.Value, error) {
 // QueryTodos queries the "todos" edge of the Project entity.
 func (pr *Project) QueryTodos() *TodoQuery {
 	return NewProjectClient(pr.config).QueryTodos(pr)
+}
+
+// QueryCategory queries the "category" edge of the Project entity.
+func (pr *Project) QueryCategory() *CategoryQuery {
+	return NewProjectClient(pr.config).QueryCategory(pr)
 }
 
 // Update returns a builder for updating this Project.
@@ -126,7 +173,12 @@ func (pr *Project) Unwrap() *Project {
 func (pr *Project) String() string {
 	var builder strings.Builder
 	builder.WriteString("Project(")
-	builder.WriteString(fmt.Sprintf("id=%v", pr.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
+	builder.WriteString("text=")
+	builder.WriteString(pr.Text)
+	builder.WriteString(", ")
+	builder.WriteString("name=")
+	builder.WriteString(pr.Name)
 	builder.WriteByte(')')
 	return builder.String()
 }

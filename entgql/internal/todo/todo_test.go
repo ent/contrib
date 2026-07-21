@@ -75,7 +75,7 @@ const (
 		}
 	}`
 	maxTodos = 32
-	idOffset = 6 << 32
+	idOffset = 7 << 32
 )
 
 func (s *todoTestSuite) SetupTest() {
@@ -1133,6 +1133,8 @@ func (s *todoTestSuite) TestQueryJSONFields() {
 	s.Require().Equal(cat.Strings, rsp.Node.Strings)
 }
 
+// TestInterfaceEagerLoad verifies that edges accessed through a GQL interface
+// (BookmarkItem) are properly eager-loaded when queried through the interface.
 func TestPageInfo(t *testing.T) {
 	ctx := context.Background()
 	ec := enttest.Open(
@@ -1654,6 +1656,34 @@ func TestNestedConnection(t *testing.T) {
 
 	t.Run("Node-cursor", func(t *testing.T) {
 		var (
+			allQuery = `query ($id: ID!) {
+				group: node(id: $id) {
+					... on Group {
+						users(last: 2) {
+							edges {
+								cursor
+							}
+						}
+					}
+				}
+			}`
+			allRsp struct {
+				Group struct {
+					Users struct {
+						Edges []struct {
+							Cursor string
+						}
+					}
+				}
+			}
+		)
+		err = gqlc.Post(allQuery, &allRsp, client.Var("id", groups[0].ID))
+		require.NoError(t, err)
+		require.True(t, len(allRsp.Group.Users.Edges) >= 2)
+		lastCursor := allRsp.Group.Users.Edges[len(allRsp.Group.Users.Edges)-1].Cursor
+		secondLastCursor := allRsp.Group.Users.Edges[len(allRsp.Group.Users.Edges)-2].Cursor
+
+		var (
 			query = `query ($id: ID!, $cursor: Cursor) {
 				group: node(id: $id) {
 					... on Group {
@@ -1687,11 +1717,11 @@ func TestNestedConnection(t *testing.T) {
 		)
 		err = gqlc.Post(query, &rsp,
 			client.Var("id", groups[0].ID),
-			client.Var("cursor", "gaFpzwAAAAcAAAAJ"),
+			client.Var("cursor", lastCursor),
 		)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(rsp.Group.Users.Edges))
-		require.Equal(t, "gaFpzwAAAAcAAAAI", rsp.Group.Users.Edges[0].Cursor)
+		require.Equal(t, secondLastCursor, rsp.Group.Users.Edges[0].Cursor)
 	})
 }
 
@@ -3246,6 +3276,842 @@ func TestUnionConnectionEagerLoadFragmentOrder(t *testing.T) {
 	require.Equal(t, texts1, texts2)
 	require.Contains(t, queries1[1], "category_id` IN")
 	require.Contains(t, queries1[2], "categories`.`id` IN")
+}
+
+// TestInterfaceConnectionPagination verifies that the polymorphic BookmarkItem
+// connection exposed on Category.items is a real Relay connection: it accepts
+// first/after/before/last, returns unique per-edge cursors, and reports a
+// correct pageInfo/totalCount while walking through heterogeneous members.
+// TestInterfaceViewConnection verifies the global `bookmarkItems` connection, which
+// is backed by the BookmarkItemView SQL view. It paginates the view at the database
+// level and resolves each row to its concrete node (Todo/Project) so that
+// type-specific fragments work.
+func TestInterfaceViewConnection(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		// Global unique ids let the view rows resolve back to their concrete type.
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	// The built-in migrator does not create views, so create it manually. The
+	// definition mirrors the BookmarkItemView schema's entsql.ViewFor query.
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	// 3 todos + 2 projects across two categories = 5 interface members.
+	cat := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusCompleted).SetCategory(cat),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusInProgress).SetCategory(cat),
+	).SaveX(ctx)
+	ec.Project.CreateBulk(
+		ec.Project.Create().SetText("project").SetCategory(cat),
+		ec.Project.Create().SetText("project").SetCategory(cat),
+	).SaveX(ctx)
+
+	type page struct {
+		BookmarkItems struct {
+			TotalCount int
+			PageInfo   struct {
+				HasNextPage bool
+				EndCursor   *string
+			}
+			Edges []struct {
+				Cursor string
+				Node   struct {
+					Typename string `json:"__typename"`
+					Text     string // present only for Todo
+					Owner    *struct{ Text string }
+				}
+			}
+		}
+	}
+	const q = `query($first: Int, $after: Cursor) {
+		bookmarkItems(first: $first, after: $after) {
+			totalCount
+			pageInfo { hasNextPage endCursor }
+			edges {
+				cursor
+				node {
+					__typename
+					... on BookmarkItem { owner { text } }
+					... on Todo { text }
+				}
+			}
+		}
+	}`
+
+	// Full listing: all 5 members, each resolved to its concrete type.
+	var all page
+	gqlc.MustPost(q, &all)
+	require.Equal(t, 5, all.BookmarkItems.TotalCount)
+	require.Len(t, all.BookmarkItems.Edges, 5)
+	types := map[string]int{}
+	for _, e := range all.BookmarkItems.Edges {
+		types[e.Node.Typename]++
+		require.NotNil(t, e.Node.Owner)
+		require.Equal(t, "cat1", e.Node.Owner.Text)
+	}
+	require.Equal(t, 3, types["Todo"], "expected 3 todos resolved to concrete type")
+	require.Equal(t, 2, types["Project"], "expected 2 projects resolved to concrete type")
+
+	// DB-level pagination: first 2, then continue after the end cursor.
+	var p1 page
+	gqlc.MustPost(q, &p1, client.Var("first", 2))
+	require.Len(t, p1.BookmarkItems.Edges, 2)
+	require.True(t, p1.BookmarkItems.PageInfo.HasNextPage)
+	require.Equal(t, 5, p1.BookmarkItems.TotalCount)
+	require.NotNil(t, p1.BookmarkItems.PageInfo.EndCursor)
+
+	var p2 page
+	gqlc.MustPost(q, &p2, client.Var("first", 2), client.Var("after", *p1.BookmarkItems.PageInfo.EndCursor))
+	require.Len(t, p2.BookmarkItems.Edges, 2)
+	// No overlap between pages.
+	require.NotEqual(t, p1.BookmarkItems.Edges[1].Cursor, p2.BookmarkItems.Edges[0].Cursor)
+}
+
+// TestInterfaceConnectionConcreteTypes verifies that nodes of the edge-based
+// BookmarkItem connection are the concrete Todo/Project types, so both the shared
+// interface fragment and type-specific fragments resolve.
+// TestInterfaceConnectionScoping verifies that the edge-based BookmarkItem
+// connection only contains the members belonging to the queried parent, and
+// that an empty connection is reported correctly.
+// TestInterfaceViewConnectionReverse verifies backward pagination (last/before)
+// on the global, view-backed BookmarkItem connection.
+func TestInterfaceViewConnectionReverse(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	cat := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusCompleted).SetCategory(cat),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusInProgress).SetCategory(cat),
+	).SaveX(ctx)
+	ec.Project.CreateBulk(
+		ec.Project.Create().SetText("project").SetCategory(cat),
+		ec.Project.Create().SetText("project").SetCategory(cat),
+	).SaveX(ctx)
+
+	type page struct {
+		BookmarkItems struct {
+			TotalCount int
+			PageInfo   struct {
+				HasNextPage     bool
+				HasPreviousPage bool
+			}
+			Edges []struct {
+				Cursor string
+			}
+		}
+	}
+	const q = `query($first: Int, $after: Cursor, $last: Int, $before: Cursor) {
+		bookmarkItems(first: $first, after: $after, last: $last, before: $before) {
+			totalCount
+			pageInfo { hasNextPage hasPreviousPage }
+			edges { cursor }
+		}
+	}`
+
+	// Full ordered listing to derive cursors.
+	var all page
+	gqlc.MustPost(q, &all)
+	require.Len(t, all.BookmarkItems.Edges, 5)
+
+	// last: 2 returns the final two members and reports a previous page.
+	var lastRsp page
+	gqlc.MustPost(q, &lastRsp, client.Var("last", 2))
+	require.Len(t, lastRsp.BookmarkItems.Edges, 2)
+	require.True(t, lastRsp.BookmarkItems.PageInfo.HasPreviousPage)
+	require.Equal(t, all.BookmarkItems.Edges[3].Cursor, lastRsp.BookmarkItems.Edges[0].Cursor)
+	require.Equal(t, all.BookmarkItems.Edges[4].Cursor, lastRsp.BookmarkItems.Edges[1].Cursor)
+
+	// last + before the 3rd cursor returns the two members preceding it
+	// (backward traversal, as per the Relay first/after vs last/before pairing).
+	var beforeRsp page
+	gqlc.MustPost(q, &beforeRsp,
+		client.Var("last", 2), client.Var("before", all.BookmarkItems.Edges[2].Cursor))
+	require.Len(t, beforeRsp.BookmarkItems.Edges, 2)
+	require.Equal(t, all.BookmarkItems.Edges[0].Cursor, beforeRsp.BookmarkItems.Edges[0].Cursor)
+	require.Equal(t, all.BookmarkItems.Edges[1].Cursor, beforeRsp.BookmarkItems.Edges[1].Cursor)
+}
+
+// TestInterfaceViewConnectionOrderAndFilter verifies entgql-generated orderBy
+// and where support on the global, view-backed BookmarkItem connection.
+func TestInterfaceViewConnectionOrderAndFilter(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	cat1 := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	cat2 := ec.Category.Create().SetText("cat2").SetStatus(category.StatusEnabled).SaveX(ctx)
+	// cat1: 2 todos + 1 project. cat2: 1 todo.
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat1),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat1),
+	).SaveX(ctx)
+	ec.Project.Create().SetText("project").SetCategory(cat1).SaveX(ctx)
+	ec.Todo.Create().SetText("t3").SetStatus(todo.StatusInProgress).SetCategory(cat2).SaveX(ctx)
+
+	type page struct {
+		BookmarkItems struct {
+			TotalCount int
+			Edges      []struct {
+				Node struct {
+					Owner *struct{ Text string }
+				}
+			}
+		}
+	}
+
+	// where: filter to cat1's members only.
+	var filtered page
+	gqlc.MustPost(`query($cid: Int!) {
+		bookmarkItems(where: {categoryID: $cid}) {
+			totalCount
+			edges { node { ... on BookmarkItem { owner { text } } } }
+		}
+	}`, &filtered, client.Var("cid", cat1.ID))
+	require.Equal(t, 3, filtered.BookmarkItems.TotalCount, "cat1 has 2 todos + 1 project")
+	require.Len(t, filtered.BookmarkItems.Edges, 3)
+	for _, e := range filtered.BookmarkItems.Edges {
+		require.Equal(t, "cat1", e.Node.Owner.Text)
+	}
+
+	// orderBy CATEGORY_ID DESC: cat2's member(s) come first.
+	var ordered page
+	gqlc.MustPost(`{
+		bookmarkItems(orderBy: {field: CATEGORY_ID, direction: DESC}) {
+			totalCount
+			edges { node { ... on BookmarkItem { owner { text } } } }
+		}
+	}`, &ordered)
+	require.Equal(t, 4, ordered.BookmarkItems.TotalCount)
+	require.Len(t, ordered.BookmarkItems.Edges, 4)
+	require.Equal(t, "cat2", ordered.BookmarkItems.Edges[0].Node.Owner.Text, "highest category_id first")
+	require.Equal(t, "cat1", ordered.BookmarkItems.Edges[3].Node.Owner.Text)
+}
+
+// TestInterfaceViewConnectionFilterOrderPaginate exercises the generated
+// filter (where), orderBy, and pagination on the global bookmarkItems connection,
+// including their combination and multi-page cursor walks.
+func TestInterfaceViewConnectionFilterOrderPaginate(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(drv)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	// Three categories (ascending ids) with 4 todos + 2 projects = 6 members.
+	//   cat1: t1, t2, p1   cat2: t3, p2   cat3: t4
+	cat1 := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	cat2 := ec.Category.Create().SetText("cat2").SetStatus(category.StatusEnabled).SaveX(ctx)
+	cat3 := ec.Category.Create().SetText("cat3").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat1),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat1),
+		ec.Todo.Create().SetText("t3").SetStatus(todo.StatusInProgress).SetCategory(cat2),
+		ec.Todo.Create().SetText("t4").SetStatus(todo.StatusInProgress).SetCategory(cat3),
+	).SaveX(ctx)
+	ec.Project.CreateBulk(
+		ec.Project.Create().SetText("p1").SetCategory(cat1),
+		ec.Project.Create().SetText("p2").SetCategory(cat2),
+	).SaveX(ctx)
+
+	type node struct {
+		Typename string `json:"__typename"`
+		ID       string
+		Text     string
+		Owner    *struct{ Text string }
+	}
+	type page struct {
+		BookmarkItems struct {
+			TotalCount int
+			PageInfo   struct {
+				HasNextPage bool
+				EndCursor   *string
+			}
+			Edges []struct {
+				Cursor string
+				Node   node
+			}
+		}
+	}
+	post := func(q string, opts ...client.Option) page {
+		var p page
+		gqlc.MustPost(q, &p, opts...)
+		return p
+	}
+
+	t.Run("FilterByKind", func(t *testing.T) {
+		todos := post(`{ bookmarkItems(where: {kind: "Todo"}) { totalCount edges { node { __typename } } } }`)
+		require.Equal(t, 4, todos.BookmarkItems.TotalCount)
+		require.Len(t, todos.BookmarkItems.Edges, 4)
+		for _, e := range todos.BookmarkItems.Edges {
+			require.Equal(t, "Todo", e.Node.Typename)
+		}
+		projects := post(`{ bookmarkItems(where: {kind: "Project"}) { totalCount edges { node { __typename } } } }`)
+		require.Equal(t, 2, projects.BookmarkItems.TotalCount)
+		for _, e := range projects.BookmarkItems.Edges {
+			require.Equal(t, "Project", e.Node.Typename)
+		}
+	})
+
+	t.Run("FilterByText", func(t *testing.T) {
+		// hasPrefix "t" matches the 4 todos (projects are p1/p2).
+		byPrefix := post(`{ bookmarkItems(where: {textHasPrefix: "t"}) { edges { node { __typename text } } } }`)
+		require.Len(t, byPrefix.BookmarkItems.Edges, 4)
+		for _, e := range byPrefix.BookmarkItems.Edges {
+			require.Equal(t, "Todo", e.Node.Typename)
+			require.True(t, strings.HasPrefix(e.Node.Text, "t"))
+		}
+		// exact match on a shared field.
+		exact := post(`{ bookmarkItems(where: {text: "p1"}) { edges { node { __typename text } } } }`)
+		require.Len(t, exact.BookmarkItems.Edges, 1)
+		require.Equal(t, "Project", exact.BookmarkItems.Edges[0].Node.Typename)
+		require.Equal(t, "p1", exact.BookmarkItems.Edges[0].Node.Text)
+	})
+
+	t.Run("FilterAndOrNot", func(t *testing.T) {
+		// NOT Todo -> the 2 projects.
+		notTodo := post(`{ bookmarkItems(where: {not: {kind: "Todo"}}) { totalCount edges { node { __typename } } } }`)
+		require.Equal(t, 2, notTodo.BookmarkItems.TotalCount)
+		for _, e := range notTodo.BookmarkItems.Edges {
+			require.Equal(t, "Project", e.Node.Typename)
+		}
+		// Project OR text=t1 -> 2 projects + t1 = 3.
+		orExpr := post(`{ bookmarkItems(where: {or: [{kind: "Project"}, {text: "t1"}]}) { totalCount } }`)
+		require.Equal(t, 3, orExpr.BookmarkItems.TotalCount)
+		// Todo AND category=cat1 -> t1, t2.
+		andExpr := post(`query($cid: Int!) { bookmarkItems(where: {and: [{kind: "Todo"}, {categoryID: $cid}]}) { totalCount edges { node { text } } } }`,
+			client.Var("cid", cat1.ID))
+		require.Equal(t, 2, andExpr.BookmarkItems.TotalCount)
+	})
+
+	t.Run("OrderByCategoryWithPagination", func(t *testing.T) {
+		// Walk all pages (first: 2) ordered by CATEGORY_ID ASC; the owner category
+		// must be non-decreasing and every member must appear exactly once.
+		const q = `query($first: Int, $after: Cursor) {
+			bookmarkItems(first: $first, after: $after, orderBy: {field: CATEGORY_ID, direction: ASC}) {
+				pageInfo { hasNextPage endCursor }
+				edges { cursor node { ... on BookmarkItem { owner { text } } } }
+			}
+		}`
+		var (
+			owners  []string
+			cursors = map[string]bool{}
+			after   *string
+		)
+		for i := 0; i < 10; i++ { // bounded to avoid an infinite loop on a bug
+			opts := []client.Option{client.Var("first", 2)}
+			if after != nil {
+				opts = append(opts, client.Var("after", *after))
+			}
+			p := post(q, opts...)
+			require.LessOrEqual(t, len(p.BookmarkItems.Edges), 2)
+			for _, e := range p.BookmarkItems.Edges {
+				require.False(t, cursors[e.Cursor], "cursor %s repeated across pages", e.Cursor)
+				cursors[e.Cursor] = true
+				owners = append(owners, e.Node.Owner.Text)
+			}
+			if !p.BookmarkItems.PageInfo.HasNextPage {
+				break
+			}
+			require.NotNil(t, p.BookmarkItems.PageInfo.EndCursor)
+			after = p.BookmarkItems.PageInfo.EndCursor
+		}
+		require.Equal(t, []string{"cat1", "cat1", "cat1", "cat2", "cat2", "cat3"}, owners,
+			"ordered by category_id ascending, paginated across pages")
+	})
+
+	t.Run("FilterOrderPaginateCombined", func(t *testing.T) {
+		// Todos only, ordered by CATEGORY_ID desc, first 2 then the rest.
+		const q = `query($first: Int, $after: Cursor) {
+			bookmarkItems(first: $first, after: $after, where: {kind: "Todo"}, orderBy: {field: CATEGORY_ID, direction: DESC}) {
+				totalCount
+				pageInfo { hasNextPage endCursor }
+				edges { node { __typename ... on BookmarkItem { owner { text } } } }
+			}
+		}`
+		first := post(q, client.Var("first", 2))
+		require.Equal(t, 4, first.BookmarkItems.TotalCount, "4 todos match the filter")
+		require.Len(t, first.BookmarkItems.Edges, 2)
+		require.True(t, first.BookmarkItems.PageInfo.HasNextPage)
+		// Highest category first: cat3 (t4), then cat2 (t3).
+		require.Equal(t, "cat3", first.BookmarkItems.Edges[0].Node.Owner.Text)
+		require.Equal(t, "cat2", first.BookmarkItems.Edges[1].Node.Owner.Text)
+		for _, e := range first.BookmarkItems.Edges {
+			require.Equal(t, "Todo", e.Node.Typename)
+		}
+
+		rest := post(q, client.Var("first", 2), client.Var("after", *first.BookmarkItems.PageInfo.EndCursor))
+		require.Len(t, rest.BookmarkItems.Edges, 2)
+		require.False(t, rest.BookmarkItems.PageInfo.HasNextPage)
+		// Remaining todos are both in cat1.
+		for _, e := range rest.BookmarkItems.Edges {
+			require.Equal(t, "Todo", e.Node.Typename)
+			require.Equal(t, "cat1", e.Node.Owner.Text)
+		}
+	})
+}
+
+// TestInterfaceViewConnectionPreload verifies that resolving the global,
+// view-backed BookmarkItem connection:
+//   - preloads only the selected per-type fields, and
+//   - does not issue N+1 queries: the view is queried once, each member type is
+//     queried once (batched by id), and selected edges (owner) are eager-loaded
+//     in batched queries rather than one per node.
+func TestInterfaceViewConnectionPreload(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	// Fixed dataset (2 todos + 1 project) so the batched IN-queries have a
+	// deterministic number of placeholders for the exact-match assertion below.
+	cat := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusCompleted).SetCategory(cat),
+	).SaveX(ctx)
+	ec.Project.Create().SetText("p1").SetCategory(cat).SaveX(ctx)
+
+	var rsp struct {
+		BookmarkItems struct {
+			Edges []struct {
+				Node struct {
+					Typename string `json:"__typename"`
+					ID       string
+					Text     string  // shared interface field
+					Name     *string // shared interface field
+					Owner    *struct{ Text string }
+					Status   *string // Todo-only
+				}
+			}
+		}
+	}
+	rec.reset()
+	// The shared fields (id, text, name, owner) are queried directly on the
+	// interface; status is selected via a Todo fragment.
+	// language=GraphQL
+	gqlc.MustPost(`{
+		bookmarkItems {
+			edges {
+				node {
+					__typename
+					id
+					text
+					name
+					owner { text }
+					... on Todo { status }
+				}
+			}
+		}
+	}`, &rsp)
+
+	// Preload: every item resolved to its concrete type with the selected fields.
+	require.Len(t, rsp.BookmarkItems.Edges, 3)
+	var todos, projects int
+	for _, e := range rsp.BookmarkItems.Edges {
+		require.NotNil(t, e.Node.Owner)
+		require.Equal(t, "cat1", e.Node.Owner.Text)
+		require.NotEmpty(t, e.Node.Text)
+		switch e.Node.Typename {
+		case "Todo":
+			todos++
+			require.NotNil(t, e.Node.Status)
+		case "Project":
+			projects++
+			require.Equal(t, "p1", e.Node.Text)
+		default:
+			t.Fatalf("unexpected __typename %q", e.Node.Typename)
+		}
+	}
+	require.Equal(t, 2, todos)
+	require.Equal(t, 1, projects)
+
+	// The exact set of SQL queries proves the resolution strategy:
+	//   - one query against the view (ids + shared column, ordered);
+	//   - one batched query per member type selecting only the requested columns
+	//     (plus the FK needed for the owner edge);
+	//   - one batched owner eager-load per member type.
+	// No N+1 (each relation is queried once), and no count query since totalCount
+	// is not selected.
+	require.Equal(t, []string{
+		"SELECT `bookmark_item_views`.`id`, `bookmark_item_views`.`kind`, `bookmark_item_views`.`category_id`, `bookmark_item_views`.`text`, `bookmark_item_views`.`name` FROM `bookmark_item_views` ORDER BY `bookmark_item_views`.`id`",
+		"SELECT `projects`.`id`, `projects`.`text`, `projects`.`name`, `projects`.`category_projects` FROM `projects` WHERE `projects`.`id` IN (?)",
+		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?)",
+		"SELECT `todos`.`id`, `todos`.`text`, `todos`.`name`, `todos`.`status`, `todos`.`category_id` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		"SELECT `categories`.`id`, `categories`.`text` FROM `categories` WHERE `categories`.`id` IN (?)",
+	}, rec.queries)
+
+	// `first: 0` returns an empty page (not the whole set) and issues only the
+	// view query, never resolving concrete nodes.
+	var zero struct {
+		BookmarkItems struct {
+			TotalCount int
+			Edges      []struct{ Cursor string }
+		}
+	}
+	rec.reset()
+	gqlc.MustPost(`{ bookmarkItems(first: 0) { totalCount edges { cursor } } }`, &zero)
+	require.Empty(t, zero.BookmarkItems.Edges, "first:0 must return no edges")
+	require.Equal(t, 3, zero.BookmarkItems.TotalCount)
+	require.Equal(t, []string{
+		"SELECT COUNT(*) FROM `bookmark_item_views`",
+	}, rec.queries, "first:0 only counts; no view rows or per-type queries")
+
+	// A totalCount-only selection resolves no nodes (no per-type queries).
+	var countOnly struct {
+		BookmarkItems struct{ TotalCount int }
+	}
+	rec.reset()
+	gqlc.MustPost(`{ bookmarkItems { totalCount } }`, &countOnly)
+	require.Equal(t, 3, countOnly.BookmarkItems.TotalCount)
+	require.Equal(t, []string{
+		"SELECT COUNT(*) FROM `bookmark_item_views`",
+	}, rec.queries, "totalCount-only must not fetch view rows or resolve nodes")
+
+	// A selection fully covered by the view's columns (__typename + shared
+	// scalars) is synthesized from the view rows, with no per-type queries.
+	var synth struct {
+		BookmarkItems struct {
+			Edges []struct {
+				Node struct {
+					Typename string `json:"__typename"`
+					ID       string
+					Text     string
+				}
+			}
+		}
+	}
+	rec.reset()
+	gqlc.MustPost(`{ bookmarkItems { edges { node { __typename id text } } } }`, &synth)
+	require.Len(t, synth.BookmarkItems.Edges, 3)
+	for _, e := range synth.BookmarkItems.Edges {
+		require.True(t, e.Node.Typename == "Todo" || e.Node.Typename == "Project", "concrete __typename")
+		require.NotEmpty(t, e.Node.ID)
+		require.NotEmpty(t, e.Node.Text)
+	}
+	require.Equal(t, []string{
+		"SELECT `bookmark_item_views`.`id`, `bookmark_item_views`.`kind`, `bookmark_item_views`.`category_id`, `bookmark_item_views`.`text`, `bookmark_item_views`.`name` FROM `bookmark_item_views` ORDER BY `bookmark_item_views`.`id`",
+	}, rec.queries, "a view-covered selection is served from the view; no per-type queries")
+}
+
+// TestInterfaceViewConnectionSynth exercises the view-row synthesis boundary: a
+// selection touching only __typename plus the view's non-optional shared columns
+// is built from the view rows (no per-type query), while touching an optional
+// shared column or a type-specific field falls back to the per-type queries.
+func TestInterfaceViewConnectionSynth(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	_, err = drv.DB().ExecContext(ctx,
+		"CREATE VIEW bookmark_item_views AS SELECT id, 'Todo' AS kind, category_id, text, name FROM todos UNION ALL SELECT id, 'Project' AS kind, category_projects AS category_id, text, name FROM projects")
+	require.NoError(t, err)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	// 2 todos (no name) + 1 project (with name) so both synthesized and queried
+	// paths have a deterministic, checkable dataset.
+	cat := ec.Category.Create().SetText("cat1").SetStatus(category.StatusEnabled).SaveX(ctx)
+	ec.Todo.CreateBulk(
+		ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat),
+		ec.Todo.Create().SetText("t2").SetStatus(todo.StatusCompleted).SetCategory(cat),
+	).SaveX(ctx)
+	ec.Project.Create().SetText("p1").SetName("pname1").SetCategory(cat).SaveX(ctx)
+
+	t.Run("SynthesizedFromView", func(t *testing.T) {
+		// __typename + the non-optional shared columns (id, text) are all carried by
+		// the view, so every node is synthesized from its view row.
+		var rsp struct {
+			BookmarkItems struct {
+				Edges []struct {
+					Node struct {
+						Typename string `json:"__typename"`
+						ID       string
+						Text     string
+					}
+				}
+			}
+		}
+		rec.reset()
+		gqlc.MustPost(`{ bookmarkItems { edges { node { __typename id text } } } }`, &rsp)
+		require.Len(t, rsp.BookmarkItems.Edges, 3)
+		got := map[string]string{}
+		for _, e := range rsp.BookmarkItems.Edges {
+			require.NotEmpty(t, e.Node.ID)
+			got[e.Node.Text] = e.Node.Typename
+		}
+		require.Equal(t, map[string]string{"t1": "Todo", "t2": "Todo", "p1": "Project"}, got,
+			"synthesized nodes carry the correct concrete type and shared values")
+		require.Equal(t, []string{
+			"SELECT `bookmark_item_views`.`id`, `bookmark_item_views`.`kind`, `bookmark_item_views`.`category_id`, `bookmark_item_views`.`text`, `bookmark_item_views`.`name` FROM `bookmark_item_views` ORDER BY `bookmark_item_views`.`id`",
+		}, rec.queries, "covered selection is synthesized from the view rows only")
+	})
+
+	t.Run("OptionalSharedFieldFallsBack", func(t *testing.T) {
+		// `name` is a shared field but Optional, so it is not synthesizable (a NULL
+		// name is indistinguishable from ""); selecting it forces the per-type queries
+		// even though `text` on its own would have been covered.
+		var rsp struct {
+			BookmarkItems struct {
+				Edges []struct {
+					Node struct {
+						Typename string `json:"__typename"`
+						ID       string
+						Text     string
+						Name     *string
+					}
+				}
+			}
+		}
+		rec.reset()
+		gqlc.MustPost(`{ bookmarkItems { edges { node { __typename id text name } } } }`, &rsp)
+		require.Len(t, rsp.BookmarkItems.Edges, 3)
+		var projectName *string
+		for _, e := range rsp.BookmarkItems.Edges {
+			if e.Node.Typename == "Project" {
+				projectName = e.Node.Name
+			}
+		}
+		require.NotNil(t, projectName)
+		require.Equal(t, "pname1", *projectName, "the project's name is loaded from its concrete row")
+		require.Equal(t, []string{
+			"SELECT `bookmark_item_views`.`id`, `bookmark_item_views`.`kind`, `bookmark_item_views`.`category_id`, `bookmark_item_views`.`text`, `bookmark_item_views`.`name` FROM `bookmark_item_views` ORDER BY `bookmark_item_views`.`id`",
+			"SELECT `projects`.`id`, `projects`.`text`, `projects`.`name` FROM `projects` WHERE `projects`.`id` IN (?)",
+			"SELECT `todos`.`id`, `todos`.`text`, `todos`.`name` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		}, rec.queries, "an optional shared field forces one batched query per member type")
+	})
+
+	t.Run("TypeSpecificFieldFallsBack", func(t *testing.T) {
+		// The covering check is per member type. `... on Todo { status }` adds a
+		// non-view field only to Todo rows, so only Todos are queried; the Project
+		// selection is just __typename, so Projects are still synthesized.
+		var rsp struct {
+			BookmarkItems struct {
+				Edges []struct {
+					Node struct {
+						Typename string `json:"__typename"`
+						Status   *string
+					}
+				}
+			}
+		}
+		rec.reset()
+		gqlc.MustPost(`{ bookmarkItems { edges { node { __typename ... on Todo { status } } } } }`, &rsp)
+		require.Len(t, rsp.BookmarkItems.Edges, 3)
+		var statuses int
+		for _, e := range rsp.BookmarkItems.Edges {
+			if e.Node.Typename == "Todo" {
+				require.NotNil(t, e.Node.Status)
+				statuses++
+			}
+		}
+		require.Equal(t, 2, statuses)
+		require.Equal(t, []string{
+			"SELECT `bookmark_item_views`.`id`, `bookmark_item_views`.`kind`, `bookmark_item_views`.`category_id`, `bookmark_item_views`.`text`, `bookmark_item_views`.`name` FROM `bookmark_item_views` ORDER BY `bookmark_item_views`.`id`",
+			"SELECT `todos`.`id`, `todos`.`status` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		}, rec.queries, "only Todos are queried; Projects (only __typename) are synthesized")
+	})
+}
+
+// TestBookmarkPolymorphicItem exercises the 1:1 polymorphic interface field:
+// Bookmark.item resolves to a concrete Todo or Project (both implement the
+// auto-generated BookmarkItem interface), and is null when neither edge is set.
+func TestBookmarkPolymorphicItem(t *testing.T) {
+	ctx := context.Background()
+	ec := enttest.Open(t, dialect.SQLite,
+		fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
+	td := ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetName("todo-name").SetCategory(cat).SaveX(ctx)
+	pr := ec.Project.Create().SetText("p1").SetName("proj-name").SetCategory(cat).SaveX(ctx)
+	ec.Bookmark.Create().SetName("to-todo").SetTodo(td).SaveX(ctx)
+	ec.Bookmark.Create().SetName("to-project").SetProject(pr).SaveX(ctx)
+	ec.Bookmark.Create().SetName("empty").SaveX(ctx)
+
+	var rsp struct {
+		Bookmarks struct {
+			Edges []struct {
+				Node struct {
+					Name string
+					Item *struct {
+						Typename string  `json:"__typename"`
+						Name     *string // shared interface field
+						Status   *string // Todo-only, via fragment
+						Text     *string // via Project fragment
+					}
+				}
+			}
+		}
+	}
+	// language=GraphQL
+	gqlc.MustPost(`{
+		bookmarks {
+			edges {
+				node {
+					name
+					item {
+						__typename
+						name
+						... on Todo { status }
+						... on Project { text }
+					}
+				}
+			}
+		}
+	}`, &rsp)
+
+	require.Len(t, rsp.Bookmarks.Edges, 3)
+	for _, e := range rsp.Bookmarks.Edges {
+		switch e.Node.Name {
+		case "to-todo":
+			require.NotNil(t, e.Node.Item)
+			require.Equal(t, "Todo", e.Node.Item.Typename)
+			require.NotNil(t, e.Node.Item.Name)
+			require.Equal(t, "todo-name", *e.Node.Item.Name)
+			require.NotNil(t, e.Node.Item.Status, "Todo-specific field resolved via fragment")
+		case "to-project":
+			require.NotNil(t, e.Node.Item)
+			require.Equal(t, "Project", e.Node.Item.Typename)
+			require.Equal(t, "proj-name", *e.Node.Item.Name)
+			require.NotNil(t, e.Node.Item.Text)
+			require.Equal(t, "p1", *e.Node.Item.Text)
+		case "empty":
+			require.Nil(t, e.Node.Item, "item is null when neither edge is set")
+		default:
+			t.Fatalf("unexpected bookmark %q", e.Node.Name)
+		}
+	}
+}
+
+// TestBookmarkItemEagerLoad verifies how the polymorphic field is resolved under
+// a list: a selection needing only __typename/id is served from the foreign key
+// (no query to the target tables), while a real field forces one batched load per
+// member type (no N+1).
+func TestBookmarkItemEagerLoad(t *testing.T) {
+	ctx := context.Background()
+	drv, err := sql.Open(dialect.SQLite, fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", t.Name()))
+	require.NoError(t, err)
+	rec := &queryRecorder{Driver: drv}
+	ec := enttest.NewClient(t,
+		enttest.WithOptions(ent.Driver(rec)),
+		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
+	)
+	gqlc := client.New(handler.NewDefaultServer(gen.NewSchema(ec)))
+
+	cat := ec.Category.Create().SetText("cat").SetStatus(category.StatusEnabled).SaveX(ctx)
+	td1 := ec.Todo.Create().SetText("t1").SetStatus(todo.StatusInProgress).SetCategory(cat).SaveX(ctx)
+	td2 := ec.Todo.Create().SetText("t2").SetStatus(todo.StatusInProgress).SetCategory(cat).SaveX(ctx)
+	pr := ec.Project.Create().SetText("p1").SetCategory(cat).SaveX(ctx)
+	ec.Bookmark.Create().SetName("b1").SetTodo(td1).SaveX(ctx)
+	ec.Bookmark.Create().SetName("b2").SetTodo(td2).SaveX(ctx)
+	ec.Bookmark.Create().SetName("b3").SetProject(pr).SaveX(ctx)
+
+	// Covered: only __typename is requested, so the concrete type is served from
+	// the foreign key on the bookmark row — no query to the target tables.
+	var covered struct {
+		Bookmarks struct {
+			Edges []struct {
+				Node struct {
+					Item *struct {
+						Typename string `json:"__typename"`
+					}
+				}
+			}
+		}
+	}
+	rec.reset()
+	gqlc.MustPost(`{ bookmarks { edges { node { item { __typename } } } } }`, &covered)
+	require.Len(t, covered.Bookmarks.Edges, 3)
+	var todos, projects int
+	for _, e := range covered.Bookmarks.Edges {
+		require.NotNil(t, e.Node.Item)
+		switch e.Node.Item.Typename {
+		case "Todo":
+			todos++
+		case "Project":
+			projects++
+		}
+	}
+	require.Equal(t, 2, todos)
+	require.Equal(t, 1, projects)
+	require.Equal(t, []string{
+		"SELECT `bookmarks`.`id`, `bookmarks`.`bookmark_todo`, `bookmarks`.`bookmark_project` FROM `bookmarks` ORDER BY `bookmarks`.`id`",
+	}, rec.queries, "__typename is served from the foreign key; no query to todos/projects")
+
+	// Not covered: a real field (name) forces loading the concrete nodes, batched
+	// once per member type (no N+1).
+	var loaded struct {
+		Bookmarks struct {
+			Edges []struct {
+				Node struct {
+					Item *struct {
+						Typename string `json:"__typename"`
+						Name     *string
+					}
+				}
+			}
+		}
+	}
+	rec.reset()
+	gqlc.MustPost(`{ bookmarks { edges { node { item { __typename name } } } } }`, &loaded)
+	require.Len(t, loaded.Bookmarks.Edges, 3)
+	require.Equal(t, []string{
+		"SELECT `bookmarks`.`id`, `bookmarks`.`bookmark_todo`, `bookmarks`.`bookmark_project` FROM `bookmarks` ORDER BY `bookmarks`.`id`",
+		"SELECT `todos`.`id`, `todos`.`name` FROM `todos` WHERE `todos`.`id` IN (?, ?)",
+		"SELECT `projects`.`id`, `projects`.`name` FROM `projects` WHERE `projects`.`id` IN (?)",
+	}, rec.queries, "a real field forces one batched load per member type (no N+1)")
 }
 
 func TestPaginate(t *testing.T) {

@@ -60,15 +60,18 @@ type Category struct {
 type CategoryEdges struct {
 	// Todos holds the value of the todos edge.
 	Todos []*Todo `json:"todos,omitempty"`
+	// Projects holds the value of the projects edge.
+	Projects []*Project `json:"projects,omitempty"`
 	// SubCategories holds the value of the sub_categories edge.
 	SubCategories []*Category `json:"sub_categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
 	namedTodos         map[string][]*Todo
+	namedProjects      map[string][]*Project
 	namedSubCategories map[string][]*Category
 }
 
@@ -81,10 +84,19 @@ func (e CategoryEdges) TodosOrErr() ([]*Todo, error) {
 	return nil, &NotLoadedError{edge: "todos"}
 }
 
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e CategoryEdges) ProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[1] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
+}
+
 // SubCategoriesOrErr returns the SubCategories value or an error if the edge
 // was not loaded in eager-loading.
 func (e CategoryEdges) SubCategoriesOrErr() ([]*Category, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.SubCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "sub_categories"}
@@ -190,6 +202,11 @@ func (c *Category) QueryTodos() *TodoQuery {
 	return NewCategoryClient(c.config).QueryTodos(c)
 }
 
+// QueryProjects queries the "projects" edge of the Category entity.
+func (c *Category) QueryProjects() *ProjectQuery {
+	return NewCategoryClient(c.config).QueryProjects(c)
+}
+
 // QuerySubCategories queries the "sub_categories" edge of the Category entity.
 func (c *Category) QuerySubCategories() *CategoryQuery {
 	return NewCategoryClient(c.config).QuerySubCategories(c)
@@ -263,6 +280,30 @@ func (c *Category) appendNamedTodos(name string, edges ...*Todo) {
 		c.Edges.namedTodos[name] = []*Todo{}
 	} else {
 		c.Edges.namedTodos[name] = append(c.Edges.namedTodos[name], edges...)
+	}
+}
+
+// NamedProjects returns the Projects named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Category) NamedProjects(name string) ([]*Project, error) {
+	if c.Edges.namedProjects == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedProjects[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Category) appendNamedProjects(name string, edges ...*Project) {
+	if c.Edges.namedProjects == nil {
+		c.Edges.namedProjects = make(map[string][]*Project)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedProjects[name] = []*Project{}
+	} else {
+		c.Edges.namedProjects[name] = append(c.Edges.namedProjects[name], edges...)
 	}
 }
 

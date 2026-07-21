@@ -27,6 +27,7 @@ import (
 	"entgo.io/ent"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todo/ent/bookmark"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -48,6 +49,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// BillProduct is the client for interacting with the BillProduct builders.
 	BillProduct *BillProductClient
+	// Bookmark is the client for interacting with the Bookmark builders.
+	Bookmark *BookmarkClient
+	// BookmarkItemView is the client for interacting with the BookmarkItemView builders.
+	BookmarkItemView *BookmarkItemViewClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -80,6 +85,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.BillProduct = NewBillProductClient(c.config)
+	c.Bookmark = NewBookmarkClient(c.config)
+	c.BookmarkItemView = NewBookmarkItemViewClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
@@ -179,18 +186,20 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		BillProduct: NewBillProductClient(cfg),
-		Category:    NewCategoryClient(cfg),
-		Friendship:  NewFriendshipClient(cfg),
-		Group:       NewGroupClient(cfg),
-		OneToMany:   NewOneToManyClient(cfg),
-		Project:     NewProjectClient(cfg),
-		Todo:        NewTodoClient(cfg),
-		User:        NewUserClient(cfg),
-		VerySecret:  NewVerySecretClient(cfg),
-		Workspace:   NewWorkspaceClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		BillProduct:      NewBillProductClient(cfg),
+		Bookmark:         NewBookmarkClient(cfg),
+		BookmarkItemView: NewBookmarkItemViewClient(cfg),
+		Category:         NewCategoryClient(cfg),
+		Friendship:       NewFriendshipClient(cfg),
+		Group:            NewGroupClient(cfg),
+		OneToMany:        NewOneToManyClient(cfg),
+		Project:          NewProjectClient(cfg),
+		Todo:             NewTodoClient(cfg),
+		User:             NewUserClient(cfg),
+		VerySecret:       NewVerySecretClient(cfg),
+		Workspace:        NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -208,18 +217,20 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		BillProduct: NewBillProductClient(cfg),
-		Category:    NewCategoryClient(cfg),
-		Friendship:  NewFriendshipClient(cfg),
-		Group:       NewGroupClient(cfg),
-		OneToMany:   NewOneToManyClient(cfg),
-		Project:     NewProjectClient(cfg),
-		Todo:        NewTodoClient(cfg),
-		User:        NewUserClient(cfg),
-		VerySecret:  NewVerySecretClient(cfg),
-		Workspace:   NewWorkspaceClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		BillProduct:      NewBillProductClient(cfg),
+		Bookmark:         NewBookmarkClient(cfg),
+		BookmarkItemView: NewBookmarkItemViewClient(cfg),
+		Category:         NewCategoryClient(cfg),
+		Friendship:       NewFriendshipClient(cfg),
+		Group:            NewGroupClient(cfg),
+		OneToMany:        NewOneToManyClient(cfg),
+		Project:          NewProjectClient(cfg),
+		Todo:             NewTodoClient(cfg),
+		User:             NewUserClient(cfg),
+		VerySecret:       NewVerySecretClient(cfg),
+		Workspace:        NewWorkspaceClient(cfg),
 	}, nil
 }
 
@@ -249,8 +260,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret, c.Workspace,
+		c.BillProduct, c.Bookmark, c.Category, c.Friendship, c.Group, c.OneToMany,
+		c.Project, c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Use(hooks...)
 	}
@@ -260,8 +271,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.BillProduct, c.Category, c.Friendship, c.Group, c.OneToMany, c.Project,
-		c.Todo, c.User, c.VerySecret, c.Workspace,
+		c.BillProduct, c.Bookmark, c.BookmarkItemView, c.Category, c.Friendship,
+		c.Group, c.OneToMany, c.Project, c.Todo, c.User, c.VerySecret, c.Workspace,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -272,6 +283,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *BillProductMutation:
 		return c.BillProduct.mutate(ctx, m)
+	case *BookmarkMutation:
+		return c.Bookmark.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
 	case *FriendshipMutation:
@@ -428,6 +441,201 @@ func (c *BillProductClient) mutate(ctx context.Context, m *BillProductMutation) 
 	}
 }
 
+// BookmarkClient is a client for the Bookmark schema.
+type BookmarkClient struct {
+	config
+}
+
+// NewBookmarkClient returns a client for the Bookmark from the given config.
+func NewBookmarkClient(c config) *BookmarkClient {
+	return &BookmarkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `bookmark.Hooks(f(g(h())))`.
+func (c *BookmarkClient) Use(hooks ...Hook) {
+	c.hooks.Bookmark = append(c.hooks.Bookmark, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `bookmark.Intercept(f(g(h())))`.
+func (c *BookmarkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Bookmark = append(c.inters.Bookmark, interceptors...)
+}
+
+// Create returns a builder for creating a Bookmark entity.
+func (c *BookmarkClient) Create() *BookmarkCreate {
+	mutation := newBookmarkMutation(c.config, OpCreate)
+	return &BookmarkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Bookmark entities.
+func (c *BookmarkClient) CreateBulk(builders ...*BookmarkCreate) *BookmarkCreateBulk {
+	return &BookmarkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BookmarkClient) MapCreateBulk(slice any, setFunc func(*BookmarkCreate, int)) *BookmarkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BookmarkCreateBulk{err: fmt.Errorf("calling to BookmarkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BookmarkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BookmarkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Bookmark.
+func (c *BookmarkClient) Update() *BookmarkUpdate {
+	mutation := newBookmarkMutation(c.config, OpUpdate)
+	return &BookmarkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BookmarkClient) UpdateOne(b *Bookmark) *BookmarkUpdateOne {
+	mutation := newBookmarkMutation(c.config, OpUpdateOne, withBookmark(b))
+	return &BookmarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BookmarkClient) UpdateOneID(id int) *BookmarkUpdateOne {
+	mutation := newBookmarkMutation(c.config, OpUpdateOne, withBookmarkID(id))
+	return &BookmarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Bookmark.
+func (c *BookmarkClient) Delete() *BookmarkDelete {
+	mutation := newBookmarkMutation(c.config, OpDelete)
+	return &BookmarkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BookmarkClient) DeleteOne(b *Bookmark) *BookmarkDeleteOne {
+	return c.DeleteOneID(b.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BookmarkClient) DeleteOneID(id int) *BookmarkDeleteOne {
+	builder := c.Delete().Where(bookmark.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BookmarkDeleteOne{builder}
+}
+
+// Query returns a query builder for Bookmark.
+func (c *BookmarkClient) Query() *BookmarkQuery {
+	return &BookmarkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBookmark},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Bookmark entity by its id.
+func (c *BookmarkClient) Get(ctx context.Context, id int) (*Bookmark, error) {
+	return c.Query().Where(bookmark.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BookmarkClient) GetX(ctx context.Context, id int) *Bookmark {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTodo queries the todo edge of a Bookmark.
+func (c *BookmarkClient) QueryTodo(b *Bookmark) *TodoQuery {
+	query := (&TodoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(bookmark.Table, bookmark.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, bookmark.TodoTable, bookmark.TodoColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a Bookmark.
+func (c *BookmarkClient) QueryProject(b *Bookmark) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := b.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(bookmark.Table, bookmark.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, bookmark.ProjectTable, bookmark.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(b.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BookmarkClient) Hooks() []Hook {
+	return c.hooks.Bookmark
+}
+
+// Interceptors returns the client interceptors.
+func (c *BookmarkClient) Interceptors() []Interceptor {
+	return c.inters.Bookmark
+}
+
+func (c *BookmarkClient) mutate(ctx context.Context, m *BookmarkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BookmarkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BookmarkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BookmarkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BookmarkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Bookmark mutation op: %q", m.Op())
+	}
+}
+
+// BookmarkItemViewClient is a client for the BookmarkItemView schema.
+type BookmarkItemViewClient struct {
+	config
+}
+
+// NewBookmarkItemViewClient returns a client for the BookmarkItemView from the given config.
+func NewBookmarkItemViewClient(c config) *BookmarkItemViewClient {
+	return &BookmarkItemViewClient{config: c}
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `bookmarkitemview.Intercept(f(g(h())))`.
+func (c *BookmarkItemViewClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BookmarkItemView = append(c.inters.BookmarkItemView, interceptors...)
+}
+
+// Query returns a query builder for BookmarkItemView.
+func (c *BookmarkItemViewClient) Query() *BookmarkItemViewQuery {
+	return &BookmarkItemViewQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBookmarkItemView},
+		inters: c.Interceptors(),
+	}
+}
+
+// Interceptors returns the client interceptors.
+func (c *BookmarkItemViewClient) Interceptors() []Interceptor {
+	return c.inters.BookmarkItemView
+}
+
 // CategoryClient is a client for the Category schema.
 type CategoryClient struct {
 	config
@@ -545,6 +753,22 @@ func (c *CategoryClient) QueryTodos(ca *Category) *TodoQuery {
 			sqlgraph.From(category.Table, category.FieldID, id),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, category.TodosTable, category.TodosColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProjects queries the projects edge of a Category.
+func (c *CategoryClient) QueryProjects(ca *Category) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, category.ProjectsTable, category.ProjectsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
 		return fromV, nil
@@ -1189,6 +1413,22 @@ func (c *ProjectClient) QueryTodos(pr *Project) *TodoQuery {
 			sqlgraph.From(project.Table, project.FieldID, id),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, project.TodosTable, project.TodosColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCategory queries the category edge of a Project.
+func (c *ProjectClient) QueryCategory(pr *Project) *CategoryQuery {
+	query := (&CategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, project.CategoryTable, project.CategoryColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1868,11 +2108,11 @@ func (c *WorkspaceClient) mutate(ctx context.Context, m *WorkspaceMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret, Workspace []ent.Hook
+		BillProduct, Bookmark, Category, Friendship, Group, OneToMany, Project, Todo,
+		User, VerySecret, Workspace []ent.Hook
 	}
 	inters struct {
-		BillProduct, Category, Friendship, Group, OneToMany, Project, Todo, User,
-		VerySecret, Workspace []ent.Interceptor
+		BillProduct, Bookmark, BookmarkItemView, Category, Friendship, Group, OneToMany,
+		Project, Todo, User, VerySecret, Workspace []ent.Interceptor
 	}
 )

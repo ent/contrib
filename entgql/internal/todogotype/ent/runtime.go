@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todogotype/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/group"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/pet"
+	"entgo.io/contrib/entgql/internal/todogotype/ent/project"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/schema/bigintgql"
 	"entgo.io/contrib/entgql/internal/todogotype/ent/todo"
@@ -65,6 +66,19 @@ func init() {
 	petDescName := petFields[1].Descriptor()
 	// pet.DefaultName holds the default value on creation for the name field.
 	pet.DefaultName = petDescName.Default.(string)
+	projectMixin := schema.Project{}.Mixin()
+	projectMixinFields0 := projectMixin[0].Fields()
+	_ = projectMixinFields0
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescText is the schema descriptor for text field.
+	projectDescText := projectMixinFields0[0].Descriptor()
+	// project.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	project.TextValidator = projectDescText.Validators[0].(func(string) error)
+	// projectDescID is the schema descriptor for id field.
+	projectDescID := projectFields[0].Descriptor()
+	// project.DefaultID holds the default value on creation for the id field.
+	project.DefaultID = projectDescID.Default.(func() bigintgql.BigInt)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

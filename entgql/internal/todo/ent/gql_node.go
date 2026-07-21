@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todo/ent/bookmark"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -51,6 +52,11 @@ var billproductImplementors = []string{"BillProduct", "Node"}
 // IsNode implements the Node interface check for GQLGen.
 func (*BillProduct) IsNode() {}
 
+var bookmarkImplementors = []string{"Bookmark", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Bookmark) IsNode() {}
+
 var categoryImplementors = []string{"Category", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
@@ -74,15 +80,21 @@ var onetomanyImplementors = []string{"OneToMany", "Node"}
 // IsNode implements the Node interface check for GQLGen.
 func (*OneToMany) IsNode() {}
 
-var projectImplementors = []string{"Project", "Node"}
+var projectImplementors = []string{"Project", "Node", "BookmarkItem"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Project) IsNode() {}
 
-var todoImplementors = []string{"Todo", "Node"}
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Project) IsBookmarkItem() {}
+
+var todoImplementors = []string{"Todo", "Node", "BookmarkItem"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Todo) IsNode() {}
+
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Todo) IsBookmarkItem() {}
 
 var userImplementors = []string{"User", "Node"}
 
@@ -93,6 +105,81 @@ var workspaceImplementors = []string{"Organization", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Workspace) IsNode() {}
+
+// BookmarkItem is the Go interface for the BookmarkItem GraphQL interface.
+type BookmarkItem interface {
+	IsBookmarkItem()
+}
+
+// interfaceFieldCoveredByID reports whether an interface-field selection needs
+// nothing beyond __typename and id, so it can be served from a foreign key
+// without loading the concrete node.
+func interfaceFieldCoveredByID(field graphql.CollectedField, oc *graphql.OperationContext, satisfies ...string) bool {
+	for _, f := range graphql.CollectFields(oc, field.Selections, satisfies) {
+		switch f.Name {
+		case "__typename", "id":
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// Item returns the BookmarkItem value from the first populated edge,
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (b *Bookmark) Item(ctx context.Context) (BookmarkItem, error) {
+	switch {
+	case b.bookmark_todo != nil:
+		switch result, err := b.Edges.TodoOrErr(); {
+		case err == nil:
+			return result, nil
+		case !IsNotLoaded(err):
+			return nil, err
+		}
+		if fc := graphql.GetFieldContext(ctx); fc == nil || !interfaceFieldCoveredByID(
+			fc.Field, graphql.GetOperationContext(ctx),
+			"BookmarkItem", "Todo", "Project",
+		) {
+			return b.QueryTodo().Only(ctx)
+		}
+		return &Todo{ID: *b.bookmark_todo}, nil
+	case b.bookmark_project != nil:
+		switch result, err := b.Edges.ProjectOrErr(); {
+		case err == nil:
+			return result, nil
+		case !IsNotLoaded(err):
+			return nil, err
+		}
+		if fc := graphql.GetFieldContext(ctx); fc == nil || !interfaceFieldCoveredByID(
+			fc.Field, graphql.GetOperationContext(ctx),
+			"BookmarkItem", "Todo", "Project",
+		) {
+			return b.QueryProject().Only(ctx)
+		}
+		return &Project{ID: *b.bookmark_project}, nil
+	}
+	return nil, nil
+}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (pr *Project) Owner(ctx context.Context) (*Category, error) {
+	result, err := pr.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (t *Todo) Owner(ctx context.Context) (*Category, error) {
+	result, err := t.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -157,6 +244,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			Where(billproduct.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, billproductImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case bookmark.Table:
+		query := c.Bookmark.Query().
+			Where(bookmark.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, bookmarkImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -310,6 +406,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.BillProduct.Query().
 			Where(billproduct.IDIn(ids...))
 		query, err := query.CollectFields(ctx, billproductImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case bookmark.Table:
+		query := c.Bookmark.Query().
+			Where(bookmark.IDIn(ids...))
+		query, err := query.CollectFields(ctx, bookmarkImplementors...)
 		if err != nil {
 			return nil, err
 		}

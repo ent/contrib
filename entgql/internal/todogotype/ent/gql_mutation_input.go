@@ -35,6 +35,7 @@ type CreateCategoryInput struct {
 	Count          *uint64
 	Strings        []string
 	TodoIDs        []string
+	ProjectIDs     []bigintgql.BigInt
 	SubCategoryIDs []bigintgql.BigInt
 }
 
@@ -59,6 +60,9 @@ func (i *CreateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.TodoIDs; len(v) > 0 {
 		m.AddTodoIDs(v...)
+	}
+	if v := i.ProjectIDs; len(v) > 0 {
+		m.AddProjectIDs(v...)
 	}
 	if v := i.SubCategoryIDs; len(v) > 0 {
 		m.AddSubCategoryIDs(v...)
@@ -89,6 +93,9 @@ type UpdateCategoryInput struct {
 	ClearTodos           bool
 	AddTodoIDs           []string
 	RemoveTodoIDs        []string
+	ClearProjects        bool
+	AddProjectIDs        []bigintgql.BigInt
+	RemoveProjectIDs     []bigintgql.BigInt
 	ClearSubCategories   bool
 	AddSubCategoryIDs    []bigintgql.BigInt
 	RemoveSubCategoryIDs []bigintgql.BigInt
@@ -143,6 +150,15 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 	}
 	if v := i.RemoveTodoIDs; len(v) > 0 {
 		m.RemoveTodoIDs(v...)
+	}
+	if i.ClearProjects {
+		m.ClearProjects()
+	}
+	if v := i.AddProjectIDs; len(v) > 0 {
+		m.AddProjectIDs(v...)
+	}
+	if v := i.RemoveProjectIDs; len(v) > 0 {
+		m.RemoveProjectIDs(v...)
 	}
 	if i.ClearSubCategories {
 		m.ClearSubCategories()

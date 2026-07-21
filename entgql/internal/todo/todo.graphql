@@ -86,3 +86,4 @@ extend input CreateCategoryInput {
 interface NamedNode {
   name: String!
 }
+

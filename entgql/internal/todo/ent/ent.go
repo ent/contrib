@@ -24,6 +24,8 @@ import (
 	"sync"
 
 	"entgo.io/contrib/entgql/internal/todo/ent/billproduct"
+	"entgo.io/contrib/entgql/internal/todo/ent/bookmark"
+	"entgo.io/contrib/entgql/internal/todo/ent/bookmarkitemview"
 	"entgo.io/contrib/entgql/internal/todo/ent/category"
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
@@ -96,16 +98,18 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			billproduct.Table: billproduct.ValidColumn,
-			category.Table:    category.ValidColumn,
-			friendship.Table:  friendship.ValidColumn,
-			group.Table:       group.ValidColumn,
-			onetomany.Table:   onetomany.ValidColumn,
-			project.Table:     project.ValidColumn,
-			todo.Table:        todo.ValidColumn,
-			user.Table:        user.ValidColumn,
-			verysecret.Table:  verysecret.ValidColumn,
-			workspace.Table:   workspace.ValidColumn,
+			billproduct.Table:      billproduct.ValidColumn,
+			bookmark.Table:         bookmark.ValidColumn,
+			bookmarkitemview.Table: bookmarkitemview.ValidColumn,
+			category.Table:         category.ValidColumn,
+			friendship.Table:       friendship.ValidColumn,
+			group.Table:            group.ValidColumn,
+			onetomany.Table:        onetomany.ValidColumn,
+			project.Table:          project.ValidColumn,
+			todo.Table:             todo.ValidColumn,
+			user.Table:             user.ValidColumn,
+			verysecret.Table:       verysecret.ValidColumn,
+			workspace.Table:        workspace.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

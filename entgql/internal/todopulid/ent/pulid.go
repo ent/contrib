@@ -24,6 +24,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/project"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
@@ -36,6 +37,7 @@ var prefixMap = map[pulid.ID]string{
 	"CR": category.Table,
 	"FS": friendship.Table,
 	"GR": group.Table,
+	"PR": project.Table,
 	"TD": todo.Table,
 	"UR": user.Table,
 	"VR": verysecret.Table,

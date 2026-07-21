@@ -25,6 +25,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/group"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/project"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/user"
@@ -60,15 +61,46 @@ func (*Group) IsNode() {}
 // IsNamedNode implements the NamedNode interface check for GQLGen.
 func (*Group) IsNamedNode() {}
 
-var todoImplementors = []string{"Todo", "Node"}
+var projectImplementors = []string{"Project", "Node", "BookmarkItem"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Project) IsNode() {}
+
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Project) IsBookmarkItem() {}
+
+var todoImplementors = []string{"Todo", "Node", "BookmarkItem"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Todo) IsNode() {}
+
+// IsBookmarkItem implements the BookmarkItem interface check for GQLGen.
+func (*Todo) IsBookmarkItem() {}
 
 var userImplementors = []string{"User", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*User) IsNode() {}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (pr *Project) Owner(ctx context.Context) (*Category, error) {
+	result, err := pr.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+// Owner returns the owner value (category edge),
+// using the eager-loaded edge when present and falling back to a query otherwise.
+func (t *Todo) Owner(ctx context.Context) (*Category, error) {
+	result, err := t.Edges.CategoryOrErr()
+	if IsNotLoaded(err) {
+		result, err = t.QueryCategory().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -176,6 +208,19 @@ func (c *Client) noder(ctx context.Context, table string, id pulid.ID) (Noder, e
 			Where(group.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, groupImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case project.Table:
+		var uid pulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.Project.Query().
+			Where(project.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, projectImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -331,6 +376,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []pulid.ID) ([]No
 		query := c.Group.Query().
 			Where(group.IDIn(ids...))
 		query, err := query.CollectFields(ctx, groupImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case project.Table:
+		query := c.Project.Query().
+			Where(project.IDIn(ids...))
+		query, err := query.CollectFields(ctx, projectImplementors...)
 		if err != nil {
 			return nil, err
 		}

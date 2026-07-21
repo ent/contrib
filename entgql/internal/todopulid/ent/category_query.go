@@ -24,6 +24,7 @@ import (
 
 	"entgo.io/contrib/entgql/internal/todopulid/ent/category"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/predicate"
+	"entgo.io/contrib/entgql/internal/todopulid/ent/project"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/schema/pulid"
 	"entgo.io/contrib/entgql/internal/todopulid/ent/todo"
 	"entgo.io/ent"
@@ -40,10 +41,12 @@ type CategoryQuery struct {
 	inters                 []Interceptor
 	predicates             []predicate.Category
 	withTodos              *TodoQuery
+	withProjects           *ProjectQuery
 	withSubCategories      *CategoryQuery
 	modifiers              []func(*sql.Selector)
 	loadTotal              []func(context.Context, []*Category) error
 	withNamedTodos         map[string]*TodoQuery
+	withNamedProjects      map[string]*ProjectQuery
 	withNamedSubCategories map[string]*CategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -96,6 +99,28 @@ func (cq *CategoryQuery) QueryTodos() *TodoQuery {
 			sqlgraph.From(category.Table, category.FieldID, selector),
 			sqlgraph.To(todo.Table, todo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, category.TodosTable, category.TodosColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProjects chains the current query on the "projects" edge.
+func (cq *CategoryQuery) QueryProjects() *ProjectQuery {
+	query := (&ProjectClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(category.Table, category.FieldID, selector),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, category.ProjectsTable, category.ProjectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,6 +343,7 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		inters:            append([]Interceptor{}, cq.inters...),
 		predicates:        append([]predicate.Category{}, cq.predicates...),
 		withTodos:         cq.withTodos.Clone(),
+		withProjects:      cq.withProjects.Clone(),
 		withSubCategories: cq.withSubCategories.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
@@ -333,6 +359,17 @@ func (cq *CategoryQuery) WithTodos(opts ...func(*TodoQuery)) *CategoryQuery {
 		opt(query)
 	}
 	cq.withTodos = query
+	return cq
+}
+
+// WithProjects tells the query-builder to eager-load the nodes that are connected to
+// the "projects" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithProjects(opts ...func(*ProjectQuery)) *CategoryQuery {
+	query := (&ProjectClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withProjects = query
 	return cq
 }
 
@@ -425,8 +462,9 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 	var (
 		nodes       = []*Category{}
 		_spec       = cq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			cq.withTodos != nil,
+			cq.withProjects != nil,
 			cq.withSubCategories != nil,
 		}
 	)
@@ -458,6 +496,13 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 			return nil, err
 		}
 	}
+	if query := cq.withProjects; query != nil {
+		if err := cq.loadProjects(ctx, query, nodes,
+			func(n *Category) { n.Edges.Projects = []*Project{} },
+			func(n *Category, e *Project) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := cq.withSubCategories; query != nil {
 		if err := cq.loadSubCategories(ctx, query, nodes,
 			func(n *Category) { n.Edges.SubCategories = []*Category{} },
@@ -469,6 +514,13 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cat
 		if err := cq.loadTodos(ctx, query, nodes,
 			func(n *Category) { n.appendNamedTodos(name) },
 			func(n *Category, e *Todo) { n.appendNamedTodos(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedProjects {
+		if err := cq.loadProjects(ctx, query, nodes,
+			func(n *Category) { n.appendNamedProjects(name) },
+			func(n *Category, e *Project) { n.appendNamedProjects(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -513,6 +565,37 @@ func (cq *CategoryQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes 
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "category_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (cq *CategoryQuery) loadProjects(ctx context.Context, query *ProjectQuery, nodes []*Category, init func(*Category), assign func(*Category, *Project)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[pulid.ID]*Category)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Project(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(category.ProjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.category_projects
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "category_projects" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "category_projects" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -675,6 +758,20 @@ func (cq *CategoryQuery) WithNamedTodos(name string, opts ...func(*TodoQuery)) *
 		cq.withNamedTodos = make(map[string]*TodoQuery)
 	}
 	cq.withNamedTodos[name] = query
+	return cq
+}
+
+// WithNamedProjects tells the query-builder to eager-load the nodes that are connected to the "projects"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithNamedProjects(name string, opts ...func(*ProjectQuery)) *CategoryQuery {
+	query := (&ProjectClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedProjects == nil {
+		cq.withNamedProjects = make(map[string]*ProjectQuery)
+	}
+	cq.withNamedProjects[name] = query
 	return cq
 }
 

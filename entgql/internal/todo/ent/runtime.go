@@ -23,6 +23,7 @@ import (
 	"entgo.io/contrib/entgql/internal/todo/ent/friendship"
 	"entgo.io/contrib/entgql/internal/todo/ent/group"
 	"entgo.io/contrib/entgql/internal/todo/ent/onetomany"
+	"entgo.io/contrib/entgql/internal/todo/ent/project"
 	"entgo.io/contrib/entgql/internal/todo/ent/schema"
 	"entgo.io/contrib/entgql/internal/todo/ent/todo"
 	"entgo.io/contrib/entgql/internal/todo/ent/user"
@@ -57,6 +58,12 @@ func init() {
 	onetomanyDescName := onetomanyFields[0].Descriptor()
 	// onetomany.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	onetomany.NameValidator = onetomanyDescName.Validators[0].(func(string) error)
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescText is the schema descriptor for text field.
+	projectDescText := projectFields[0].Descriptor()
+	// project.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	project.TextValidator = projectDescText.Validators[0].(func(string) error)
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescCreatedAt is the schema descriptor for created_at field.

@@ -28,6 +28,10 @@ type Tx struct {
 	config
 	// BillProduct is the client for interacting with the BillProduct builders.
 	BillProduct *BillProductClient
+	// Bookmark is the client for interacting with the Bookmark builders.
+	Bookmark *BookmarkClient
+	// BookmarkItemView is the client for interacting with the BookmarkItemView builders.
+	BookmarkItemView *BookmarkItemViewClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -178,6 +182,8 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.BillProduct = NewBillProductClient(tx.config)
+	tx.Bookmark = NewBookmarkClient(tx.config)
+	tx.BookmarkItemView = NewBookmarkItemViewClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)

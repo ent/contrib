@@ -120,6 +120,7 @@ func (Todo) Edges() []ent.Edge {
 			Immutable().
 			Annotations(
 				entgql.OrderField("CATEGORY_TEXT"),
+				entgql.InterfaceField("owner"),
 			),
 		edge.To("secret", VerySecret.Type).
 			Unique(),
@@ -133,5 +134,6 @@ func (Todo) Annotations() []schema.Annotation {
 		entgql.QueryField().Description("This is the todo item"),
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 		entgql.MultiOrder(),
+		entgql.Implements("BookmarkItem"),
 	}
 }

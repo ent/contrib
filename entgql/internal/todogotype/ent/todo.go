@@ -61,6 +61,7 @@ type Todo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
 	Edges         TodoEdges `json:"edges"`
+	project_todos *bigintgql.BigInt
 	todo_children *string
 	todo_secret   *string
 	selectValues  sql.SelectValues
@@ -142,9 +143,11 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case todo.ForeignKeys[0]: // todo_children
+		case todo.ForeignKeys[0]: // project_todos
+			values[i] = &sql.NullScanner{S: new(bigintgql.BigInt)}
+		case todo.ForeignKeys[1]: // todo_children
 			values[i] = new(sql.NullString)
-		case todo.ForeignKeys[1]: // todo_secret
+		case todo.ForeignKeys[2]: // todo_secret
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -240,13 +243,20 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				t.CategoryID = *value
 			}
 		case todo.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field project_todos", values[i])
+			} else if value.Valid {
+				t.project_todos = new(bigintgql.BigInt)
+				*t.project_todos = *value.S.(*bigintgql.BigInt)
+			}
+		case todo.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_children", values[i])
 			} else if value.Valid {
 				t.todo_children = new(string)
 				*t.todo_children = value.String
 			}
-		case todo.ForeignKeys[1]:
+		case todo.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field todo_secret", values[i])
 			} else if value.Valid {

@@ -89,6 +89,10 @@ func (Category) Edges() []ent.Edge {
 				entgql.RelayConnection(),
 				entgql.OrderField("TODOS_COUNT"),
 			),
+		edge.To("projects", Project.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
 		edge.To("sub_categories", Category.Type).
 			Annotations(entgql.RelayConnection()),
 	}
