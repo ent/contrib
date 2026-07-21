@@ -39,7 +39,8 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 	path = append([]string(nil), path...)
 	{{- $fields := filterFields $node.Fields (skipMode "type") }}
 	{{- $collects := fieldCollections (filterEdges $node.Edges (skipMode "type")) }}
-	{{- if or $collects $fields }}
+	{{- $ifcCollects := interfaceFieldCollections (filterEdges $node.Edges (skipMode "type")) }}
+	{{- if or $collects $ifcCollects $fields }}
 		{{- if $fields }}
 		var (
 			unknownSeen bool
@@ -149,6 +150,51 @@ func ({{ $receiver }} *{{ $query }}) collectField(ctx context.Context, oneNode b
 								fieldSeen[{{ $node.Package }}.{{ .Constant }}] = struct{}{}
 							}
 						{{- end }}
+				{{- end }}
+				{{- /* Interface field cases: eager-load all contributing edges. */ -}}
+				{{- range $ifc := $ifcCollects }}
+					case "{{ $ifc.FieldName }}":
+					{{- if $ifc.IsRename }}
+						{{- $e := index $ifc.Edges 0 }}
+						{
+							path := append(path, field.Alias)
+							query := (&{{ $e.Type.ClientName }}{config: {{ $receiver }}.config}).Query()
+							if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+								return err
+							}
+							{{ $receiver }}.{{ $e.EagerLoadField }} = query
+						}
+					{{- else }}
+						{{- if edgesAllOwnFK $ifc.Edges }}
+						if interfaceFieldCoveredByID(field, opCtx, {{ printf "%q" $ifc.InterfaceName }}{{ range $ifc.Edges }}, {{ printf "%q" .Type.Name }}{{ end }}) {
+							{{- /* The selection needs only __typename/id: select the foreign keys so
+							       the resolver builds the node from them, and skip the target queries. */}}
+							{{ $receiver }}.withFKs = true
+						} else {
+							{{- range $e := $ifc.Edges }}
+							{
+								path := append(path, field.Alias)
+								query := (&{{ $e.Type.ClientName }}{config: {{ $receiver }}.config}).Query()
+								if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+									return err
+								}
+								{{ $receiver }}.{{ $e.EagerLoadField }} = query
+							}
+							{{- end }}
+						}
+						{{- else }}
+							{{- range $e := $ifc.Edges }}
+							{
+								path := append(path, field.Alias)
+								query := (&{{ $e.Type.ClientName }}{config: {{ $receiver }}.config}).Query()
+								if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, {{ nodeImplementorsVar $e.Type }})...); err != nil {
+									return err
+								}
+								{{ $receiver }}.{{ $e.EagerLoadField }} = query
+							}
+							{{- end }}
+						{{- end }}
+					{{- end }}
 				{{- end }}
 				{{- range $c := fieldCollectorCases $fields }}
 					case {{ range $i, $m := $c.Mapping }}{{ if $i }}, {{ end }}"{{ $m }}"{{ end }}:

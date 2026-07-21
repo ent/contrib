@@ -4,6 +4,70 @@ type BillProduct {
   sku: String!
   quantity: Uint64!
 }
+type Bookmark {
+  id: ID!
+  name: String!
+  todo: Todo
+  project: Project
+  item: BookmarkItem
+}
+interface BookmarkItem {
+  category: Category
+  id: ID!
+  name: String
+  owner: Category
+  text: String!
+}
+"""
+A connection to a list of items.
+"""
+type BookmarkItemConnection {
+  """
+  A list of edges.
+  """
+  edges: [BookmarkItemEdge]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+  """
+  Identifies the total count of items in the connection.
+  """
+  totalCount: Int!
+}
+"""
+An edge in a connection.
+"""
+type BookmarkItemEdge {
+  """
+  The item at the end of the edge.
+  """
+  node: BookmarkItem
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+"""
+Ordering options for BookmarkItem connections
+"""
+input BookmarkItemOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection! = ASC
+  """
+  The field by which to order BookmarkItems.
+  """
+  field: BookmarkItemOrderField!
+}
+"""
+Properties by which BookmarkItem connections can be ordered.
+"""
+enum BookmarkItemOrderField {
+  ID
+  CATEGORY_ID
+}
 type Category {
   id: ID!
   text: String!
@@ -14,6 +78,7 @@ type Category {
   count: Uint64
   strings: [String!]
   todos: [Todo!]
+  projects: [Project!]
   subCategories: [Category!]
 }
 """
@@ -60,6 +125,7 @@ input CreateCategoryInput {
   count: Uint64
   strings: [String!]
   todoIDs: [ID!]
+  projectIDs: [ID!]
   subCategoryIDs: [ID!]
 }
 """
@@ -140,12 +206,43 @@ type Organization @goModel(model: "entgo.io/contrib/entgql/internal/todo/ent.Wor
   id: ID!
   name: String!
 }
-type Project {
+type Project implements BookmarkItem {
   id: ID!
+  text: String!
+  name: String
   todos: [Todo!]
+  category: Category
+  owner: Category
 }
 type Query {
   billProducts: [BillProduct!]!
+  bookmarks: [Bookmark!]!
+  bookmarkItems(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for BookmarkItems returned from the connection.
+    """
+    orderBy: BookmarkItemOrder
+  ): BookmarkItemConnection!
   categories: [Category!]!
   groups: [Group!]!
   oneToMany: [OneToMany!]!
@@ -159,7 +256,7 @@ type Query {
 The builtin Time type
 """
 scalar Time
-type Todo {
+type Todo implements BookmarkItem {
   id: ID!
   createdAt: Time!
   status: TodoStatus!
@@ -176,6 +273,7 @@ type Todo {
   parent: Todo
   children: [Todo!]
   category: Category
+  owner: Category
 }
 """
 Ordering options for Todo connections
@@ -235,6 +333,9 @@ input UpdateCategoryInput {
   addTodoIDs: [ID!]
   removeTodoIDs: [ID!]
   clearTodos: Boolean
+  addProjectIDs: [ID!]
+  removeProjectIDs: [ID!]
+  clearProjects: Boolean
   addSubCategoryIDs: [ID!]
   removeSubCategoryIDs: [ID!]
   clearSubCategories: Boolean

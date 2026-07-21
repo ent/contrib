@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 
 	"entgo.io/ent/entc/gen"
@@ -154,6 +155,22 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 		}
 		names := paginationNames(gqlType)
 
+		// A view backing an interface connection drives a polymorphic
+		// <Interface>Connection instead of its own GraphQL type.
+		switch iface, err := viewBackedInterface(node, g.Nodes); {
+		case err != nil:
+			return err
+		case iface == "":
+		default:
+			if e.genSchema {
+				err = e.buildInterfaceViewConn(node, ant, iface, s, &queryFields)
+				if err != nil {
+					return err
+				}
+			}
+			continue
+		}
+
 		if e.genSchema && !ant.Skip.Is(SkipType) {
 			def, err := e.buildType(node, ant, gqlType, g.Package)
 			if err != nil {
@@ -253,6 +270,19 @@ func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 			}
 			if len(defs) > 0 {
 				s.AddTypes(defs...)
+			}
+		}
+	}
+
+	// Auto-generate GraphQL interface definitions from InterfaceField annotations.
+	if e.genSchema {
+		ifaceDefs, err := e.buildInterfaceFieldDefs(g, s)
+		if err != nil {
+			return err
+		}
+		for _, def := range ifaceDefs {
+			if s.Types[def.Name] == nil && !e.externalType(def.Name) {
+				s.AddTypes(def)
 			}
 		}
 	}
@@ -361,7 +391,277 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 		}
 	}
 
+	// Generate interface fields for edges annotated with InterfaceField.
+	ifcGroups, err := interfaceFieldCollections(t.Edges)
+	if err != nil {
+		return nil, err
+	}
+	for _, ifc := range ifcGroups {
+		switch {
+		case ifc.IsRename:
+			// Rename case: single edge exposed under a new name.
+			edge := ifc.Edges[0]
+			edgeGQLType, _, err := gqlTypeFromNode(edge.Type)
+			if err != nil {
+				return nil, err
+			}
+			fieldType := namedType(edgeGQLType, true)
+			if !edge.Unique {
+				// Renaming a to-many edge exposes it as a list.
+				fieldType = listNamedType(edgeGQLType, true)
+			}
+			def.Fields = append(def.Fields, &ast.FieldDefinition{
+				Name: ifc.FieldName,
+				Type: fieldType,
+			})
+		case allEdgesUnique(ifc.Edges):
+			// Group case with unique edges: single interface value.
+			def.Fields = append(def.Fields, &ast.FieldDefinition{
+				Name: ifc.FieldName,
+				Type: namedType(ifc.InterfaceName, true),
+			})
+		default:
+			// Group case with non-unique edges: interface Relay connection.
+			// Reuse the standard connection-field builder so the field gets the
+			// after/first/before/last pagination arguments. Ordering and
+			// where-filtering are omitted because they are not well-defined
+			// across heterogeneous interface members.
+			names := &PaginationNames{
+				Connection: ifc.InterfaceName + "Connection",
+				Edge:       ifc.InterfaceName + "Edge",
+				Node:       ifc.InterfaceName,
+			}
+			def.Fields = append(def.Fields, names.ConnectionField(ifc.FieldName, false, false, false))
+		}
+	}
+
 	return def, nil
+}
+
+// viewBackedInterface returns the GraphQL interface a view backs, or "" if the
+// node is not such a view. A view backs an interface's global connection by
+// naming it with entgql.Type together with entgql.QueryField, where the named
+// type is a GraphQL interface (some concrete node declares it via
+// entgql.Implements). Such a node drives buildInterfaceViewConn and the
+// interface_view template instead of the standard per-node generators.
+func viewBackedInterface(n *gen.Type, nodes []*gen.Type) (string, error) {
+	if !n.IsView() {
+		return "", nil
+	}
+	ant, err := annotation(n.Annotations)
+	if err != nil {
+		return "", err
+	}
+	if ant.QueryField == nil || ant.Type == "" {
+		return "", nil
+	}
+	for _, other := range nodes {
+		if other.IsView() {
+			continue
+		}
+		oAnt, err := annotation(other.Annotations)
+		if err != nil {
+			return "", err
+		}
+		for _, iface := range oAnt.Implements {
+			if iface == ant.Type {
+				return ant.Type, nil
+			}
+		}
+	}
+	return "", nil
+}
+
+// buildInterfaceViewConn generates the GraphQL surface for a view-backed
+// interface connection: the <Interface>Order input+enum, the <Interface>WhereInput,
+// and the top-level query field. The connection/edge/interface types come from
+// buildInterfaceFieldDefs; the Paginate<Interface> logic from the interface_view template.
+func (e *schemaGenerator) buildInterfaceViewConn(node *gen.Type, ant *Annotation, iface string, s *ast.Schema, queryFields *ast.FieldList) error {
+	names := &PaginationNames{
+		Node:       iface,
+		Connection: iface + "Connection",
+		Edge:       iface + "Edge",
+		Order:      iface + "Order",
+		OrderField: iface + "OrderField",
+		WhereInput: iface + "WhereInput",
+	}
+	// Ordering options, derived from the view's OrderField-annotated columns.
+	orderEnum, err := e.enumOrderByValues(node, names.OrderField)
+	if err != nil {
+		return err
+	}
+	hasOrderBy := orderEnum != nil
+	if hasOrderBy && s.Types[orderEnum.Name] == nil {
+		orderEnum.Description = fmt.Sprintf("Properties by which %s connections can be ordered.", iface)
+		s.AddTypes(orderEnum, names.OrderInputDef())
+	}
+	// Filtering options, derived from the view's columns.
+	hasWhereInput := e.genWhereInput
+	if hasWhereInput {
+		whereDef, err := e.buildWhereInput(node, iface, names.WhereInput)
+		if err != nil {
+			return err
+		}
+		if whereDef != nil && s.Types[whereDef.Name] == nil {
+			s.AddTypes(whereDef)
+		}
+	}
+	// The <Interface>Connection/<Interface>Edge types referenced by the query field.
+	for _, def := range names.TypeDefs() {
+		if s.Types[def.Name] == nil {
+			s.AddTypes(def)
+		}
+	}
+	// The top-level connection field (after/first/before/last [+ orderBy] [+ where]).
+	field := names.ConnectionField(ant.QueryField.fieldName(iface), hasOrderBy, ant.MultiOrder, hasWhereInput)
+	field.Description = ant.QueryField.Description
+	field.Directives = e.buildDirectives(ant.QueryField.Directives)
+	*queryFields = append(*queryFields, field)
+	return nil
+}
+
+// buildInterfaceFieldDefs generates GraphQL interface definitions and connection
+// types for the InterfaceField feature. An interface exposes the fields that ALL
+// of its implementing types share: every argument-less field present on every
+// implementor with the same name and type (e.g. id, shared scalars like text,
+// and renamed edges like owner). The implementors' object types must already be
+// present in s.
+func (e *schemaGenerator) buildInterfaceFieldDefs(g *gen.Graph, s *ast.Schema) ([]*ast.Definition, error) {
+	// Step 1: collect all implementors per interface.
+	ifaceImplementors := make(map[string][]string)
+	for _, node := range g.Nodes {
+		ant, err := annotation(node.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		// Views and GraphQL-skipped types are not members of the interface and do
+		// not contribute to its field set.
+		if node.IsView() || ant.Skip.Is(SkipType) {
+			continue
+		}
+		gqlType, _, err := gqlTypeFromNode(node)
+		if err != nil {
+			return nil, err
+		}
+		for _, iface := range ant.Implements {
+			if iface == "Node" {
+				continue
+			}
+			ifaceImplementors[iface] = append(ifaceImplementors[iface], gqlType)
+		}
+	}
+
+	// Step 2: record the InterfaceField rename fields per implementor. Only
+	// interfaces that share such a field are auto-generated; this avoids emitting
+	// a definition for user-defined interfaces (e.g. NamedNode) that are declared
+	// only via the Implements annotation and provided by the user's schema.
+	typeRenames := make(map[string]map[string]bool)
+	for _, node := range g.Nodes {
+		if node.IsView() {
+			continue
+		}
+		gqlType, _, err := gqlTypeFromNode(node)
+		if err != nil {
+			return nil, err
+		}
+		for _, edge := range node.Edges {
+			eAnt, err := annotation(edge.Annotations)
+			if err != nil {
+				return nil, err
+			}
+			if eAnt.InterfaceField == "" {
+				continue
+			}
+			count := 0
+			for _, other := range node.Edges {
+				oAnt, _ := annotation(other.Annotations)
+				if oAnt.InterfaceField == eAnt.InterfaceField {
+					count++
+				}
+			}
+			if count > 1 {
+				continue // group case, not a rename
+			}
+			if typeRenames[gqlType] == nil {
+				typeRenames[gqlType] = make(map[string]bool)
+			}
+			typeRenames[gqlType][eAnt.InterfaceField] = true
+		}
+	}
+
+	// Step 3: for each interface, intersect the (already-built) field sets of its
+	// implementors. A field is shared when every implementor exposes it with the
+	// same name and type; argument-bearing fields (e.g. connections) are skipped.
+	var defs []*ast.Definition
+	for ifaceName, implementors := range ifaceImplementors {
+		// Only generate interfaces driven by the InterfaceField feature: every
+		// implementor must share at least one renamed interface field.
+		renameShared := make(map[string]bool)
+		for name := range typeRenames[implementors[0]] {
+			renameShared[name] = true
+		}
+		for _, impl := range implementors[1:] {
+			for name := range renameShared {
+				if !typeRenames[impl][name] {
+					delete(renameShared, name)
+				}
+			}
+		}
+		if len(renameShared) == 0 {
+			continue
+		}
+		first := s.Types[implementors[0]]
+		if first == nil {
+			continue
+		}
+		shared := make(map[string]*ast.FieldDefinition)
+		for _, f := range first.Fields {
+			if len(f.Arguments) == 0 {
+				shared[f.Name] = f
+			}
+		}
+		for _, impl := range implementors[1:] {
+			it := s.Types[impl]
+			implFields := make(map[string]*ast.FieldDefinition)
+			if it != nil {
+				for _, f := range it.Fields {
+					implFields[f.Name] = f
+				}
+			}
+			for name, f := range shared {
+				switch other := implFields[name]; {
+				case other == nil, len(other.Arguments) > 0, other.Type.String() != f.Type.String():
+					delete(shared, name)
+				}
+			}
+		}
+		if len(shared) == 0 {
+			continue
+		}
+		def := &ast.Definition{
+			Name: ifaceName,
+			Kind: ast.Interface,
+		}
+		// Emit the shared fields in a deterministic (sorted) order. The gqlparser
+		// formatter sorts type names but preserves field order, so ranging the map
+		// directly would produce nondeterministic output.
+		fieldNames := make([]string, 0, len(shared))
+		for fieldName := range shared {
+			fieldNames = append(fieldNames, fieldName)
+		}
+		slices.Sort(fieldNames)
+		for _, fieldName := range fieldNames {
+			f := shared[fieldName]
+			def.Fields = append(def.Fields, &ast.FieldDefinition{
+				Name:        fieldName,
+				Type:        f.Type,
+				Description: f.Description,
+			})
+		}
+		defs = append(defs, def)
+	}
+
+	return defs, nil
 }
 
 func (e *schemaGenerator) buildDirectives(directives []Directive) ast.DirectiveList {
@@ -477,7 +777,7 @@ func (e *schemaGenerator) buildWhereInput(t *gen.Type, nodeGQLType, gqlType stri
 	def := &ast.Definition{
 		Name:        gqlType,
 		Kind:        ast.InputObject,
-		Description: fmt.Sprintf("%s is used for filtering %s objects.\nInput was generated by ent.", gqlType, t.Name),
+		Description: fmt.Sprintf("%s is used for filtering %s objects.\nInput was generated by ent.", gqlType, nodeGQLType),
 		Fields: ast.FieldList{
 			&ast.FieldDefinition{
 				Name: "not",

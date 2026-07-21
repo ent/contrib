@@ -72,6 +72,113 @@ type Noder interface {
 	{{- end }}
 {{ end }}
 
+{{/* Generate Go interface types + polymorphic connection helpers for GraphQL interfaces used by InterfaceField edges (group case). */}}
+{{- $ifacesSeen := dict }}
+{{- range $n := $gqlNodes }}
+	{{- $ifcGroups := interfaceFieldCollections (filterEdges $n.Edges (skipMode "type")) }}
+	{{- range $ifc := $ifcGroups }}
+		{{- if and (not $ifc.IsRename) (not (hasKey $ifacesSeen $ifc.InterfaceName)) }}
+			{{- $_ := set $ifacesSeen $ifc.InterfaceName true }}
+			// {{ $ifc.InterfaceName }} is the Go interface for the {{ $ifc.InterfaceName }} GraphQL interface.
+			type {{ $ifc.InterfaceName }} interface {
+				Is{{ $ifc.InterfaceName }}()
+			}
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- if anyPolymorphicInterfaceField $gqlNodes }}
+// interfaceFieldCoveredByID reports whether an interface-field selection needs
+// nothing beyond __typename and id, so it can be served from a foreign key
+// without loading the concrete node.
+func interfaceFieldCoveredByID(field graphql.CollectedField, oc *graphql.OperationContext, satisfies ...string) bool {
+	for _, f := range graphql.CollectFields(oc, field.Selections, satisfies) {
+		switch f.Name {
+		case "__typename", "id":
+		default:
+			return false
+		}
+	}
+	return true
+}
+{{- end }}
+
+{{/* Generate resolver methods for types with InterfaceField edges. */}}
+{{- range $n := $gqlNodes }}
+	{{- $ifcGroups := interfaceFieldCollections (filterEdges $n.Edges (skipMode "type")) }}
+	{{- range $ifc := $ifcGroups }}
+		{{- if $ifc.IsRename }}
+			{{- $e := index $ifc.Edges 0 }}
+			{{- if $e.Unique }}
+				// {{ pascal $ifc.FieldName }} returns the {{ $ifc.FieldName }} value ({{ $e.Name }} edge),
+				// using the eager-loaded edge when present and falling back to a query otherwise.
+				func ({{ $n.Receiver }} *{{ $n.Name }}) {{ pascal $ifc.FieldName }}(ctx context.Context) (*{{ $e.Type.Name }}, error) {
+					result, err := {{ $n.Receiver }}.Edges.{{ $e.StructField }}OrErr()
+					if IsNotLoaded(err) {
+						result, err = {{ $n.Receiver }}.Query{{ $e.StructField }}().Only(ctx)
+					}
+					return result, MaskNotFound(err)
+				}
+			{{- else }}
+				// {{ pascal $ifc.FieldName }} returns the {{ $ifc.FieldName }} value ({{ $e.Name }} edge),
+				// using the eager-loaded edge when present and falling back to a query otherwise.
+				func ({{ $n.Receiver }} *{{ $n.Name }}) {{ pascal $ifc.FieldName }}(ctx context.Context) ([]*{{ $e.Type.Name }}, error) {
+					result, err := {{ $n.Receiver }}.Edges.{{ $e.StructField }}OrErr()
+					if IsNotLoaded(err) {
+						result, err = {{ $n.Receiver }}.Query{{ $e.StructField }}().All(ctx)
+					}
+					return result, err
+				}
+			{{- end }}
+		{{- else }}
+			// {{ pascal $ifc.FieldName }} returns the {{ $ifc.InterfaceName }} value from the first populated edge,
+			// using the eager-loaded edge when present and falling back to a query otherwise.
+			func ({{ $n.Receiver }} *{{ $n.Name }}) {{ pascal $ifc.FieldName }}(ctx context.Context) ({{ $ifc.InterfaceName }}, error) {
+				{{- if edgesAllOwnFK $ifc.Edges }}
+					{{- /* The concrete type (and id) is fixed by which foreign key is set;
+					       for selections needing only __typename/id, build the node from the
+					       foreign key instead of querying the target table. */}}
+					switch {
+					{{- range $e := $ifc.Edges }}
+					case {{ $n.Receiver }}.{{ $e.Rel.Column }} != nil:
+						switch result, err := {{ $n.Receiver }}.Edges.{{ $e.StructField }}OrErr(); {
+						case err == nil:
+							return result, nil
+						case !IsNotLoaded(err):
+							return nil, err
+						}
+						if fc := graphql.GetFieldContext(ctx); fc == nil || !interfaceFieldCoveredByID(
+							fc.Field, graphql.GetOperationContext(ctx),
+							{{ printf "%q" $ifc.InterfaceName }}{{ range $ifc.Edges }}, {{ printf "%q" .Type.Name }}{{ end }},
+						) {
+							return {{ $n.Receiver }}.Query{{ $e.StructField }}().Only(ctx)
+						}
+						return &{{ $e.Type.Name }}{ID: *{{ $n.Receiver }}.{{ $e.Rel.Column }}}, nil
+					{{- end }}
+					}
+					return nil, nil
+				{{- else }}
+					{{- range $e := $ifc.Edges }}
+						{
+							result, err := {{ $n.Receiver }}.Edges.{{ $e.StructField }}OrErr()
+							if IsNotLoaded(err) {
+								result, err = {{ $n.Receiver }}.Query{{ $e.StructField }}().Only(ctx)
+							}
+							switch {
+							case err == nil && result != nil:
+								return result, nil
+							case err != nil && !IsNotFound(err):
+								return nil, err
+							}
+						}
+					{{- end }}
+					return nil, nil
+				{{- end }}
+			}
+		{{- end }}
+	{{- end }}
+{{- end }}
+
 var errNodeInvalidID = &NotFoundError{"node"}
 
 // NodeOption allows configuring the Noder execution using functional options.

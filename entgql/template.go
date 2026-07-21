@@ -64,6 +64,10 @@ var (
 	// MutationInputTemplate adds a template for generating Create<T>Input and Update<T>Input for each schema type.
 	MutationInputTemplate = parseT("template/mutation_input.tmpl").SkipIf(skipMutationTemplate)
 
+	// InterfaceViewTemplate generates the pagination/orderBy/where logic for
+	// SQL-view-backed GraphQL interface connections (Paginate<Interface>).
+	InterfaceViewTemplate = parseT("template/interface_view.tmpl").SkipIf(skipInterfaceViewTemplate)
+
 	// AllTemplates holds all templates for extending ent to support GraphQL.
 	AllTemplates = []*gen.Template{
 		CollectionTemplate,
@@ -73,29 +77,35 @@ var (
 		TransactionTemplate,
 		EdgeTemplate,
 		MutationInputTemplate,
+		InterfaceViewTemplate,
 	}
 
 	// TemplateFuncs contains the extra template functions used by entgql.
 	TemplateFuncs = template.FuncMap{
-		"fieldCollections":    fieldCollections,
-		"fieldCollectorCases": fieldCollectorCases,
-		"fieldMapping":        fieldMapping,
-		"fieldCollectedFor":   fieldCollectedFor,
-		"filterEdges":         filterEdges,
-		"filterFields":        filterFields,
-		"filterNodes":         filterNodes,
-		"gqlIDType":           gqlIDType,
-		"gqlMarshaler":        gqlMarshaler,
-		"gqlUnmarshaler":      gqlUnmarshaler,
-		"hasWhereInput":       hasWhereInput,
-		"isRelayConn":         isRelayConn,
-		"isSkipMode":          isSkipMode,
-		"mutationInputs":      mutationInputs,
-		"nodeImplementors":    nodeImplementors,
-		"nodeImplementorsVar": nodeImplementorsVar,
-		"nodePaginationNames": nodePaginationNames,
-		"orderFields":         orderFields,
-		"skipMode":            skipModeFromString,
+		"fieldCollections":             fieldCollections,
+		"fieldCollectorCases":          fieldCollectorCases,
+		"interfaceFieldCollections":    interfaceFieldCollections,
+		"interfaceViews":               interfaceViews,
+		"edgesAllOwnFK":                edgesAllOwnFK,
+		"anyPolymorphicInterfaceField": anyPolymorphicInterfaceField,
+		"interfaceDeclaredByNode":      interfaceDeclaredByNode,
+		"fieldMapping":                 fieldMapping,
+		"fieldCollectedFor":            fieldCollectedFor,
+		"filterEdges":                  filterEdges,
+		"filterFields":                 filterFields,
+		"filterNodes":                  filterNodes,
+		"gqlIDType":                    gqlIDType,
+		"gqlMarshaler":                 gqlMarshaler,
+		"gqlUnmarshaler":               gqlUnmarshaler,
+		"hasWhereInput":                hasWhereInput,
+		"isRelayConn":                  isRelayConn,
+		"isSkipMode":                   isSkipMode,
+		"mutationInputs":               mutationInputs,
+		"nodeImplementors":             nodeImplementors,
+		"nodeImplementorsVar":          nodeImplementorsVar,
+		"nodePaginationNames":          nodePaginationNames,
+		"orderFields":                  orderFields,
+		"skipMode":                     skipModeFromString,
 	}
 
 	//go:embed template/*
@@ -174,6 +184,19 @@ type fieldCollection struct {
 	Mapping []string
 }
 
+// interfaceFieldCollection groups multiple edges that share an InterfaceField annotation.
+type interfaceFieldCollection struct {
+	// FieldName is the GraphQL field name (e.g. "hasTodos" or "parent").
+	FieldName string
+	// InterfaceName is the common GraphQL interface (e.g. "HasTodos").
+	// Empty for rename cases (single edge).
+	InterfaceName string
+	// Edges are all edges contributing to this interface field.
+	Edges []*gen.Edge
+	// IsRename indicates a single-edge rename (vs a multi-edge polymorphic field).
+	IsRename bool
+}
+
 func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 	collect := make([]*fieldCollection, 0, len(edges))
 	for _, e := range edges {
@@ -193,6 +216,396 @@ func fieldCollections(edges []*gen.Edge) ([]*fieldCollection, error) {
 		}
 	}
 	return collect, nil
+}
+
+// interfaceFieldCollections groups edges annotated with InterfaceField by field name.
+// For groups of 2+ edges, it finds the common GraphQL interface (group case).
+// For single edges, it marks them as renames (rename case).
+func interfaceFieldCollections(edges []*gen.Edge) ([]*interfaceFieldCollection, error) {
+	groups := make(map[string]*interfaceFieldCollection)
+	order := make([]string, 0)
+	for _, e := range edges {
+		ant, err := annotation(e.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if ant.InterfaceField == "" {
+			continue
+		}
+		fieldName := ant.InterfaceField
+		if _, ok := groups[fieldName]; !ok {
+			groups[fieldName] = &interfaceFieldCollection{FieldName: fieldName}
+			order = append(order, fieldName)
+		}
+		groups[fieldName].Edges = append(groups[fieldName].Edges, e)
+	}
+	// Determine the common interface for groups, mark renames. A multi-edge group
+	// is a 1:1 polymorphic field, so all its edges must be to-one; interface
+	// connections (to-many groups) are not supported.
+	for _, ifc := range groups {
+		if len(ifc.Edges) == 1 {
+			ifc.IsRename = true
+			continue
+		}
+		if !allEdgesUnique(ifc.Edges) {
+			return nil, fmt.Errorf("interface field %q: all contributing edges must be unique (to-one)", ifc.FieldName)
+		}
+		ifaceName, err := commonInterface(ifc.Edges)
+		if err != nil {
+			return nil, fmt.Errorf("interface field %q: %w", ifc.FieldName, err)
+		}
+		ifc.InterfaceName = ifaceName
+	}
+	result := make([]*interfaceFieldCollection, 0, len(order))
+	for _, name := range order {
+		result = append(result, groups[name])
+	}
+	return result, nil
+}
+
+// commonInterface finds the common GraphQL interface among the target types of edges.
+func commonInterface(edges []*gen.Edge) (string, error) {
+	if len(edges) == 0 {
+		return "", errors.New("no edges provided")
+	}
+	// Gather interfaces from the first edge's target type.
+	first, err := annotation(edges[0].Type.Annotations)
+	if err != nil {
+		return "", err
+	}
+	candidates := make(map[string]bool)
+	for _, iface := range first.Implements {
+		candidates[iface] = true
+	}
+	// Intersect with other edges' target interfaces.
+	for _, e := range edges[1:] {
+		ant, err := annotation(e.Type.Annotations)
+		if err != nil {
+			return "", err
+		}
+		targetIfaces := make(map[string]bool)
+		for _, iface := range ant.Implements {
+			targetIfaces[iface] = true
+		}
+		for iface := range candidates {
+			if !targetIfaces[iface] {
+				delete(candidates, iface)
+			}
+		}
+	}
+	// Remove "Node" — it's always present and not what we want.
+	delete(candidates, "Node")
+	if len(candidates) == 0 {
+		names := make([]string, 0, len(edges))
+		for _, e := range edges {
+			names = append(names, e.Type.Name)
+		}
+		return "", fmt.Errorf("types %v share no common interface (other than Node)", names)
+	}
+	// Return the first one (deterministic via sorted iteration).
+	sorted := make([]string, 0, len(candidates))
+	for iface := range candidates {
+		sorted = append(sorted, iface)
+	}
+	slices.Sort(sorted)
+	return sorted[0], nil
+}
+
+// allEdgesUnique returns true if all edges in the slice are Unique (to-one).
+func allEdgesUnique(edges []*gen.Edge) bool {
+	for _, e := range edges {
+		if !e.Unique {
+			return false
+		}
+	}
+	return true
+}
+
+// edgesAllOwnFK reports whether every edge stores its foreign key on the owning
+// node. When true, the polymorphic resolver knows which concrete type an item is
+// (and its id) from the foreign key alone, so it can build the node without
+// querying the target table for selections that need only __typename/id.
+func edgesAllOwnFK(edges []*gen.Edge) bool {
+	for _, e := range edges {
+		if !e.OwnFK() {
+			return false
+		}
+	}
+	return len(edges) > 0
+}
+
+// anyPolymorphicInterfaceField reports whether any node exposes a polymorphic
+// interface field (a multi-edge InterfaceField group). Used to gate generation
+// of the shared interfaceFieldCoveredByID helper.
+func anyPolymorphicInterfaceField(nodes []*gen.Type) (bool, error) {
+	for _, n := range nodes {
+		groups, err := interfaceFieldCollections(n.Edges)
+		if err != nil {
+			return false, err
+		}
+		for _, g := range groups {
+			if !g.IsRename {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+// interfaceDeclaredByNode reports whether the named GraphQL interface's Go type is
+// already declared by node.tmpl (because a node exposes a polymorphic
+// InterfaceField field of that interface). A view backing the same interface
+// then references that type instead of redeclaring it.
+func interfaceDeclaredByNode(nodes []*gen.Type, iface string) (bool, error) {
+	for _, n := range nodes {
+		groups, err := interfaceFieldCollections(n.Edges)
+		if err != nil {
+			return false, err
+		}
+		for _, g := range groups {
+			if !g.IsRename && g.InterfaceName == iface {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+// interfaceSynthField is a view column that mirrors a shared interface field and
+// can be served directly from the view row (no per-node query).
+type interfaceSynthField struct {
+	// GQL is the GraphQL field name (used to detect view-covered selections).
+	GQL string
+	// StructField is the Go struct field, identical on view row and node.
+	StructField string
+}
+
+// interfaceView describes a SQL-view node that backs a GraphQL interface's
+// global connection (see the BookmarkItemView example). It is exposed to the
+// interface_view template.
+type interfaceView struct {
+	// Node is the view's ent type.
+	Node *gen.Type
+	// Interface is the GraphQL interface name the view resolves rows into.
+	Interface string
+	// Order holds the view columns usable for ordering (entgql.OrderField).
+	Order []*OrderTerm
+	// Implementors are the concrete node types that implement the interface.
+	// The paginated view rows are resolved to these types (batched per type).
+	Implementors []*gen.Type
+	// Discriminator is the Go struct field of the column marking the concrete-type
+	// discriminator (entgql.MapsTo("__typename")); its value is the ent type name.
+	Discriminator string
+	// Synth are the view columns mirroring shared interface fields; a selection
+	// touching only these (plus __typename) is served from the view rows.
+	Synth []*interfaceSynthField
+}
+
+// typenameMarker is the entgql.MapsTo value that marks a view column as the
+// concrete-type discriminator of an interface-backed connection.
+const typenameMarker = "__typename"
+
+// discriminatorField returns the view column marked as the concrete-type
+// discriminator via entgql.MapsTo("__typename"). A view backing an interface
+// connection must declare exactly one such column (a string) so its rows can be
+// routed to the right member type.
+func discriminatorField(n *gen.Type) (*gen.Field, error) {
+	var found *gen.Field
+	for _, f := range n.Fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		if !slices.Contains(ant.Mapping, typenameMarker) {
+			continue
+		}
+		if found != nil {
+			return nil, fmt.Errorf("entgql: view %q declares more than one %q discriminator via entgql.MapsTo", n.Name, typenameMarker)
+		}
+		found = f
+	}
+	if found == nil {
+		return nil, fmt.Errorf("entgql: view %q must mark its discriminator column with entgql.MapsTo(%q)", n.Name, typenameMarker)
+	}
+	if found.Type.String() != "string" {
+		return nil, fmt.Errorf("entgql: view %q discriminator column %q must be of type string, got %s", n.Name, found.Name, found.Type.String())
+	}
+	return found, nil
+}
+
+// interfaceViews returns the view nodes that back a GraphQL interface
+// connection. Their rows are paginated at the DB level and resolved to the
+// concrete implementor types.
+func interfaceViews(nodes []*gen.Type) ([]*interfaceView, error) {
+	var views []*interfaceView
+	for _, n := range nodes {
+		iface, err := viewBackedInterface(n, nodes)
+		if err != nil {
+			return nil, err
+		}
+		if iface == "" {
+			continue
+		}
+		terms, err := orderFields(n)
+		if err != nil {
+			return nil, err
+		}
+		impls, err := interfaceImplementors(nodes, iface)
+		if err != nil {
+			return nil, err
+		}
+		disc, err := discriminatorField(n)
+		if err != nil {
+			return nil, err
+		}
+		// Every column but the discriminator that all implementors expose can be
+		// served from the view row directly.
+		var synth []*interfaceSynthField
+		for _, f := range n.Fields {
+			if f == disc {
+				continue
+			}
+			// Only non-optional columns are synthesizable: an optional column cannot
+			// distinguish SQL NULL from the zero value in a non-pointer field.
+			if !f.Optional && fieldOnAllTypes(impls, f.Name) {
+				synth = append(synth, &interfaceSynthField{GQL: camel(f.Name), StructField: f.StructField()})
+			}
+		}
+		if err := validateInterfaceView(n, impls); err != nil {
+			return nil, err
+		}
+		views = append(views, &interfaceView{
+			Node:          n,
+			Interface:     iface,
+			Order:         terms,
+			Implementors:  impls,
+			Discriminator: disc.StructField(),
+			Synth:         synth,
+		})
+	}
+	return views, nil
+}
+
+// fieldOnAllTypes reports whether every given type exposes a field with the
+// given name (including the id field).
+func fieldOnAllTypes(types []*gen.Type, name string) bool {
+	if len(types) == 0 {
+		return false
+	}
+	for _, t := range types {
+		found := false
+		for _, f := range allFields(t) {
+			if f.Name == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// validateInterfaceView checks that a view backing an interface connection is
+// consistent with the concrete nodes it resolves to, failing generation with a
+// clear message. It validates what the resolver relies on:
+//
+//   - A column naming an interface field via entgql.InterfaceField must have that
+//     field declared on every implementor. This links columns whose ent name
+//     differs across implementors (e.g. the "category_id" FK behind the "owner"
+//     edge) by the interface field name.
+//   - Every other name-shared column must have an identical Go type on the view
+//     and each implementor, since it is copied from the view row during synthesis.
+//
+// The discriminator column is validated separately by discriminatorField.
+// Columns that are neither name-shared nor annotated are resolved via a per-type
+// query and are not checked.
+func validateInterfaceView(n *gen.Type, impls []*gen.Type) error {
+	for _, f := range n.Fields {
+		ant, err := annotation(f.Annotations)
+		if err != nil {
+			return err
+		}
+		if ant.InterfaceField != "" {
+			for _, impl := range impls {
+				if !implementorHasInterfaceField(impl, ant.InterfaceField) {
+					return fmt.Errorf(
+						"entgql: view %q column %q maps to interface field %q, but implementor %q does not declare it (via entgql.InterfaceField)",
+						n.Name, f.Name, ant.InterfaceField, impl.Name,
+					)
+				}
+			}
+			continue
+		}
+		if !fieldOnAllTypes(impls, f.Name) {
+			continue
+		}
+		for _, impl := range impls {
+			g := findField(impl, f.Name)
+			if g == nil {
+				// Unreachable: fieldOnAllTypes guarantees the field exists.
+				return fmt.Errorf("entgql: view %q column %q not found on implementor %q", n.Name, f.Name, impl.Name)
+			}
+			if g.Type.String() != f.Type.String() {
+				return fmt.Errorf(
+					"entgql: view %q column %q (type %s) does not match field %q of implementor %q (type %s); "+
+						"the interface field is served from the view row and requires an identical type",
+					n.Name, f.Name, f.Type.String(), g.Name, impl.Name, g.Type.String(),
+				)
+			}
+		}
+	}
+	return nil
+}
+
+// findField returns the field of the given type with the given name (including
+// the id field), or nil if none matches.
+func findField(t *gen.Type, name string) *gen.Field {
+	for _, f := range allFields(t) {
+		if f.Name == name {
+			return f
+		}
+	}
+	return nil
+}
+
+// implementorHasInterfaceField reports whether the type declares the named
+// interface field via entgql.InterfaceField on an edge or field.
+func implementorHasInterfaceField(t *gen.Type, name string) bool {
+	for _, e := range t.Edges {
+		if ant, err := annotation(e.Annotations); err == nil && ant.InterfaceField == name {
+			return true
+		}
+	}
+	for _, f := range t.Fields {
+		if ant, err := annotation(f.Annotations); err == nil && ant.InterfaceField == name {
+			return true
+		}
+	}
+	return false
+}
+
+// interfaceImplementors returns the concrete (non-view) node types that declare
+// they implement the given GraphQL interface.
+func interfaceImplementors(nodes []*gen.Type, iface string) ([]*gen.Type, error) {
+	var impls []*gen.Type
+	for _, n := range nodes {
+		if n.IsView() {
+			continue
+		}
+		ant, err := annotation(n.Annotations)
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range ant.Implements {
+			if i == iface {
+				impls = append(impls, n)
+				break
+			}
+		}
+	}
+	return impls, nil
 }
 
 // MutationDescriptor holds information about a GraphQL mutation input.
@@ -321,6 +734,13 @@ func filterNodes(nodes []*gen.Type, skip SkipMode) ([]*gen.Type, error) {
 	filteredNodes := make([]*gen.Type, 0, len(nodes))
 	for _, n := range nodes {
 		if n.HasCompositeID() {
+			continue
+		}
+		// A view backing an interface connection is excluded from the per-node
+		// generators; it is handled by the interface_view template.
+		if iface, err := viewBackedInterface(n, nodes); err != nil {
+			return nil, err
+		} else if iface != "" {
 			continue
 		}
 		ant, err := annotation(n.Annotations)
@@ -839,6 +1259,16 @@ func skipMutationTemplate(g *gen.Graph) bool {
 		}
 	}
 	return true
+}
+
+// skipInterfaceViewTemplate reports whether no view-backed interface connection
+// exists, in which case the interface_view template emits nothing.
+func skipInterfaceViewTemplate(g *gen.Graph) bool {
+	views, err := interfaceViews(g.Nodes)
+	if err != nil {
+		return false
+	}
+	return len(views) == 0
 }
 
 func nodeImplementors(n *gen.Type) (ifaces []string, err error) {

@@ -1,0 +1,478 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+{{ define "gql_interface_view" }}
+{{ template "header" $ }}
+
+{{ $views := interfaceViews $.Nodes }}
+{{ $gqlNodes := filterNodes $.Nodes (skipMode "type") }}
+{{ $idType := gqlIDType $gqlNodes $.IDType }}
+
+{{- $pkgs := dict }}
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"strconv"
+
+	"entgo.io/contrib/entgql"
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
+	"github.com/99designs/gqlgen/graphql"
+	"{{ $.Config.Package }}/predicate"
+	{{- range $v := $views }}
+		{{- if not (hasKey $pkgs $v.Node.Package) }}{{ $_ := set $pkgs $v.Node.Package true }}
+	"{{ $.Config.Package }}/{{ $v.Node.Package }}"
+		{{- end }}
+		{{- range $impl := $v.Implementors }}
+			{{- if not (hasKey $pkgs $impl.Package) }}{{ $_ := set $pkgs $impl.Package true }}
+	"{{ $.Config.Package }}/{{ $impl.Package }}"
+			{{- end }}
+		{{- end }}
+	{{- end }}
+)
+
+{{ range $v := $views }}
+	{{- $node := $v.Node }}
+	{{- $iface := $v.Interface }}
+	{{- $view := $node.Name }}
+	{{- $query := $node.QueryName }}
+	{{- $pkg := $node.Package }}
+	{{- $conn := print $iface "Connection" }}
+	{{- $edge := print $iface "Edge" }}
+	{{- $order := print $iface "Order" }}
+	{{- $orderField := print $iface "OrderField" }}
+	{{- $where := print $iface "WhereInput" }}
+	{{- $cursor := printf "entgql.Cursor[%s]" $idType }}
+	{{- $defaultOrder := print "default" $orderField }}
+
+	{{- if not (interfaceDeclaredByNode $.Nodes $iface) }}
+	// {{ $iface }} is the Go interface the view's rows resolve to; the concrete
+	// member types (which implement it) are returned from the connection.
+	type {{ $iface }} interface {
+		Is{{ $iface }}()
+	}
+	{{- end }}
+
+	// {{ $conn }} is a connection to a list of {{ $iface }} items.
+	type {{ $conn }} struct {
+		Edges      []*{{ $edge }} `json:"edges"`
+		PageInfo   entgql.PageInfo[{{ $idType }}] `json:"pageInfo"`
+		TotalCount int `json:"totalCount"`
+	}
+
+	// {{ $edge }} is an edge in a {{ $conn }}.
+	type {{ $edge }} struct {
+		Node   {{ $iface }} `json:"node"`
+		Cursor {{ $cursor }} `json:"cursor"`
+	}
+
+	// {{ $orderField }} defines an ordering column for the {{ $iface }} connection.
+	type {{ $orderField }} struct {
+		// Value extracts the ordering value from the given {{ $view }} row.
+		Value    func(*{{ $view }}) (ent.Value, error)
+		column   string
+		toTerm   func(...sql.OrderTermOption) {{ $pkg }}.OrderOption
+		toCursor func(*{{ $view }}) {{ $cursor }}
+	}
+
+	// {{ $order }} defines the ordering of the {{ $iface }} connection.
+	type {{ $order }} struct {
+		Direction entgql.OrderDirection `json:"direction"`
+		Field     *{{ $orderField }}    `json:"field"`
+	}
+
+	var (
+		// {{ $defaultOrder }} orders the {{ $iface }} connection by the view id.
+		{{ $defaultOrder }} = &{{ $orderField }}{
+			Value: func(v *{{ $view }}) (ent.Value, error) {
+				return v.ID, nil
+			},
+			column: {{ $pkg }}.FieldID,
+			toTerm: {{ $pkg }}.ByID,
+			toCursor: func(v *{{ $view }}) {{ $cursor }} {
+				return {{ $cursor }}{ID: v.ID}
+			},
+		}
+		{{- range $t := $v.Order }}
+			{{- $sf := $t.Field.StructField }}
+			// {{ $orderField }}{{ $sf }} orders {{ $iface }} by the {{ $t.Field.Name }} column.
+			{{ $orderField }}{{ $sf }} = &{{ $orderField }}{
+				Value: func(v *{{ $view }}) (ent.Value, error) {
+					return v.{{ $sf }}, nil
+				},
+				column: {{ $pkg }}.Field{{ $sf }},
+				toTerm: {{ $pkg }}.By{{ $sf }},
+				toCursor: func(v *{{ $view }}) {{ $cursor }} {
+					{{- if eq $t.Field.Name "id" }}
+					return {{ $cursor }}{ID: v.ID}
+					{{- else }}
+					return {{ $cursor }}{ID: v.ID, Value: v.{{ $sf }}}
+					{{- end }}
+				},
+			}
+		{{- end }}
+	)
+
+	// String implements fmt.Stringer interface.
+	func (f {{ $orderField }}) String() string {
+		switch f.column {
+		{{- range $t := $v.Order }}
+			case {{ $orderField }}{{ $t.Field.StructField }}.column:
+				return "{{ $t.GQL }}"
+		{{- end }}
+		}
+		return ""
+	}
+
+	// MarshalGQL implements graphql.Marshaler interface.
+	func (f {{ $orderField }}) MarshalGQL(w io.Writer) {
+		io.WriteString(w, strconv.Quote(f.String()))
+	}
+
+	// UnmarshalGQL implements graphql.Unmarshaler interface.
+	func (f *{{ $orderField }}) UnmarshalGQL(v interface{}) error {
+		str, ok := v.(string)
+		if !ok {
+			return fmt.Errorf("{{ $orderField }} %T must be a string", v)
+		}
+		switch str {
+		{{- range $t := $v.Order }}
+			case "{{ $t.GQL }}":
+				*f = *{{ $orderField }}{{ $t.Field.StructField }}
+		{{- end }}
+		default:
+			return fmt.Errorf("%s is not a valid {{ $orderField }}", str)
+		}
+		return nil
+	}
+
+	// {{ $where }} represents a where input for filtering the {{ $iface }} connection.
+	type {{ $where }} struct {
+		Predicates []predicate.{{ $view }} `json:"-"`
+		Not        *{{ $where }}           `json:"not,omitempty"`
+		Or         []*{{ $where }}         `json:"or,omitempty"`
+		And        []*{{ $where }}         `json:"and,omitempty"`
+		{{- range $f := $node.Fields }}
+			{{- if $f.Type.Comparable }}
+
+				// "{{ $f.Name }}" field predicates.
+				{{- range $op := $f.Ops }}
+					{{- $field := print $f.StructField $op.Name }}
+					{{- $jsonTag := print $f.Name "_" $op.Name }}
+					{{- if eq $op.Name "EQ" }}
+						{{- $field = $f.StructField }}
+						{{- $jsonTag = $f.Name }}
+					{{- end }}
+					{{- $type := $f.Type }}
+					{{- if $op.Niladic }}
+						{{- $type = "bool" }}
+					{{- else if $op.Variadic }}
+						{{- $type = print "[]" $type }}
+					{{- else if not $f.Type.RType.IsPtr }}
+						{{- $type = print "*" $type }}
+					{{- end }}
+					{{ $field }} {{ $type }} `json:"{{ camel $jsonTag }},omitempty"`
+				{{- end }}
+			{{- end }}
+		{{- end }}
+	}
+
+	// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+	func (i *{{ $where }}) AddPredicates(predicates ...predicate.{{ $view }}) {
+		i.Predicates = append(i.Predicates, predicates...)
+	}
+
+	// ErrEmpty{{ $where }} is returned in case the {{ $where }} is empty.
+	var ErrEmpty{{ $where }} = errors.New("{{ base $.Config.Package }}: empty predicate {{ $where }}")
+
+	// Filter applies the {{ $where }} filter on the {{ $query }} builder.
+	func (i *{{ $where }}) Filter(q *{{ $query }}) (*{{ $query }}, error) {
+		if i == nil {
+			return q, nil
+		}
+		p, err := i.P()
+		if err != nil {
+			if err == ErrEmpty{{ $where }} {
+				return q, nil
+			}
+			return nil, err
+		}
+		return q.Where(p), nil
+	}
+
+	// P returns a predicate for filtering the {{ $iface }} view.
+	func (i *{{ $where }}) P() (predicate.{{ $view }}, error) {
+		var predicates []predicate.{{ $view }}
+		if i.Not != nil {
+			p, err := i.Not.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'not'", err)
+			}
+			predicates = append(predicates, {{ $pkg }}.Not(p))
+		}
+		switch n := len(i.Or); {
+		case n == 1:
+			p, err := i.Or[0].P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			predicates = append(predicates, p)
+		case n > 1:
+			or := make([]predicate.{{ $view }}, 0, n)
+			for _, w := range i.Or {
+				p, err := w.P()
+				if err != nil {
+					return nil, fmt.Errorf("%w: field 'or'", err)
+				}
+				or = append(or, p)
+			}
+			predicates = append(predicates, {{ $pkg }}.Or(or...))
+		}
+		switch n := len(i.And); {
+		case n == 1:
+			p, err := i.And[0].P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			predicates = append(predicates, p)
+		case n > 1:
+			and := make([]predicate.{{ $view }}, 0, n)
+			for _, w := range i.And {
+				p, err := w.P()
+				if err != nil {
+					return nil, fmt.Errorf("%w: field 'and'", err)
+				}
+				and = append(and, p)
+			}
+			predicates = append(predicates, {{ $pkg }}.And(and...))
+		}
+		predicates = append(predicates, i.Predicates...)
+		{{- range $f := $node.Fields }}
+			{{- if $f.Type.Comparable }}
+				{{- range $op := $f.Ops }}
+					{{- $func := print $f.StructField $op.Name }}
+					{{- $field := $func }}
+					{{- if eq $op.Name "EQ" }}
+						{{- $field = $f.StructField }}
+					{{- end }}
+					{{- if $op.Niladic }}
+						if i.{{ $field }} {
+							predicates = append(predicates, {{ $pkg }}.{{ $func }}())
+						}
+					{{- else if $op.Variadic }}
+						if len(i.{{ $field }}) > 0 {
+							predicates = append(predicates, {{ $pkg }}.{{ $func }}(i.{{ $field }}...))
+						}
+					{{- else }}
+						if i.{{ $field }} != nil {
+							predicates = append(predicates, {{ $pkg }}.{{ $func }}({{ if not $f.Type.RType.IsPtr }}*{{ end }}i.{{ $field }}))
+						}
+					{{- end }}
+				{{- end }}
+			{{- end }}
+		{{- end }}
+		switch len(predicates) {
+		case 0:
+			return nil, ErrEmpty{{ $where }}
+		case 1:
+			return predicates[0], nil
+		default:
+			return {{ $pkg }}.And(predicates...), nil
+		}
+	}
+
+	{{- if $v.Synth }}
+	// interfaceViewCovers{{ $iface }} reports whether the `edges.node` selection
+	// only touches columns the view already carries (plus __typename).
+	func interfaceViewCovers{{ $iface }}(node graphql.CollectedField, oc *graphql.OperationContext, satisfies ...string) bool {
+		for _, f := range graphql.CollectFields(oc, node.Selections, satisfies) {
+			switch f.Name {
+			case "__typename"{{ range $s := $v.Synth }}, {{ printf "%q" $s.GQL }}{{ end }}:
+			default:
+				return false
+			}
+		}
+		return true
+	}
+	{{- end }}
+
+	// Paginate{{ $iface }} paginates the view at the database level and resolves
+	// each row to its concrete {{ $iface }} node.
+	func (q *{{ $query }}) Paginate{{ $iface }}(
+		ctx context.Context,
+		after *{{ $cursor }}, first *int, before *{{ $cursor }}, last *int,
+		orderBy *{{ $order }},
+		where *{{ $where }},
+	) (*{{ $conn }}, error) {
+		if err := validateFirstLast(first, last); err != nil {
+			return nil, err
+		}
+		if where != nil {
+			var err error
+			if q, err = where.Filter(q); err != nil {
+				return nil, err
+			}
+		}
+		conn := &{{ $conn }}{Edges: []*{{ $edge }}{}}
+		// Only issue the count query when totalCount is selected.
+		if fc := graphql.GetFieldContext(ctx); fc == nil || hasCollectedFieldFrom(fc.Field, graphql.GetOperationContext(ctx), nil, totalCountField) {
+			total, err := q.Clone().Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = total
+		}
+
+		orderField := {{ $defaultOrder }}
+		direction := entgql.OrderDirectionAsc
+		if orderBy != nil && orderBy.Field != nil {
+			orderField = orderBy.Field
+			if orderBy.Direction != "" {
+				direction = orderBy.Direction
+			}
+		}
+		reverse := last != nil
+		if reverse {
+			direction = direction.Reverse()
+		}
+		for _, p := range entgql.CursorsPredicate(after, before, {{ $pkg }}.FieldID, orderField.column, direction) {
+			q = q.Where(p)
+		}
+		q = q.Order(orderField.toTerm(direction.OrderTermOption()))
+		if orderField.column != {{ $pkg }}.FieldID {
+			q = q.Order({{ $pkg }}.ByID(direction.OrderTermOption()))
+		}
+		var (
+			nodeSel          *graphql.CollectedField
+			opCtx            *graphql.OperationContext
+			edgesRequested   = true
+			pageInfoRequested = true
+		)
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			opCtx = graphql.GetOperationContext(ctx)
+			edgesRequested = hasCollectedFieldFrom(fc.Field, opCtx, nil, edgesField)
+			pageInfoRequested = hasCollectedFieldFrom(fc.Field, opCtx, nil, pageInfoField)
+			nodeSel = collectedFieldFrom(fc.Field, opCtx, nil, edgesField, nodeField)
+		}
+		if !edgesRequested && !pageInfoRequested {
+			return conn, nil
+		}
+		pageSize := 0
+		switch {
+		case first != nil:
+			pageSize = *first
+		case last != nil:
+			pageSize = *last
+		}
+		if (first != nil || last != nil) && pageSize == 0 {
+			conn.PageInfo.HasNextPage = before != nil
+			conn.PageInfo.HasPreviousPage = after != nil
+			return conn, nil
+		}
+		if pageSize > 0 {
+			// Over-fetch one row to detect a further page.
+			q = q.Limit(pageSize + 1)
+		}
+		rows, err := q.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		hasMore := pageSize > 0 && len(rows) > pageSize
+		if hasMore {
+			rows = rows[:pageSize]
+		}
+		if reverse {
+			for i, j := 0, len(rows)-1; i < j; i, j = i+1, j-1 {
+				rows[i], rows[j] = rows[j], rows[i]
+			}
+		}
+		conn.PageInfo.HasNextPage = before != nil
+		conn.PageInfo.HasPreviousPage = after != nil
+		if reverse {
+			conn.PageInfo.HasPreviousPage = hasMore
+		} else if first != nil {
+			conn.PageInfo.HasNextPage = hasMore
+		}
+		if len(rows) == 0 {
+			return conn, nil
+		}
+		startCursor := orderField.toCursor(rows[0])
+		endCursor := orderField.toCursor(rows[len(rows)-1])
+		conn.PageInfo.StartCursor = &startCursor
+		conn.PageInfo.EndCursor = &endCursor
+		if !edgesRequested {
+			return conn, nil
+		}
+		// Group rows by discriminator; nodes are keyed by kind and id so id
+		// overlaps between types cannot collide.
+		byKind := make(map[string][]*{{ $view }}, {{ len $v.Implementors }})
+		for _, row := range rows {
+			byKind[row.{{ $v.Discriminator }}] = append(byKind[row.{{ $v.Discriminator }}], row)
+		}
+		nodes := make(map[string]map[{{ $idType }}]{{ $iface }}, {{ len $v.Implementors }})
+		{{- range $impl := $v.Implementors }}
+		{
+			kindRows := byKind[{{ printf "%q" $impl.Name }}]
+			im := make(map[{{ $idType }}]{{ $iface }}, len(kindRows))
+			switch {
+			case len(kindRows) == 0:
+			{{- if $v.Synth }}
+			case nodeSel == nil || interfaceViewCovers{{ $iface }}(*nodeSel, opCtx, {{ nodeImplementorsVar $impl }}...):
+				// Synthesize the node from the view row.
+				for _, row := range kindRows {
+					im[row.ID] = &{{ $impl.Name }}{
+						{{- range $s := $v.Synth }}
+						{{ $s.StructField }}: row.{{ $s.StructField }},
+						{{- end }}
+					}
+				}
+			{{- end }}
+			default:
+				// Query the concrete type once, batched by id.
+				ids := make([]{{ $idType }}, len(kindRows))
+				for i := range kindRows {
+					ids[i] = kindRows[i].ID
+				}
+				nq := (&{{ $impl.ClientName }}{config: q.config}).Query().Where({{ $impl.Package }}.IDIn(ids...))
+				if nodeSel != nil {
+					if err := nq.collectField(ctx, false, opCtx, *nodeSel, nil, {{ nodeImplementorsVar $impl }}...); err != nil {
+						return nil, err
+					}
+				}
+				items, err := nq.All(ctx)
+				if err != nil {
+					return nil, err
+				}
+				for _, item := range items {
+					im[item.ID] = item
+				}
+			}
+			nodes[{{ printf "%q" $impl.Name }}] = im
+		}
+		{{- end }}
+		conn.Edges = make([]*{{ $edge }}, 0, len(rows))
+		for i := range rows {
+			byID, ok := nodes[rows[i].{{ $v.Discriminator }}]
+			if !ok {
+				continue
+			}
+			item, ok := byID[rows[i].ID]
+			if !ok {
+				continue
+			}
+			conn.Edges = append(conn.Edges, &{{ $edge }}{
+				Node:   item,
+				Cursor: orderField.toCursor(rows[i]),
+			})
+		}
+		return conn, nil
+	}
+{{ end }}
+{{ end }}
