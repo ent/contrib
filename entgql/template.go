@@ -240,16 +240,13 @@ func interfaceFieldCollections(edges []*gen.Edge) ([]*interfaceFieldCollection, 
 		}
 		groups[fieldName].Edges = append(groups[fieldName].Edges, e)
 	}
-	// Determine the common interface for groups, mark renames. A multi-edge group
-	// is a 1:1 polymorphic field, so all its edges must be to-one; interface
-	// connections (to-many groups) are not supported.
+	// Determine the common interface for groups, mark renames. Multi-edge groups
+	// are polymorphic fields; all-unique groups yield a single interface value,
+	// while groups with non-unique edges yield an interface connection.
 	for _, ifc := range groups {
 		if len(ifc.Edges) == 1 {
 			ifc.IsRename = true
 			continue
-		}
-		if !allEdgesUnique(ifc.Edges) {
-			return nil, fmt.Errorf("interface field %q: all contributing edges must be unique (to-one)", ifc.FieldName)
 		}
 		ifaceName, err := commonInterface(ifc.Edges)
 		if err != nil {
