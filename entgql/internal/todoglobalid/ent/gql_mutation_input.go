@@ -133,7 +133,7 @@ func (i *UpdateCategoryInput) Mutate(m *CategoryMutation) {
 		m.SetStrings(v)
 	}
 	if i.AppendStrings != nil {
-		m.AppendStrings(i.Strings)
+		m.AppendStrings(i.AppendStrings)
 	}
 	if i.ClearTodos {
 		m.ClearTodos()

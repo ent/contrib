@@ -81,7 +81,7 @@ import (
             {{- end }}
             {{- if $f.AppendOp }}
                 if i.{{ $f.MutationAppend }} != nil {
-                    m.{{ $f.MutationAppend }}({{ if $f.IsPointer }}*{{ end }}i.{{ $f.StructField }})
+                    m.{{ $f.MutationAppend }}({{ if $f.IsPointer }}*{{ end }}i.{{ $f.MutationAppend }})
                 }
             {{- end }}
         {{- end }}
