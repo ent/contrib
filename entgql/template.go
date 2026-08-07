@@ -1065,7 +1065,7 @@ func (p *PaginationNames) TypeDefs() []*ast.Definition {
 			Fields: []*ast.FieldDefinition{
 				{
 					Name:        "node",
-					Type:        ast.NamedType(p.Node, nil),
+					Type:        ast.NonNullNamedType(p.Node, nil),
 					Description: "The item at the end of the edge.",
 				},
 				{
