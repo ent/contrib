@@ -19,35 +19,27 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
-	"entgo.io/ent/schema/field"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+type Account struct {
 	ent.Schema
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("name").
-			Annotations(
-				entproto.Field(2),
-			),
-	}
+func (Account) Fields() []ent.Field {
+	return []ent.Field{}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+func (Account) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("accounts", Account.Type).
-			Annotations(
-				entproto.Skip(),
-			),
+		edge.From("owner", User.Type).
+			Ref("accounts").
+			Immutable().
+			Unique().
+			Annotations(entproto.Field(2)),
 	}
 }
 
-func (User) Annotations() []schema.Annotation {
+func (Account) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
 		entproto.Service(),

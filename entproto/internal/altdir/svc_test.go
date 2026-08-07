@@ -25,16 +25,50 @@ import (
 )
 
 func TestService(t *testing.T) {
+	require := require.New(t)
+
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	defer client.Close()
-	svc := entpb.NewUserService(client)
+
+	userSvc := entpb.NewUserService(client)
+	accountSvc := entpb.NewAccountService(client)
 	ctx := context.Background()
-	_, err := svc.Create(ctx, &entpb.CreateUserRequest{
+
+	owner, err := userSvc.Create(ctx, &entpb.CreateUserRequest{
 		User: &entpb.User{
 			Name: "a8m",
 		},
 	})
-	require.NoError(t, err)
+	require.NoError(err)
 	uc := client.User.Query().CountX(ctx)
-	require.Equal(t, 1, uc)
+	require.Equal(1, uc)
+
+	other, err := userSvc.Create(ctx, &entpb.CreateUserRequest{
+		User: &entpb.User{
+			Name: "Anton Chigurh",
+		},
+	})
+	require.NoError(err)
+
+	account, err := accountSvc.Create(ctx, &entpb.CreateAccountRequest{
+		Account: &entpb.Account{
+			Owner: owner,
+		},
+	})
+	require.NoError(err)
+
+	_, err = accountSvc.Update(ctx, &entpb.UpdateAccountRequest{
+		Account: &entpb.Account{
+			Id:    account.Id,
+			Owner: other,
+		},
+	})
+	require.NoError(err)
+
+	account, err = accountSvc.Get(ctx, &entpb.GetAccountRequest{
+		Id:   account.Id,
+		View: entpb.GetAccountRequest_WITH_EDGE_IDS,
+	})
+	require.NoError(err)
+	require.Equal(owner.Id, account.Owner.Id)
 }
