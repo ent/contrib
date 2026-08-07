@@ -1,9 +1,10 @@
 {{- /*gotype: entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc.methodInput*/ -}}
 {{ define "method_list" }}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    {{- $entPackage := .G.EntPackage | base -}}
     var (
         err error
-        entList []*ent.{{ .G.EntType.Name }}
+        entList []*{{ .G.EntPackage.Ident .G.EntType.Name | ident }}
         pageSize int
     )
     pageSize = int(req.GetPageSize())
@@ -14,7 +15,7 @@
         pageSize = {{ qualify "entgo.io/contrib/entproto" "MaxPageSize" }}
     }
     listQuery := svc.client.{{ .G.EntType.Name }}.Query().
-        Order(ent.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).
+        Order({{ $entPackage }}.Desc({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "FieldID" }})).
         Limit(pageSize + 1)
     if req.GetPageToken() != "" {
         bytes, err := {{ qualify "encoding/base64" "StdEncoding.DecodeString" }}(req.PageToken)
@@ -46,7 +47,7 @@
         entList, err = listQuery.
             {{ range .G.FieldMap.Edges }}
                 {{- $et := .EntEdge.Type -}}
-                With{{ .EntEdge.StructField }}(func(query *ent.{{ $et.Name }}Query) {
+                With{{ .EntEdge.StructField }}(func(query *{{ $entPackage }}.{{ $et.Name }}Query) {
                     query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
                 }).
             {{ end }}

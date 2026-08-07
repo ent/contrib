@@ -3,6 +3,7 @@
     {{- $idField := .G.FieldMap.ID -}}
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
+    {{- $entPackage := .G.EntPackage | base -}}
     var (
         err error
         get *{{ .G.EntPackage.Ident .G.EntType.Name | ident }}
@@ -16,7 +17,7 @@
             Where({{ qualify (print (unquote .G.EntPackage.String) "/" .G.EntType.Package) "ID" }}({{ $varName }})).
             {{ range .G.FieldMap.Edges }}
                 {{- $et := .EntEdge.Type -}}
-                With{{ .EntEdge.StructField }}(func(query *ent.{{ $et.Name }}Query) {
+                With{{ .EntEdge.StructField }}(func(query *{{ $entPackage }}.{{ $et.Name }}Query) {
                     query.Select({{  qualify (print (unquote $.G.EntPackage.String) "/" $et.Package ) $et.ID.Constant  }})
                 }).
             {{ end }}

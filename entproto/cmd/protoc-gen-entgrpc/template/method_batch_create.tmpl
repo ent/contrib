@@ -4,11 +4,12 @@
     {{- $varName := $idField.EntField.Name -}}
     {{- $inputName := .Method.Input.GoIdent.GoName -}}
     {{- $reqVar := camel .G.EntType.Name -}}
+    {{- $entPackage := .G.EntPackage | base -}}
     requests := req.GetRequests()
     if len(requests) > {{ qualify "entgo.io/contrib/entproto" "MaxBatchCreateSize" }}{
         return nil, {{ statusErrf "InvalidArgument" "batch size cannot be greater than %d" "entproto.MaxBatchCreateSize" }}
     }
-    bulk := make([]*ent.{{ .G.EntType.Name }}Create, len(requests))
+    bulk := make([]*{{ $entPackage }}.{{ .G.EntType.Name }}Create, len(requests))
     for i, req := range requests {
         {{ $reqVar }} := req.Get{{ .G.EntType.Name }}()
         var err error
