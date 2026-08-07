@@ -102,6 +102,47 @@ func TestOgenSchema(t *testing.T) {
 	}
 }
 
+func TestOgenSchema_Example(t *testing.T) {
+	t.Parallel()
+	entFields := map[*entfield.Descriptor]*ogen.Schema{
+		entfield.String("name").
+			Annotations(Example("name")).Descriptor(): func() *ogen.Schema {
+			schema := ogen.String()
+			v, err := json.Marshal("name")
+			require.NoError(t, err)
+			schema.Example = v
+			return schema
+		}(),
+		entfield.Float32("total").
+			Annotations(Example("total")).Descriptor(): func() *ogen.Schema {
+			schema := ogen.Float()
+			v, err := json.Marshal("total")
+			require.NoError(t, err)
+			schema.Example = v
+			return schema
+		}(),
+	}
+
+	for d, ex := range entFields {
+		t.Run(d.Name, func(t *testing.T) {
+			f, err := load.NewField(d)
+			require.NoError(t, err)
+			gf := &gen.Field{
+				Name:        f.Name,
+				Type:        f.Info,
+				Annotations: f.Annotations,
+			}
+			ant, err := FieldAnnotation(gf)
+			require.NoError(t, err)
+			require.Equal(t, ant.Example, gf.Name)
+
+			ac, err := OgenSchema(gf)
+			require.NoError(t, err)
+			require.Equal(t, ex, ac)
+		})
+	}
+}
+
 func TestOperation_Title(t *testing.T) {
 	t.Parallel()
 	require.Equal(t, "Create", OpCreate.Title())
