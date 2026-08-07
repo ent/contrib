@@ -58,6 +58,17 @@ func TestFieldModifier(t *testing.T) {
 	require.Contains(t, contents, `field.String("name").Optional().StorageKey("shem")`)
 }
 
+func TestIndex(t *testing.T) {
+	tt, err := newGenTest(t, "testdata/index.proto")
+	require.NoError(t, err)
+	contents, err := tt.fileContents("index.go")
+	require.NoError(t, err)
+	require.Contains(t, contents, "type Index struct")
+	require.Contains(t, contents, `field.String("index")`)
+	require.Contains(t, contents, `index.Fields("index")`)
+	require.Contains(t, contents, `index.Fields("unique_index").Unique()`)
+}
+
 func TestEdges_O2M(t *testing.T) {
 	tt, err := newGenTest(t, "testdata/edges.proto")
 	require.NoError(t, err)
