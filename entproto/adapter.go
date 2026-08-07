@@ -121,15 +121,35 @@ func (a *Adapter) parse() error {
 
 		if _, ok := protoPackages[protoPkg]; !ok {
 			goPkg := a.goPackageName(protoPkg)
+
+			var phpNamespace *string
+
+			msgAnnot, err := extractMessageAnnotation(genType)
+			if err == nil && msgAnnot.PhpNamespace != "" {
+				phpNamespace = &msgAnnot.PhpNamespace
+			}
+
 			protoPackages[protoPkg] = &descriptorpb.FileDescriptorProto{
 				Name:    relFileName(protoPkg),
 				Package: &protoPkg,
 				Syntax:  strptr("proto3"),
 				Options: &descriptorpb.FileOptions{
-					GoPackage: &goPkg,
+					GoPackage:    &goPkg,
+					PhpNamespace: phpNamespace,
 				},
 			}
 		}
+
+		// Extract and set PhpNamespace if provided (even for existing packages)
+		msgAnnot, err := extractMessageAnnotation(genType)
+		if err == nil && msgAnnot.PhpNamespace != "" {
+			fd := protoPackages[protoPkg]
+			if fd.Options == nil {
+				fd.Options = &descriptorpb.FileOptions{}
+			}
+			fd.Options.PhpNamespace = &msgAnnot.PhpNamespace
+		}
+
 		fd := protoPackages[protoPkg]
 		fd.MessageType = append(fd.MessageType, messageDescriptor)
 		a.schemaProtoFiles[genType.Name] = *fd.Name

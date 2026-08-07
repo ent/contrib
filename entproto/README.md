@@ -174,10 +174,19 @@ func (User) Annotations() []schema.Annotation {
 By default the proto package name for the generated files will be `entpb` but it can be specified using a functional option:
 
 ```go
-
 func (MessageWithPackageName) Annotations() []schema.Annotation {
 	return []schema.Annotation{entproto.Message(
 		entproto.PackageName("io.entgo.apps.todo"),
+	)}
+}
+```
+
+In case you want to add a custom PHP namespace, you can also add the following option:
+
+```go
+func (MessageWithPackageName) Annotations() []schema.Annotation {
+	return []schema.Annotation{entproto.Message(
+		entproto.PhpNamespace("My\\Company\\Todo"),
 	)}
 }
 ```
@@ -331,7 +340,7 @@ message User {
 Field type mappings:
 
 | Ent Type       | Proto Type                | More considerations                                                                                                                                                         |
-|----------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | TypeBool       | bool                      |                                                                                                                                                                             |
 | TypeTime       | google.protobuf.Timestamp |                                                                                                                                                                             |
 | TypeJSON\[[]T] | repeated T                | T must be one of: `string`, `int32`, `int64`, `uint32`, `uint64`                                                                                                            |

@@ -44,6 +44,8 @@ type Tx struct {
 	MessageWithOptionals *MessageWithOptionalsClient
 	// MessageWithPackageName is the client for interacting with the MessageWithPackageName builders.
 	MessageWithPackageName *MessageWithPackageNameClient
+	// MessageWithPhpNamespace is the client for interacting with the MessageWithPhpNamespace builders.
+	MessageWithPhpNamespace *MessageWithPhpNamespaceClient
 	// MessageWithStrings is the client for interacting with the MessageWithStrings builders.
 	MessageWithStrings *MessageWithStringsClient
 	// NoBackref is the client for interacting with the NoBackref builders.
@@ -207,6 +209,7 @@ func (tx *Tx) init() {
 	tx.MessageWithInts = NewMessageWithIntsClient(tx.config)
 	tx.MessageWithOptionals = NewMessageWithOptionalsClient(tx.config)
 	tx.MessageWithPackageName = NewMessageWithPackageNameClient(tx.config)
+	tx.MessageWithPhpNamespace = NewMessageWithPhpNamespaceClient(tx.config)
 	tx.MessageWithStrings = NewMessageWithStringsClient(tx.config)
 	tx.NoBackref = NewNoBackrefClient(tx.config)
 	tx.OneMethodService = NewOneMethodServiceClient(tx.config)

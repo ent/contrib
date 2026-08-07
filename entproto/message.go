@@ -55,9 +55,17 @@ func PackageName(pkg string) MessageOption {
 	}
 }
 
+// PhpNamespace modifies the generated message's PHP namespace
+func PhpNamespace(namespace string) MessageOption {
+	return func(msg *message) {
+		msg.PhpNamespace = namespace
+	}
+}
+
 type message struct {
-	Generate bool
-	Package  string
+	Generate     bool
+	Package      string
+	PhpNamespace string
 }
 
 func (m message) Name() string {

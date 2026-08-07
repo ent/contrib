@@ -290,3 +290,9 @@ func (suite *AdapterTestSuite) TestOptionals() {
 	suite.Require().EqualValues(descriptorpb.FieldDescriptorProto_TYPE_MESSAGE, bytesField.GetType())
 	suite.Require().EqualValues("BytesValue", uuidField.GetMessageType().GetName())
 }
+
+func (suite *AdapterTestSuite) TestMessageWithPhpNamespace() {
+	fd, err := suite.adapter.GetFileDescriptor("MessageWithPhpNamespace")
+	suite.Require().NoError(err)
+	suite.Equal("My\\Company\\Todo", fd.GetFileOptions().GetPhpNamespace())
+}
