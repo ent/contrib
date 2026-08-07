@@ -610,32 +610,32 @@ func NodeOperations(n *gen.Type) ([]Operation, error) {
 			return []Operation{OpCreate, OpRead, OpUpdate, OpDelete, OpList}, nil
 		}
 		return nil, nil
-	} else {
-		// An operation gets exposed if it is either
-		// - annotated with PolicyExpose or
-		// - not annotated with PolicyExclude and the DefaultPolicy is PolicyExpose.
-		if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
-			return nil, err
-		}
-		var ops []Operation
-		for op, opn := range map[Operation]OperationConfig{
-			OpCreate: ant.Create,
-			OpRead:   ant.Read,
-			OpUpdate: ant.Update,
-			OpDelete: ant.Delete,
-			OpList:   ant.List,
-		} {
-			// If the operation is explicitly annotated to be exposed do so.
-			if opn.Policy == PolicyExpose || (opn.Policy == PolicyNone && c.DefaultPolicy == PolicyExpose) {
-				ops = append(ops, op)
-				continue
-			}
-		}
-		sort.Slice(ops, func(i, j int) bool {
-			return ops[i] < ops[j]
-		})
-		return ops, nil
 	}
+
+	// An operation gets exposed if it is either
+	// - annotated with PolicyExpose or
+	// - not annotated with PolicyExclude and the DefaultPolicy is PolicyExpose.
+	if err := ant.Decode(n.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	var ops []Operation
+	for op, opn := range map[Operation]OperationConfig{
+		OpCreate: ant.Create,
+		OpRead:   ant.Read,
+		OpUpdate: ant.Update,
+		OpDelete: ant.Delete,
+		OpList:   ant.List,
+	} {
+		// If the operation is explicitly annotated to be exposed do so.
+		if opn.Policy == PolicyExpose || (opn.Policy == PolicyNone && c.DefaultPolicy == PolicyExpose) {
+			ops = append(ops, op)
+			continue
+		}
+	}
+	sort.Slice(ops, func(i, j int) bool {
+		return ops[i] < ops[j]
+	})
+	return ops, nil
 }
 
 // EdgeOperations returns the list of operations to expose for this edge.
@@ -650,36 +650,35 @@ func EdgeOperations(e *gen.Edge) ([]Operation, error) {
 		if c.DefaultPolicy == PolicyExpose {
 			if e.Unique {
 				return []Operation{OpRead}, nil
-			} else {
-				return []Operation{OpList}, nil
 			}
+			return []Operation{OpList}, nil
 		}
 		return nil, nil
-	} else {
-		// An edge-operation gets exposed if it is either
-		// - annotated with PolicyExpose or
-		// - not annotated with PolicyExclude and the DefaultPolicy is PolicyExpose.
-		if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
-			return nil, err
-		}
-		var ops []Operation
-		m := make(map[Operation]OperationConfig)
-		if e.Unique {
-			m[OpRead] = ant.Read
-		} else {
-			m[OpList] = ant.List
-		}
-		for op, opn := range m {
-			if opn.Policy == PolicyExpose || (opn.Policy == PolicyNone && c.DefaultPolicy == PolicyExpose) {
-				ops = append(ops, op)
-				continue
-			}
-		}
-		sort.Slice(ops, func(i, j int) bool {
-			return ops[i] < ops[j]
-		})
-		return ops, nil
 	}
+
+	// An edge-operation gets exposed if it is either
+	// - annotated with PolicyExpose or
+	// - not annotated with PolicyExclude and the DefaultPolicy is PolicyExpose.
+	if err := ant.Decode(e.Annotations[ant.Name()]); err != nil {
+		return nil, err
+	}
+	var ops []Operation
+	m := make(map[Operation]OperationConfig)
+	if e.Unique {
+		m[OpRead] = ant.Read
+	} else {
+		m[OpList] = ant.List
+	}
+	for op, opn := range m {
+		if opn.Policy == PolicyExpose || (opn.Policy == PolicyNone && c.DefaultPolicy == PolicyExpose) {
+			ops = append(ops, op)
+			continue
+		}
+	}
+	sort.Slice(ops, func(i, j int) bool {
+		return ops[i] < ops[j]
+	})
+	return ops, nil
 }
 
 // reqBody returns the request body for the given node and operation.
