@@ -65,7 +65,10 @@ func (User) Edges() []ent.Edge {
 			),
 		edge.To("friends", User.Type).
 			Through("friendships", Friendship.Type).
-			Annotations(entgql.RelayConnection()),
+			Annotations(
+				entgql.RelayConnection(),
+				entgql.OrderField("FRIENDS_COUNT"),
+			),
 	}
 }
 
