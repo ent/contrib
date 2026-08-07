@@ -82,8 +82,8 @@ func Views(g *gen.Graph) (map[string]*View, error) {
 			}
 			// For every operation add a schema to use.
 			for _, op := range ops {
-				// Skip the delete operation (of course).
-				if op == OpDelete {
+				// Skip the create, delete, and update operations.
+				if op == OpCreate || op == OpDelete || op == OpUpdate {
 					continue
 				}
 				gs, err := GroupsForOperation(e.Annotations, op)
