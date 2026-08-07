@@ -17,8 +17,10 @@ package schemast
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"sort"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
@@ -48,6 +50,7 @@ func Annotation(annot schema.Annotation) (ast.Expr, bool, error) {
 		entproto.FieldAnnotation:   protoField,
 		entproto.EnumAnnotation:    protoEnum,
 		"EntSQL":                   entSQL,
+		"EntGQL":                   entGQL,
 	}
 	fn, ok := annotators[annot.Name()]
 	if !ok {
@@ -184,6 +187,68 @@ func entSQL(annot schema.Annotation) (ast.Expr, bool, error) {
 	}
 	// TODO(rotemtam): support m.Incremental (it is a *bool)
 	return c, true, nil
+}
+
+func entGQL(annot schema.Annotation) (ast.Expr, bool, error) {
+	m := &entgql.Annotation{}
+	if err := mapstructure.Decode(annot, m); err != nil {
+		return nil, false, err
+	}
+	if m.OrderField != "" {
+		return fnCall(selectorLit("entgql", "OrderField"), strLit(m.OrderField)), true, nil
+	}
+	if m.MultiOrder {
+		return fnCall(selectorLit("entgql", "MultiOrder")), true, nil
+	}
+	if m.Type != "" {
+		return fnCall(selectorLit("entgql", "Type"), strLit(m.Type)), true, nil
+	}
+	if m.Skip != 0 {
+		var skipModeList = []*ast.SelectorExpr{
+			selectorLit("entgql", "SkipType"),
+			selectorLit("entgql", "SkipEnumField"),
+			selectorLit("entgql", "SkipOrderField"),
+			selectorLit("entgql", "SkipWhereInput"),
+			selectorLit("entgql", "SkipMutationCreateInput"),
+			selectorLit("entgql", "SkipMutationUpdateInput")}
+		var skip []*ast.SelectorExpr
+		for i, expr := range skipModeList {
+			if m.Skip&(1<<i) != 0 {
+				skip = append(skip, expr)
+			}
+		}
+		var arg ast.Expr
+		arg = skip[0]
+		for _, expr := range skip[1:] {
+			arg = &ast.BinaryExpr{
+				X:  arg,
+				Op: token.OR,
+				Y:  expr,
+			}
+		}
+		return fnCall(selectorLit("entgql", "Skip"), arg), true, nil
+	}
+	if m.RelayConnection {
+		return fnCall(selectorLit("entgql", "RelayConnection")), true, nil
+	}
+	if m.QueryField != nil {
+		if m.QueryField.Name != "" {
+			return fnCall(selectorLit("entgql", "QueryField"), strLit(m.QueryField.Name)), true, nil
+		}
+		return fnCall(selectorLit("entgql", "QueryField")), true, nil
+	}
+	if len(m.MutationInputs) > 0 {
+		var options []ast.Expr
+		for _, mutation := range m.MutationInputs {
+			if mutation.IsCreate {
+				options = append(options, fnCall(selectorLit("entgql", "MutationCreate")))
+			} else {
+				options = append(options, fnCall(selectorLit("entgql", "MutationUpdate")))
+			}
+		}
+		return fnCall(selectorLit("entgql", "Mutations"), options...), true, nil
+	}
+	return &ast.CompositeLit{Type: selectorLit("entgql", "Annotation")}, true, nil
 }
 
 func toAnnotASTs(annots []schema.Annotation) ([]ast.Expr, error) {
