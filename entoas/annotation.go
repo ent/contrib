@@ -29,7 +29,7 @@ type (
 		// Groups holds the serialization groups to use on this field / edge.
 		Groups serialization.Groups
 		// OpenAPI Specification example value for a schema field.
-		Example interface{}
+		Example any
 		// OpenAPI Specification schema to use for a schema field.
 		Schema *ogen.Schema
 		// Create has meta information about a creation operation.
@@ -71,8 +71,9 @@ func OperationPolicy(p Policy) OperationConfigOption {
 	return func(c *OperationConfig) { c.Policy = p }
 }
 
-// Example returns an example annotation.
-func Example(v interface{}) Annotation { return Annotation{Example: v} }
+// Example returns an example annotation on a field. This is meant to show an example value of
+// what the field would look like.
+func Example(v any) Annotation { return Annotation{Example: v} }
 
 // Schema returns a Schema annotation.
 func Schema(s *ogen.Schema) Annotation { return Annotation{Schema: s} }
@@ -166,7 +167,7 @@ func (op *OperationConfig) merge(other OperationConfig) {
 }
 
 // Decode from ent.
-func (a *Annotation) Decode(o interface{}) error {
+func (a *Annotation) Decode(o any) error {
 	buf, err := json.Marshal(o)
 	if err != nil {
 		return err
