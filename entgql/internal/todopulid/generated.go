@@ -126,6 +126,7 @@ type ComplexityRoot struct {
 
 	CategoryConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -154,6 +155,7 @@ type ComplexityRoot struct {
 
 	FriendshipConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -171,6 +173,7 @@ type ComplexityRoot struct {
 
 	GroupConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -198,6 +201,7 @@ type ComplexityRoot struct {
 
 	OneToManyConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -276,6 +280,7 @@ type ComplexityRoot struct {
 
 	TodoConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -301,6 +306,7 @@ type ComplexityRoot struct {
 
 	UserConnection struct {
 		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
 		PageInfo   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -658,6 +664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CategoryConnection.Edges(childComplexity), true
 
+	case "CategoryConnection.nodes":
+		if e.complexity.CategoryConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.CategoryConnection.Nodes(childComplexity), true
+
 	case "CategoryConnection.pageInfo":
 		if e.complexity.CategoryConnection.PageInfo == nil {
 			break
@@ -749,6 +762,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FriendshipConnection.Edges(childComplexity), true
 
+	case "FriendshipConnection.nodes":
+		if e.complexity.FriendshipConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.FriendshipConnection.Nodes(childComplexity), true
+
 	case "FriendshipConnection.pageInfo":
 		if e.complexity.FriendshipConnection.PageInfo == nil {
 			break
@@ -809,6 +829,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GroupConnection.Edges(childComplexity), true
+
+	case "GroupConnection.nodes":
+		if e.complexity.GroupConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.GroupConnection.Nodes(childComplexity), true
 
 	case "GroupConnection.pageInfo":
 		if e.complexity.GroupConnection.PageInfo == nil {
@@ -934,6 +961,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OneToManyConnection.Edges(childComplexity), true
+
+	case "OneToManyConnection.nodes":
+		if e.complexity.OneToManyConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.OneToManyConnection.Nodes(childComplexity), true
 
 	case "OneToManyConnection.pageInfo":
 		if e.complexity.OneToManyConnection.PageInfo == nil {
@@ -1352,6 +1386,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TodoConnection.Edges(childComplexity), true
 
+	case "TodoConnection.nodes":
+		if e.complexity.TodoConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.TodoConnection.Nodes(childComplexity), true
+
 	case "TodoConnection.pageInfo":
 		if e.complexity.TodoConnection.PageInfo == nil {
 			break
@@ -1478,6 +1519,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserConnection.Edges(childComplexity), true
+
+	case "UserConnection.nodes":
+		if e.complexity.UserConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.Nodes(childComplexity), true
 
 	case "UserConnection.pageInfo":
 		if e.complexity.UserConnection.PageInfo == nil {
@@ -2128,6 +2176,10 @@ type CategoryConnection {
   """
   edges: [CategoryEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Category]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -2346,6 +2398,10 @@ type FriendshipConnection {
   """
   edges: [FriendshipEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Friendship]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -2442,6 +2498,10 @@ type GroupConnection {
   """
   edges: [GroupEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Group]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -2533,6 +2593,10 @@ type OneToManyConnection {
   A list of edges.
   """
   edges: [OneToManyEdge]
+  """
+  A list of nodes.
+  """
+  nodes: [OneToMany]
   """
   Information to aid in pagination.
   """
@@ -3138,6 +3202,10 @@ type TodoConnection {
   """
   edges: [TodoEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Todo]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -3495,6 +3563,10 @@ type UserConnection {
   A list of edges.
   """
   edges: [UserEdge]
+  """
+  A list of nodes.
+  """
+  nodes: [User]
   """
   Information to aid in pagination.
   """
@@ -7647,6 +7719,8 @@ func (ec *executionContext) fieldContext_Category_todos(ctx context.Context, fie
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_TodoConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -7773,6 +7847,8 @@ func (ec *executionContext) fieldContext_Category_subCategories(ctx context.Cont
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_CategoryConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_CategoryConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_CategoryConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -7919,6 +7995,71 @@ func (ec *executionContext) fieldContext_CategoryConnection_edges(_ context.Cont
 				return ec.fieldContext_CategoryEdge_cursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CategoryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CategoryConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ent.CategoryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CategoryConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CategoryConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CategoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Category_id(ctx, field)
+			case "text":
+				return ec.fieldContext_Category_text(ctx, field)
+			case "status":
+				return ec.fieldContext_Category_status(ctx, field)
+			case "config":
+				return ec.fieldContext_Category_config(ctx, field)
+			case "types":
+				return ec.fieldContext_Category_types(ctx, field)
+			case "duration":
+				return ec.fieldContext_Category_duration(ctx, field)
+			case "count":
+				return ec.fieldContext_Category_count(ctx, field)
+			case "strings":
+				return ec.fieldContext_Category_strings(ctx, field)
+			case "todos":
+				return ec.fieldContext_Category_todos(ctx, field)
+			case "subCategories":
+				return ec.fieldContext_Category_subCategories(ctx, field)
+			case "todosCount":
+				return ec.fieldContext_Category_todosCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Category", field.Name)
 		},
 	}
 	return fc, nil
@@ -8577,6 +8718,61 @@ func (ec *executionContext) fieldContext_FriendshipConnection_edges(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _FriendshipConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FriendshipConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Friendship)
+	fc.Result = res
+	return ec.marshalOFriendship2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐFriendship(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FriendshipConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FriendshipConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Friendship_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Friendship_createdAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_Friendship_userID(ctx, field)
+			case "friendID":
+				return ec.fieldContext_Friendship_friendID(ctx, field)
+			case "user":
+				return ec.fieldContext_Friendship_user(ctx, field)
+			case "friend":
+				return ec.fieldContext_Friendship_friend(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Friendship", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _FriendshipConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.FriendshipConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_FriendshipConnection_pageInfo(ctx, field)
 	if err != nil {
@@ -8903,6 +9099,8 @@ func (ec *executionContext) fieldContext_Group_users(ctx context.Context, field 
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_UserConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_UserConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -8967,6 +9165,79 @@ func (ec *executionContext) fieldContext_GroupConnection_edges(_ context.Context
 				return ec.fieldContext_GroupEdge_cursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GroupEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GroupConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ent.GroupConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GroupConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return obj.Nodes, nil
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			permissions, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []interface{}{"ADMIN", "MODERATOR"})
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasPermissions == nil {
+				return nil, errors.New("directive hasPermissions is not implemented")
+			}
+			return ec.directives.HasPermissions(ctx, obj, directive0, permissions)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*ent.Group); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*entgo.io/contrib/entgql/internal/todopulid/ent.Group`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Group)
+	fc.Result = res
+	return ec.marshalOGroup2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GroupConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GroupConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Group_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
+			case "users":
+				return ec.fieldContext_Group_users(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
 		},
 	}
 	return fc, nil
@@ -9856,6 +10127,59 @@ func (ec *executionContext) fieldContext_OneToManyConnection_edges(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _OneToManyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *OneToManyConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OneToManyConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*OneToMany)
+	fc.Result = res
+	return ec.marshalOOneToMany2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐOneToMany(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OneToManyConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OneToManyConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OneToMany_id(ctx, field)
+			case "name":
+				return ec.fieldContext_OneToMany_name(ctx, field)
+			case "field2":
+				return ec.fieldContext_OneToMany_field2(ctx, field)
+			case "parent":
+				return ec.fieldContext_OneToMany_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_OneToMany_children(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OneToMany", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OneToManyConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *OneToManyConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OneToManyConnection_pageInfo(ctx, field)
 	if err != nil {
@@ -10479,6 +10803,8 @@ func (ec *executionContext) fieldContext_Project_todos(ctx context.Context, fiel
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_TodoConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11207,6 +11533,8 @@ func (ec *executionContext) fieldContext_Query_categories(ctx context.Context, f
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_CategoryConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_CategoryConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_CategoryConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11270,6 +11598,8 @@ func (ec *executionContext) fieldContext_Query_groups(ctx context.Context, field
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_GroupConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_GroupConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11333,6 +11663,8 @@ func (ec *executionContext) fieldContext_Query_oneToMany(ctx context.Context, fi
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_OneToManyConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_OneToManyConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_OneToManyConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11396,6 +11728,8 @@ func (ec *executionContext) fieldContext_Query_todos(ctx context.Context, field 
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_TodoConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11459,6 +11793,8 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_UserConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_UserConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -11566,6 +11902,8 @@ func (ec *executionContext) fieldContext_Query_todosWithJoins(ctx context.Contex
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_TodoConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -12400,6 +12738,8 @@ func (ec *executionContext) fieldContext_Todo_children(ctx context.Context, fiel
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_TodoConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_TodoConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_TodoConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -12680,6 +13020,79 @@ func (ec *executionContext) fieldContext_TodoConnection_edges(_ context.Context,
 				return ec.fieldContext_TodoEdge_cursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TodoEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodoConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Todo)
+	fc.Result = res
+	return ec.marshalOTodo2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TodoConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodoConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Todo_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Todo_createdAt(ctx, field)
+			case "status":
+				return ec.fieldContext_Todo_status(ctx, field)
+			case "priorityOrder":
+				return ec.fieldContext_Todo_priorityOrder(ctx, field)
+			case "text":
+				return ec.fieldContext_Todo_text(ctx, field)
+			case "categoryID":
+				return ec.fieldContext_Todo_categoryID(ctx, field)
+			case "category_id":
+				return ec.fieldContext_Todo_category_id(ctx, field)
+			case "categoryX":
+				return ec.fieldContext_Todo_categoryX(ctx, field)
+			case "init":
+				return ec.fieldContext_Todo_init(ctx, field)
+			case "custom":
+				return ec.fieldContext_Todo_custom(ctx, field)
+			case "customp":
+				return ec.fieldContext_Todo_customp(ctx, field)
+			case "parent":
+				return ec.fieldContext_Todo_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Todo_children(ctx, field)
+			case "category":
+				return ec.fieldContext_Todo_category(ctx, field)
+			case "extendedField":
+				return ec.fieldContext_Todo_extendedField(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
 	}
 	return fc, nil
@@ -13248,6 +13661,8 @@ func (ec *executionContext) fieldContext_User_groups(ctx context.Context, field 
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_GroupConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_GroupConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_GroupConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -13311,6 +13726,8 @@ func (ec *executionContext) fieldContext_User_friends(ctx context.Context, field
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_UserConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_UserConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_UserConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -13374,6 +13791,8 @@ func (ec *executionContext) fieldContext_User_friendships(ctx context.Context, f
 			switch field.Name {
 			case "edges":
 				return ec.fieldContext_FriendshipConnection_edges(ctx, field)
+			case "nodes":
+				return ec.fieldContext_FriendshipConnection_nodes(ctx, field)
 			case "pageInfo":
 				return ec.fieldContext_FriendshipConnection_pageInfo(ctx, field)
 			case "totalCount":
@@ -13479,6 +13898,65 @@ func (ec *executionContext) fieldContext_UserConnection_edges(_ context.Context,
 				return ec.fieldContext_UserEdge_cursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserConnection_nodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "requiredMetadata":
+				return ec.fieldContext_User_requiredMetadata(ctx, field)
+			case "metadata":
+				return ec.fieldContext_User_metadata(ctx, field)
+			case "groups":
+				return ec.fieldContext_User_groups(ctx, field)
+			case "friends":
+				return ec.fieldContext_User_friends(ctx, field)
+			case "friendships":
+				return ec.fieldContext_User_friendships(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -21071,6 +21549,8 @@ func (ec *executionContext) _CategoryConnection(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("CategoryConnection")
 		case "edges":
 			out.Values[i] = ec._CategoryConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._CategoryConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._CategoryConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -21359,6 +21839,8 @@ func (ec *executionContext) _FriendshipConnection(ctx context.Context, sel ast.S
 			out.Values[i] = graphql.MarshalString("FriendshipConnection")
 		case "edges":
 			out.Values[i] = ec._FriendshipConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._FriendshipConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._FriendshipConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -21526,6 +22008,8 @@ func (ec *executionContext) _GroupConnection(ctx context.Context, sel ast.Select
 			out.Values[i] = graphql.MarshalString("GroupConnection")
 		case "edges":
 			out.Values[i] = ec._GroupConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._GroupConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._GroupConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -21740,6 +22224,8 @@ func (ec *executionContext) _OneToManyConnection(ctx context.Context, sel ast.Se
 			out.Values[i] = graphql.MarshalString("OneToManyConnection")
 		case "edges":
 			out.Values[i] = ec._OneToManyConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._OneToManyConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._OneToManyConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -22806,6 +23292,8 @@ func (ec *executionContext) _TodoConnection(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("TodoConnection")
 		case "edges":
 			out.Values[i] = ec._TodoConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._TodoConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._TodoConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -23125,6 +23613,8 @@ func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("UserConnection")
 		case "edges":
 			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._UserConnection_nodes(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._UserConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -24700,6 +25190,47 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) marshalOCategory2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategory(ctx context.Context, sel ast.SelectionSet, v []*ent.Category) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOCategory2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐCategory(ctx context.Context, sel ast.SelectionSet, v *ent.Category) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -25119,6 +25650,47 @@ func (ec *executionContext) marshalODuration2ᚖtimeᚐDuration(ctx context.Cont
 	return res
 }
 
+func (ec *executionContext) marshalOFriendship2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐFriendship(ctx context.Context, sel ast.SelectionSet, v []*ent.Friendship) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFriendship2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐFriendship(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOFriendship2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐFriendship(ctx context.Context, sel ast.SelectionSet, v *ent.Friendship) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -25198,6 +25770,47 @@ func (ec *executionContext) unmarshalOFriendshipWhereInput2ᚖentgoᚗioᚋcontr
 	}
 	res, err := ec.unmarshalInputFriendshipWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOGroup2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v []*ent.Group) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOGroup2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐGroup(ctx context.Context, sel ast.SelectionSet, v *ent.Group) graphql.Marshaler {
@@ -25426,6 +26039,47 @@ func (ec *executionContext) marshalONode2entgoᚗioᚋcontribᚋentgqlᚋinterna
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOneToMany2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐOneToMany(ctx context.Context, sel ast.SelectionSet, v []*OneToMany) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOOneToMany2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐOneToMany(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOOneToMany2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚐOneToManyᚄ(ctx context.Context, sel ast.SelectionSet, v []*OneToMany) graphql.Marshaler {
@@ -25785,6 +26439,47 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
+func (ec *executionContext) marshalOTodo2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v []*ent.Todo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOTodo2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐTodo(ctx context.Context, sel ast.SelectionSet, v *ent.Todo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -26077,6 +26772,47 @@ func (ec *executionContext) marshalOUint642ᚖuint64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalUint64(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚕᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOUser2ᚖentgoᚗioᚋcontribᚋentgqlᚋinternalᚋtodopulidᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {

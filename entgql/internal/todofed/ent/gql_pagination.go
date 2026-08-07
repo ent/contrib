@@ -117,6 +117,7 @@ func hasCollectedFieldFrom(parent graphql.CollectedField, oc *graphql.OperationC
 
 const (
 	edgesField      = "edges"
+	nodesField      = "nodes"
 	nodeField       = "node"
 	pageInfoField   = "pageInfo"
 	totalCountField = "totalCount"
@@ -141,6 +142,7 @@ type CategoryEdge struct {
 // CategoryConnection is the connection containing edges to Category.
 type CategoryConnection struct {
 	Edges      []*CategoryEdge `json:"edges"`
+	Nodes      []*Category     `json:"nodes"`
 	PageInfo   PageInfo        `json:"pageInfo"`
 	TotalCount int             `json:"totalCount"`
 }
@@ -167,6 +169,7 @@ func (c *CategoryConnection) build(nodes []*Category, pager *categoryPager, afte
 		}
 	}
 	c.Edges = make([]*CategoryEdge, len(nodes))
+	c.Nodes = nodes
 	for i := range nodes {
 		node := nodeAt(i)
 		c.Edges[i] = &CategoryEdge{
@@ -303,7 +306,7 @@ func (c *CategoryQuery) Paginate(
 		return nil, err
 	}
 	conn := &CategoryConnection{Edges: []*CategoryEdge{}}
-	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, nodesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
@@ -328,6 +331,11 @@ func (c *CategoryQuery) Paginate(
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
 		if err := c.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	if field := collectedField(ctx, nodesField); field != nil {
+		if err := c.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{nodesField}); err != nil {
 			return nil, err
 		}
 	}
@@ -455,6 +463,7 @@ type TodoEdge struct {
 // TodoConnection is the connection containing edges to Todo.
 type TodoConnection struct {
 	Edges      []*TodoEdge `json:"edges"`
+	Nodes      []*Todo     `json:"nodes"`
 	PageInfo   PageInfo    `json:"pageInfo"`
 	TotalCount int         `json:"totalCount"`
 }
@@ -481,6 +490,7 @@ func (c *TodoConnection) build(nodes []*Todo, pager *todoPager, after *Cursor, f
 		}
 	}
 	c.Edges = make([]*TodoEdge, len(nodes))
+	c.Nodes = nodes
 	for i := range nodes {
 		node := nodeAt(i)
 		c.Edges[i] = &TodoEdge{
@@ -617,7 +627,7 @@ func (t *TodoQuery) Paginate(
 		return nil, err
 	}
 	conn := &TodoConnection{Edges: []*TodoEdge{}}
-	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	ignoredEdges := !hasCollectedField(ctx, edgesField) && !hasCollectedField(ctx, nodesField)
 	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
 		hasPagination := after != nil || first != nil || before != nil || last != nil
 		if hasPagination || ignoredEdges {
@@ -642,6 +652,11 @@ func (t *TodoQuery) Paginate(
 	}
 	if field := collectedField(ctx, edgesField, nodeField); field != nil {
 		if err := t.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	if field := collectedField(ctx, nodesField); field != nil {
+		if err := t.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{nodesField}); err != nil {
 			return nil, err
 		}
 	}

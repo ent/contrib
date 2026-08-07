@@ -399,6 +399,10 @@ type CategoryConnection {
   """
   edges: [CategoryEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Category]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -617,6 +621,10 @@ type FriendshipConnection {
   """
   edges: [FriendshipEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Friendship]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -713,6 +721,10 @@ type GroupConnection {
   """
   edges: [GroupEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Group]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -804,6 +816,10 @@ type OneToManyConnection {
   A list of edges.
   """
   edges: [OneToManyEdge]
+  """
+  A list of nodes.
+  """
+  nodes: [OneToMany]
   """
   Information to aid in pagination.
   """
@@ -1409,6 +1425,10 @@ type TodoConnection {
   """
   edges: [TodoEdge]
   """
+  A list of nodes.
+  """
+  nodes: [Todo]
+  """
   Information to aid in pagination.
   """
   pageInfo: PageInfo!
@@ -1766,6 +1786,10 @@ type UserConnection {
   A list of edges.
   """
   edges: [UserEdge]
+  """
+  A list of nodes.
+  """
+  nodes: [User]
   """
   Information to aid in pagination.
   """
