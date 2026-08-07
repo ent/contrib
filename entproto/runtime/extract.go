@@ -17,10 +17,55 @@ package runtime
 import (
 	"time"
 
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ExtractTime returns the time.Time from a proto WKT Timestamp
 func ExtractTime(t *timestamppb.Timestamp) time.Time {
 	return t.AsTime()
+}
+
+// NewStruct creates a new *structpb.Struct from a map[string]interface{}.
+// Returns nil if the input is nil or conversion fails.
+func NewStruct(m map[string]interface{}) *structpb.Struct {
+	if m == nil {
+		return nil
+	}
+	s, err := structpb.NewStruct(m)
+	if err != nil {
+		return nil
+	}
+	return s
+}
+
+// ExtractStruct converts a *structpb.Struct to map[string]interface{}.
+// Returns nil if the input is nil.
+func ExtractStruct(s *structpb.Struct) map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.AsMap()
+}
+
+// NewList creates a new *structpb.ListValue from a []interface{}.
+// Returns nil if the input is nil or conversion fails.
+func NewList(l []interface{}) *structpb.ListValue {
+	if l == nil {
+		return nil
+	}
+	lv, err := structpb.NewList(l)
+	if err != nil {
+		return nil
+	}
+	return lv
+}
+
+// ExtractList converts a *structpb.ListValue to []interface{}.
+// Returns nil if the input is nil.
+func ExtractList(l *structpb.ListValue) []interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.AsSlice()
 }

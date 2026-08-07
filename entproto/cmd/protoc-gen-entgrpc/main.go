@@ -27,6 +27,7 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"google.golang.org/protobuf/compiler/protogen"
+	_ "google.golang.org/protobuf/types/known/structpb" // register google.protobuf.Struct in proto registry
 )
 
 var (
