@@ -167,6 +167,27 @@ func WithRelaySpec(enabled bool) ExtensionOption {
 	}
 }
 
+// WithRelayNode enables or disables generating the Relay Global Object
+// Identification parts: the Node interface, the node/nodes root queries and
+// the "implements Node" declarations on entity types. Pagination types
+// (Cursor, PageInfo) and RelayConnection fields are not affected.
+//
+// Disabling the node lookup is useful in federated setups: when every
+// subgraph publishes its own node/nodes definitions, those conflicting
+// definitions are difficult to merge during composition. Applying
+// WithRelayNode(false) in all subgraphs drops the node lookup entirely,
+// so the published schemas compose cleanly (e.g. with Rover) while
+// cursor pagination keeps working.
+//
+// The option takes effect only when the relay specification is enabled via
+// WithRelaySpec, and it defaults to true.
+func WithRelayNode(enabled bool) ExtensionOption {
+	return func(e *Extension) error {
+		e.relayNode = enabled
+		return nil
+	}
+}
+
 // WithSchemaGenerator add a hook for generate GQL schema
 func WithSchemaGenerator() ExtensionOption {
 	return func(e *Extension) error {
@@ -208,6 +229,7 @@ func NewExtension(opts ...ExtensionOption) (*Extension, error) {
 		templates: AllTemplates,
 		schemaGenerator: schemaGenerator{
 			relaySpec:    true,
+			relayNode:    true,
 			genMutations: true,
 		},
 	}

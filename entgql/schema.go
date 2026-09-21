@@ -105,6 +105,7 @@ var (
 type schemaGenerator struct {
 	path          string
 	relaySpec     bool
+	relayNode     bool
 	genSchema     bool
 	genWhereInput bool
 	genMutations  bool
@@ -121,7 +122,10 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 	if e.genSchema {
 		s.AddTypes(builtinTypes()...)
 		if e.relaySpec {
-			s.AddTypes(relayBuiltinTypes(g.Package)...)
+			s.AddTypes(relayBuiltinTypes()...)
+		}
+		if e.relaySpec && e.relayNode {
+			s.AddTypes(relayNodeType(g.Package))
 		}
 		for name, d := range directives {
 			s.Directives[name] = d
@@ -141,7 +145,7 @@ func (e *schemaGenerator) BuildSchema(g *gen.Graph) (s *ast.Schema, err error) {
 
 func (e *schemaGenerator) buildTypes(g *gen.Graph, s *ast.Schema) error {
 	var queryFields ast.FieldList
-	if e.relaySpec {
+	if e.relaySpec && e.relayNode {
 		queryFields = relayBuiltinQueryFields()
 	}
 
@@ -344,7 +348,7 @@ func (e *schemaGenerator) buildType(t *gen.Type, ant *Annotation, gqlType, pkg s
 	if t.Name != gqlType {
 		def.Directives = append(def.Directives, goModel(entGoType(t.Name, pkg)))
 	}
-	if e.relaySpec {
+	if e.relaySpec && e.relayNode {
 		def.Interfaces = append(def.Interfaces, "Node")
 	}
 	if len(ant.Implements) > 0 {
@@ -1208,29 +1212,13 @@ func relayBuiltinQueryFields() ast.FieldList {
 	}
 }
 
-func relayBuiltinTypes(pkg string) []*ast.Definition {
+func relayBuiltinTypes() []*ast.Definition {
 	return []*ast.Definition{
 		{
 			Name: RelayCursor,
 			Kind: ast.Scalar,
 			Description: `Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor`,
-		},
-		{
-			Name: RelayNode,
-			Kind: ast.Interface,
-			Description: `An object with an ID.
-Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)`,
-			Fields: []*ast.FieldDefinition{
-				{
-					Name:        "id",
-					Type:        ast.NonNullNamedType("ID", nil),
-					Description: "The id of the object.",
-				},
-			},
-			Directives: []*ast.Directive{
-				goModel(entGoType("Noder", pkg)),
-			},
 		},
 		{
 			Name: RelayPageInfo,
@@ -1259,6 +1247,28 @@ https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo`,
 					Description: "When paginating forwards, the cursor to continue.",
 				},
 			},
+		},
+	}
+}
+
+// relayNodeType returns the Relay Node interface definition of the
+// Global Object Identification specification. It is generated only when
+// both the relay specification and the relay node lookup are enabled.
+func relayNodeType(pkg string) *ast.Definition {
+	return &ast.Definition{
+		Name: RelayNode,
+		Kind: ast.Interface,
+		Description: `An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)`,
+		Fields: []*ast.FieldDefinition{
+			{
+				Name:        "id",
+				Type:        ast.NonNullNamedType("ID", nil),
+				Description: "The id of the object.",
+			},
+		},
+		Directives: []*ast.Directive{
+			goModel(entGoType("Noder", pkg)),
 		},
 	}
 }

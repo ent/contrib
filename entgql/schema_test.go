@@ -57,7 +57,7 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 		Storage: s,
 	})
 	require.NoError(t, err)
-	plugin := &schemaGenerator{genSchema: true, genWhereInput: true, genMutations: true, relaySpec: true}
+	plugin := &schemaGenerator{genSchema: true, genWhereInput: true, genMutations: true, relaySpec: true, relayNode: true}
 	schema := &ast.Schema{
 		Types: make(map[string]*ast.Definition),
 	}
@@ -68,6 +68,29 @@ func TestEntGQL_buildTypes_todoplugin_relay(t *testing.T) {
 	output := printSchema(schema)
 	if string(schemaExpect) != output {
 		require.NoError(t, os.WriteFile("./testdata/schema_relay_output.graphql", []byte(output), 0644))
+	}
+	require.Equal(t, string(schemaExpect), output)
+}
+
+func TestEntGQL_buildTypes_todoplugin_relay_nonode(t *testing.T) {
+	s, err := gen.NewStorage("sql")
+	require.NoError(t, err)
+
+	graph, err := entc.LoadGraph("./internal/todo/ent/schema", &gen.Config{
+		Storage: s,
+	})
+	require.NoError(t, err)
+	plugin := &schemaGenerator{genSchema: true, genWhereInput: true, genMutations: true, relaySpec: true, relayNode: false}
+	schema := &ast.Schema{
+		Types: make(map[string]*ast.Definition),
+	}
+	err = plugin.buildTypes(graph, schema)
+	require.NoError(t, err)
+	schemaExpect, err := os.ReadFile("./testdata/schema_relay_nonode.graphql")
+	require.NoError(t, err)
+	output := printSchema(schema)
+	if string(schemaExpect) != output {
+		require.NoError(t, os.WriteFile("./testdata/schema_relay_nonode_output.graphql", []byte(output), 0644))
 	}
 	require.Equal(t, string(schemaExpect), output)
 }
@@ -198,16 +221,6 @@ https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
 """
-An object with an ID.
-Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
-"""
-interface Node @goModel(model: "todo/ent.Noder") {
-  """
-  The id of the object.
-  """
-  id: ID!
-}
-"""
 Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 """
@@ -234,7 +247,12 @@ type PageInfo {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := relayBuiltinTypes("todo/ent")
+			// Note: relayBuiltinTypes used to take the ent package path
+			// (e.g. relayBuiltinTypes("todo/ent")) because it also emitted
+			// the Node interface with its @goModel directive. The Node
+			// interface moved to relayNodeType (see TestSchema_relayNodeType
+			// below), so these pagination-only types no longer need it.
+			got := relayBuiltinTypes()
 
 			s := &ast.Schema{}
 			s.AddTypes(got...)
@@ -243,6 +261,25 @@ type PageInfo {
 				t.Errorf("relayBuiltinTypes() = %v, want %v", gots, tt.want)
 			}
 		})
+	}
+}
+
+func TestSchema_relayNodeType(t *testing.T) {
+	s := &ast.Schema{}
+	s.AddTypes(relayNodeType("todo/ent"))
+	want := `"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
+interface Node @goModel(model: "todo/ent.Noder") {
+  """
+  The id of the object.
+  """
+  id: ID!
+}
+`
+	if got := printSchema(s); got != want {
+		t.Errorf("relayNodeType() = %v, want %v", got, want)
 	}
 }
 
