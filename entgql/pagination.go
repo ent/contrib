@@ -201,32 +201,43 @@ func multiPredicate[T any](cursor *Cursor[T], opts *MultiCursorsOptions) (func(*
 	if !ok {
 		return nil, fmt.Errorf("cursor %T is not a slice", cursor.Value)
 	}
-	if len(values) != len(opts.Fields) {
-		return nil, fmt.Errorf("cursor values length %d do not match orderBy fields length %d", len(values), len(opts.Fields))
+	fields, directions := slices.Clone(opts.Fields), slices.Clone(opts.Directions)
+	if len(values) != len(fields) {
+		return nil, fmt.Errorf("cursor values length %d do not match orderBy fields length %d", len(values), len(fields))
 	}
-	if len(opts.Directions) != len(opts.Fields) {
-		return nil, fmt.Errorf("orderBy directions length %d do not match orderBy fields length %d", len(opts.Directions), len(opts.Fields))
+	if len(directions) != len(fields) {
+		return nil, fmt.Errorf("orderBy directions length %d do not match orderBy fields length %d", len(directions), len(fields))
 	}
 	// Ensure the row value is unique by adding
 	// the ID field, if not already present.
-	if slices.Index(opts.Fields, opts.FieldID) == -1 {
+	values = slices.Clone(values)
+	if slices.Index(fields, opts.FieldID) == -1 {
 		values = append(values, cursor.ID)
-		opts.Fields = append(opts.Fields, opts.FieldID)
-		opts.Directions = append(opts.Directions, opts.DirectionID)
+		fields = append(fields, opts.FieldID)
+		directions = append(directions, opts.DirectionID)
 	}
 	return func(s *sql.Selector) {
+		columns := make([]string, len(fields))
+		for i, field := range fields {
+			columns[i] = s.C(field)
+			// If there is a non-ambiguous match, use it because some order
+			// terms append joined information to the query selection.
+			if matches := s.FindSelection(field); len(matches) == 1 {
+				columns[i] = matches[0]
+			}
+		}
 		// Given the following terms: x DESC, y ASC, etc. The following predicate will be
 		// generated: (x < x1 OR (x = x1 AND y > y1) OR (x = x1 AND y = y1 AND id > last)).
 		var or []*sql.Predicate
-		for i := range opts.Fields {
+		for i := range fields {
 			var ands []*sql.Predicate
 			for j := 0; j < i; j++ {
-				ands = append(ands, sql.EQ(s.C(opts.Fields[j]), values[j]))
+				ands = append(ands, sql.EQ(columns[j], values[j]))
 			}
-			if opts.Directions[i] == OrderDirectionAsc {
-				ands = append(ands, sql.GT(s.C(opts.Fields[i]), values[i]))
+			if directions[i] == OrderDirectionAsc {
+				ands = append(ands, sql.GT(columns[i], values[i]))
 			} else {
-				ands = append(ands, sql.LT(s.C(opts.Fields[i]), values[i]))
+				ands = append(ands, sql.LT(columns[i], values[i]))
 			}
 			or = append(or, sql.And(ands...))
 		}
